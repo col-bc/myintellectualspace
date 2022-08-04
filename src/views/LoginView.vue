@@ -3,9 +3,11 @@ import { ref, reactive } from 'vue'
 import axios from 'axios'
 import AlertComponent from '@/components/AlertComponent.vue'
 import useUserStore from '@/stores/user'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
+
 const userStore = useUserStore()
 
 const form = reactive({
@@ -20,16 +22,19 @@ async function verifyForm() {
   alert.value = ''
   if (!form.email || !form.password) {
     alert.value = 'Please fill in all fields'
+    form.password = ''
     return
   }
   // verify email is valid
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
     alert.value = 'Please enter a valid email address'
+    form.password = ''
     return
   }
   login()
 }
 async function login() {
+  // Request jwt from server with email and password
   loading.value = true
   try {
     const response = await axios.post('/api/auth/login', {
@@ -40,9 +45,10 @@ async function login() {
     if (response.data.token) {
       userStore.setToken(response.data.token)
       await userStore.fetchUser()
-      router.push('/social/me')
+      // redirect to requested page or social home
+      router.push(route.query.next || '/social/me')
     } else {
-      alert.value = 'Invalid email or password'
+      alert.value = 'Email or password is incorrect'
     }
   } catch (error) {
     console.log(error);
@@ -59,7 +65,7 @@ async function login() {
 </script>
 
 <template>
-  <main class="min-h-screen flex items-stretch">
+  <main class="min-h-screen flex items-stretch bg-white">
     <div class="flex-1 max-w-md mx-auto flex flex-col justify-center">
       <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
         Welcome Back to
@@ -97,11 +103,11 @@ async function login() {
                         type="error" />
         <input type="text"
                v-model="form.email"
-               class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                placeholder="Email address" />
         <input type="password"
                v-model="form.password"
-               class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                placeholder="Password" />
         <label class="flex items-center cursor-pointer w-full text-sm font-medium text-gray-900 dark:text-gray-300">
           <input type="checkbox"
@@ -115,7 +121,7 @@ async function login() {
           <div role="status"
                v-if="loading">
             <svg aria-hidden="true"
-                 class="mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+                 class="mr-2 w-6 h-6 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
                  viewBox="0 0 100 101"
                  fill="none"
                  xmlns="http://www.w3.org/2000/svg">
