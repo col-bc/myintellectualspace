@@ -25,20 +25,23 @@ const router = createRouter({
         if (userStore.isLoggedIn) {
           await userStore.fetchUser()
           return next()
-        } else return next('/login')
+        } else return next('/login?next=/explore')
       },
     },
-    // Authentication routes
+    // # Authorization routes
+    // /register
     {
       path: '/register',
       name: 'register',
       component: () => import('../views/RegisterView.vue'),
     },
+    // /login
     {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
     },
+    // /logout
     {
       path: '/logout',
       name: 'logout',
@@ -50,7 +53,8 @@ const router = createRouter({
       },
     },
     // TODO: Forgot Password and Reset Password
-    // Social Routes
+    // # Social Routes
+    // /social/me
     {
       path: '/social/me',
       name: 'account-home',
@@ -63,6 +67,7 @@ const router = createRouter({
         } else return next('/login')
       },
     },
+    // /social/@:handle
     {
       path: '/social/@:handle',
       name: 'account-profile',
@@ -72,15 +77,17 @@ const router = createRouter({
         if (userStore.isLoggedIn) {
           await userStore.fetchUser()
           return next()
-        } else return next('/login')
+        } else return next('/login?next=/social/@:handle')
       },
     },
+    // /user-not-found
     {
       path: '/user-not-found',
       name: 'user-not-found',
       component: () => import('@/views/Account/UserNotFoundView.vue'),
     },
-    // Learn Routes
+    // # Learn Routes
+    // /learn
     {
       path: '/learn',
       name: 'learn-home',
@@ -93,6 +100,7 @@ const router = createRouter({
         return next()
       },
     },
+    // /learn/join-meeting
     {
       path: '/learn/join-meeting',
       name: 'learn-join-meeting',
@@ -102,10 +110,11 @@ const router = createRouter({
         if (userStore.isLoggedIn) {
           await userStore.fetchUser()
           return next()
-        } else return next('/login')
+        } else return next('/login>?next=/learn/join-meeting')
       },
     },
-    // Teach routes
+    // # Teach Routes
+    // /teach
     {
       path: '/teach',
       name: 'teach-home',
@@ -118,6 +127,7 @@ const router = createRouter({
         return next()
       },
     },
+    // /teach/new-meeting
     {
       path: '/teach/new-meeting',
       name: 'teach-new-meeting',
@@ -127,7 +137,7 @@ const router = createRouter({
         if (userStore.isLoggedIn) {
           await userStore.fetchUser()
           return next()
-        } else return next('/login')
+        } else return next('/login?next=/teach/new-meeting')
       },
     },
   ],
