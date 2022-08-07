@@ -44,13 +44,13 @@ onUpdated(() => {
 <template>
   <div class="flex p-4 rounded-lg border-l-8"
        :class="{
-         'text-gray-700 bg-gray-100 border-gray-700 dark:bg-gray-700 dark:text-gray-300':
+         'text-gray-700 bg-gray-100 border-gray-700 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-800':
            alert.type === 'default',
-         'text-red-700 bg-red-100 border-red-700 dark:bg-red-200 dark:text-red-800':
+         'text-red-700 bg-red-100 border-red-700 dark:bg-red-200 dark:text-red-800 dark:border-red-800':
            alert.type === 'error',
-         'text-green-700 bg-green-100 border-green-700 dark:bg-green-200 dark:text-green-800':
+         'text-green-700 bg-green-100 border-green-700 dark:bg-green-200 dark:text-green-800 dark:border-green-800':
            alert.type === 'success',
-         'text-blue-700 bg-blue-100 border-blue-700 dark:bg-blue-200 dark:text-blue-800':
+         'text-blue-700 bg-blue-100 border-blue-700 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800':
            alert.type === 'primary',
        }"
        v-if="alert.show"
@@ -58,10 +58,10 @@ onUpdated(() => {
     <svg v-if="alert.showIcon"
          class="flex-shrink-0 w-5 h-5"
          :class="{
-           'text-gray-700 dark:text-gray-300': alert.type === 'default',
-           'text-red-700 dark:text-red-300': alert.type === 'error',
-           'text-green-700 dark:text-green-300': alert.type === 'success',
-           'text-blue-700 dark:text-blue-300': alert.type === 'primary',
+           'text-gray-700 dark:text-gray-800': alert.type === 'default',
+           'text-red-700 dark:text-red-800': alert.type === 'error',
+           'text-green-700 dark:text-green-800': alert.type === 'success',
+           'text-blue-700 dark:text-blue-800': alert.type === 'primary',
          }"
          fill="currentColor"
          viewBox="0 0 20 20"

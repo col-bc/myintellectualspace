@@ -14,10 +14,11 @@ const zak = ref('')
 const step = ref(0) // 0 - oauth, 2 - meeting details, 3 - meeting created
 
 function startOAuth() {
+  // Open OAuth authorization page and get access token
   window.location.href = 'https://zoom.us/oauth/authorize?client_id=F1fIs_DTjW41L2RIAoi3A&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fteach%2Fnew-meeting'
 }
 async function oAuthCallback(code) {
-  // getch zak token with oauth code
+  // Read access token from OAuth and request ZAK from API
   try {
     const response = await axios.get(`/api/meetings/zak/${code}`, {
       headers: {
@@ -48,6 +49,7 @@ const meeting = reactive({
 })
 
 async function createMeeting() {
+  // Create a meeting with ZAK and meeting details
   try {
     const response = await axios.post('/api/meetings/',
       {
@@ -87,10 +89,10 @@ async function getJWT() {
 </script>
 
 <template>
-  <main>
+  <main class="bg-white min-h-screen dark:bg-slate-800">
     <NavbarComponent />
     <div v-if="!accessToken"
-         class="f-full max-w-xl mx-auto flex flex-col items-center my-12">
+         class="f-full max-w-xl mx-auto flex flex-col items-center py-12">
       <!-- Start OAuth flow -->
       <div v-if="step === 0">
         <svg xmlns="http://www.w3.org/2000/svg"
@@ -103,10 +105,10 @@ async function getJWT() {
                 stroke-linejoin="round"
                 d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
-        <h1 class="text-4xl font-bold text-center leading-relaxed mb-12">
+        <h1 class="text-4xl font-bold text-center leading-relaxed mb-12 dark:text-white">
           Set up your meeting
         </h1>
-        <p class="font-medium text-center text-lg mb-6">
+        <p class="font-medium text-center text-lg mb-6 dark:text-gray-200">
           To get started, you will need to authorize us to access your Zoom account. This will allow us to create and manage meetings on your behalf.
         </p>
         <button type="button"
@@ -136,7 +138,7 @@ async function getJWT() {
                 stroke-linejoin="round"
                 d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
-        <h1 class="text-4xl font-bold text-center leading-relaxed mb-12">
+        <h1 class="text-4xl font-bold text-center leading-relaxed mb-12 dark:text-white">
           Configure your meeting
         </h1>
         <form @submit.prevent="createMeeting()"

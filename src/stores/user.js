@@ -12,6 +12,7 @@ export const useUserStore = defineStore({
     getBearerToken: (state) =>
       state.token ? `Bearer ${state.token}` : undefined,
     getUser: (state) => state.user,
+    getUserId: (state) => (state.user ? state.user.id : undefined),
     isLoggedIn: (state) => !!state.token,
   },
   actions: {
@@ -39,6 +40,10 @@ export const useUserStore = defineStore({
     },
     removePost(id) {
       this.user.posts = this.user.posts.filter((post) => post.id !== id)
+    },
+    updatePost(id, post) {
+      const index = this.user.posts.findIndex((p) => p.id === id)
+      this.user.posts[index] = post
     },
     logout() {
       this.token = undefined

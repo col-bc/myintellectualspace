@@ -13,11 +13,55 @@ const props = defineProps({
 })
 onMounted(() => {
   postData.value = props.post
+  if (postData.value.liked_by.includes(userStore.getUserId)) {
+    liked.value = true
+  }
 })
 const postData = ref({})
+const liked = ref(false)
 const showOwnerMenu = ref(false)
 const showFlagMenu = ref(false)
 
+
+async function handleLike() {
+  if (liked.value) {
+    try {
+      const response = await axios.post(
+        `/api/post/${postData.value.id}/unlike/`,
+        {},
+        {
+          headers: {
+            Authorization: userStore.getBearerToken,
+          },
+        }
+      )
+      if (response.status === 200) {
+        liked.value = false
+        userStore.updatePost(postData.value.id, response.data.post)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  } else {
+    try {
+      const response = await axios.post(
+        `/api/post/${postData.value.id}/like`,
+        {},
+        {
+          headers: {
+            Authorization: userStore.getBearerToken,
+          },
+        }
+      )
+      if (response.status === 200) {
+        liked.value = true
+        userStore.updatePost(postData.value.id, response.data.post)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+}
 function timeSince(date) {
   var seconds = Math.floor((new Date() - date) / 1000)
 
@@ -60,34 +104,37 @@ async function deletePost() {
 </script>
 
 <template>
-  <div class="bg-white shadow-sm border border-gray-200 rounded-lg w-full">
+  <div class="bg-white border border-gray-200 rounded-lg w-full dark:bg-gray-800 dark:border-gray-600">
     <div @click="$router.push(`/social/@${postData.owner_handle}`)"
          class="cursor-pointer flex items-center mb-3 p-4 pb-0">
       <img :src="postData.owner_avatar"
-           class="h-8 w-8 rounded-full mr-4" />
-      <h6 class="font-medium text-gray-900 mr-auto">
+           class="h-8 w-8 rounded-sm mr-4" />
+      <h6 class="font-medium text-gray-900 mr-auto dark:text-white">
         {{ postData.owner_handle }}
       </h6>
-      <p class="text-xs text-gray-600">
+      <p class="text-xs text-gray-600 dark:text-gray-400">
         {{ timeSince(new Date(postData.created_at)) }}
         ago
       </p>
     </div>
-    <div class="flex justify-start px-4 py-2">
+    <div class="flex justify-start items-start gap-4 px-4 py-2">
+      <p class="text-gray-800 flex-1  dark:text-white font-medium">{{ postData.content }}</p>
       <img v-if="postData.image_uri"
            :src="postData.image_uri"
-           class="h-fll w-48 ml-4 object-cover" />
-      <p class="text-gray-800">{{ postData.content }}</p>
+           class="h-fll w-48 lg:w-1/2 object-cover" />
     </div>
-    <div class="px-4 pt-2 bg-gray-50 flex items-center justify-end rounded-b-lg">
-      <p class="mr-auto text-xs text-gray-700">
+    <div class="px-4 pt-2  flex items-center justify-end rounded-b-lg border-t border-gray-300 dark:border-gray-600">
+      <p class="mr-auto text-xs text-gray-700 dark:text-gray-300">
         {{ postData.location }}
       </p>
       <p class="text-xs text-gray-700">{{ postData.liked_by }}</p>
       <button type="button"
+              @click="handleLike()"
               class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
+        <!-- Outline -->
         <svg xmlns="http://www.w3.org/2000/svg"
              class="h-6 w-6"
+             :class="{ 'fill-red-600': liked }"
              fill="none"
              viewBox="0 0 24 24"
              stroke="currentColor"

@@ -18,6 +18,6 @@ import { RouterView } from 'vue-router'
 
 body {
   font-family: 'Poppins', sans-serif;
-  @apply bg-gray-50;
 }
+
 </style>

@@ -28,6 +28,7 @@ const router = createRouter({
         } else return next('/login?next=/explore')
       },
     },
+
     // # Authorization routes
     // /register
     {
@@ -52,7 +53,16 @@ const router = createRouter({
         return next()
       },
     },
+    // /verify
+    // {
+    //   path: '/verify/:token',
+    //   name: 'verify',
+    //   component: () => import('../views/VerifyView.vue'),
+    //   beforeEnter: async (to, from, next) => {
+    //   }
+    // },
     // TODO: Forgot Password and Reset Password
+
     // # Social Routes
     // /social/me
     {
@@ -86,6 +96,7 @@ const router = createRouter({
       name: 'user-not-found',
       component: () => import('@/views/Account/UserNotFoundView.vue'),
     },
+
     // # Learn Routes
     // /learn
     {
@@ -113,6 +124,7 @@ const router = createRouter({
         } else return next('/login>?next=/learn/join-meeting')
       },
     },
+
     // # Teach Routes
     // /teach
     {
@@ -138,6 +150,40 @@ const router = createRouter({
           await userStore.fetchUser()
           return next()
         } else return next('/login?next=/teach/new-meeting')
+      },
+    },
+    
+    // # Other Routes
+    // /getting-started
+    {
+      path: '/getting-started',
+      name: 'getting-started',
+      component: () => import('@/views/Account/GettingStartedView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/getting-started')
+      },
+    },
+    // /verify-email
+    {
+      path: '/verify-email',
+      name: 'verify-email',
+      component: () => import('@/views/Account/VerifyEmailView.vue'),
+    },
+    // /messages
+    {
+      path: '/messages',
+      name: 'messages',
+      component: () => import('@/views/MessagesView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/messages')
       },
     },
   ],

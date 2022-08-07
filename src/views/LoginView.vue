@@ -1,9 +1,21 @@
 <script setup>
-import { ref, reactive } from 'vue'
-import axios from 'axios'
 import AlertComponent from '@/components/AlertComponent.vue'
 import useUserStore from '@/stores/user'
-import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
+import { onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+onMounted(() => {
+  // Dark mode
+  if (localStorage.getItem('color-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+
+  } else {
+    document.documentElement.classList.remove('dark')
+
+  }
+})
+
 
 const router = useRouter()
 const route = useRoute()
@@ -21,7 +33,7 @@ const loading = ref(false)
 async function verifyForm() {
   alert.value = ''
   if (!form.email || !form.password) {
-    alert.value = 'Please fill in all fields'
+    alert.value = 'Both email and password are required.'
     form.password = ''
     return
   }
@@ -41,21 +53,32 @@ async function login() {
       email: form.email,
       password: form.password,
     })
-    // save token to pinia store and fetch user data
+    /*
+      Types of login responses:
+      token: jwt token issued, no restrictions
+      first_login: jwt token issued, user must complete onboarding
+      verify_email: no token issued, user must verify email
+    */
     if (response.data.token) {
       userStore.setToken(response.data.token)
       await userStore.fetchUser()
-      // redirect to requested page or social home
-      router.push(route.query.next || '/social/me')
-    } else {
-      alert.value = 'Email or password is incorrect'
+      if (response.data.first_login) {
+        // redirect to onboarding
+        router.push('/getting-started')
+      } else {
+        // redirect to requested page or social home
+        router.push(route.query.next || '/social/me')
+      }
+    } else if (response.data.verify_email) {
+      // redirect to verify email page
+      router.push('/verify-email')
     }
   } catch (error) {
-    console.log(error);
-    if (error.response.status === 401 || error.response.status === 403 || error.response.status === 400) {
-      alert.value = 'Invalid email or password'
-    } else {
-      alert.value = 'Something went wrong'
+    console.log(error.response)
+    if (error.response.status >= 400 && error.response.status < 500) {
+      alert.value = 'Invalid email or password.'
+    } else if (error.response.status >= 500) {
+      alert.value = 'Something went wrong. Please try again later.'
     }
   } finally {
     loading.value = false
@@ -65,23 +88,48 @@ async function login() {
 </script>
 
 <template>
-  <main class="min-h-screen flex items-stretch bg-white">
+  <main class="min-h-screen flex items-stretch bg-white dark:bg-slate-800">
     <div class="flex-1 max-w-md mx-auto flex flex-col justify-center">
-      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 dark:text-white">
         Welcome Back to
       </h1>
       <router-link to="/"
-                   class="flex items-center w-auto mx-auto text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 mb-12">
-        <img src="@/assets/logo.svg"
-             alt="logo"
-             class="h-8 mr-3" />
+                   class="flex w-auto justify-center items-center mb-12 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="stroke-gray-900 dark:stroke-white h-8 w-8 mr-2"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24"
+             stroke-width="2"
+             stroke="currentColor"
+             fill="none"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path stroke="none"
+                d="M0 0h24v24H0z"
+                fill="none"></path>
+          <path d="M5.931 6.936l1.275 4.249m5.607 5.609l4.251 1.275"></path>
+          <path d="M11.683 12.317l5.759 -5.759"></path>
+          <circle cx="5.5"
+                  cy="5.5"
+                  r="1.5"></circle>
+          <circle cx="18.5"
+                  cy="5.5"
+                  r="1.5"></circle>
+          <circle cx="18.5"
+                  cy="18.5"
+                  r="1.5"></circle>
+          <circle cx="8.5"
+                  cy="15.5"
+                  r="4.5"></circle>
+        </svg>
         <span class="self-center text-3xl font-bold whitespace-nowrap">
           Intellectual Space
         </span>
       </router-link>
-      <p class="text-lg font-semibold mb-6">Please Sign In</p>
+      <p class="text-lg font-semibold mb-6 dark:text-white">Please Sign In</p>
       <div v-if="$route.query"
-           class="text-gray-600 mb-6">
+           class="text-gray-600 mb-6 dark:text-gray-300">
         <p v-if="$route.query.timeout">
           <span class="mr-2">&bull;</span>You have been logged out due to
           inactivity..
@@ -112,7 +160,7 @@ async function login() {
         <label class="flex items-center cursor-pointer w-full text-sm font-medium text-gray-900 dark:text-gray-300">
           <input type="checkbox"
                  v-model="form.remember"
-                 class="w-4 h-4 mr-3 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                 class="w-4 h-4 mr-3 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
           Keep me logged in</label>
 
         <button type="submit"
@@ -135,10 +183,10 @@ async function login() {
           <span v-else>Secure Login</span>
         </button>
       </form>
-      <p class="mb-8">
+      <p class="mb-8 dark:text-white">
         Need an account?
         <router-link to="/register"
-                     class="text-blue-500 hover:underline">Create one here.</router-link>
+                     class="text-blue-500 hover:underline dark:text-blue-400">Create one here.</router-link>
       </p>
     </div>
   </main>
