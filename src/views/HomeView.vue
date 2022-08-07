@@ -17,7 +17,7 @@ const contactForm = reactive({
       <div class="container mx-auto flex flex-col md:flex-row items-center sm:px-2 gap-16 py-12">
         <div class="flex flex-col md:flex-row items-center gap-12">
           <div class="flex-1 flex flex-col gap-8">
-            <h1 class="text-4xl font-bold leading-relaxed text-gray-900 dark:text-white">
+            <h1 class="text-4xl font-bold leading-snug text-gray-900 dark:text-white">
               Welcome to My Intellectual Space
             </h1>
             <p class="text-gray-700 leading-loose dark:text-gray-300">
@@ -60,11 +60,11 @@ const contactForm = reactive({
       </div>
     </div>
     <div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
-      <div class="flex flex-col items-center justify-center gap-12 p-12">
-        <h1 class="text-gray-900 text-3xl font-bold text-center dark:text-white">
+      <div class="flex flex-col justify-center gap-12 p-12">
+        <h1 class="text-gray-900 text-3xl font-bold  dark:text-white">
           The best way to connect with like-minded people
         </h1>
-        <p class="text-gray-700 text-lg font-medium leading-loose text-center dark:text-gray-300">
+        <p class="text-gray-700 text-lg font-medium leading-loose  dark:text-gray-300">
           Intellectual Space is a place for learning, networking, and
           innovation. Our mission is to give access and guidance to all
           communities, regardless of fiscal or social capital. We present the
@@ -75,7 +75,7 @@ const contactForm = reactive({
         </p>
         <button type="button"
                 @click="$router.push('/register')"
-                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-6 py-3.5">
+                class="self-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-6 py-3.5">
           Explore Our Community
         </button>
       </div>
@@ -85,11 +85,11 @@ const contactForm = reactive({
     <div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
       <img src="https://images.unsplash.com/photo-1582560469753-f2598d73444a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1699&q=80"
            class="w-full h-full object-cover" />
-      <div class="flex flex-col items-center justify-center gap-12 p-12">
-        <h1 class="text-gray-900 text-3xl font-bold text-center dark:text-white">
+      <div class="flex flex-col justify-center gap-12 p-12">
+        <h1 class="text-gray-900 text-3xl font-bold dark:text-white">
           Explore the topics your passionate about
         </h1>
-        <p class="text-gray-700 text-lg font-medium leading-loose text-center dark:text-gray-300">
+        <p class="text-gray-700 text-lg font-medium leading-loose dark:text-gray-300">
           Intellectual Space is a place for learning, networking, and
           innovation. Our mission is to give access and guidance to all
           communities, regardless of fiscal or social capital. We present the
@@ -100,17 +100,17 @@ const contactForm = reactive({
         </p>
         <button type="button"
                 @click="$router.push('/learn')"
-                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-6 py-3.5">
+                class="self-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-6 py-3.5">
           Search courses
         </button>
       </div>
     </div>
     <div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
-      <div class="flex flex-col items-center justify-center gap-12 p-12">
-        <h1 class="text-gray-900 text-3xl font-bold text-center dark:text-white">
+      <div class="flex flex-col justify-center gap-12 p-12">
+        <h1 class="text-gray-900 text-3xl font-bold  dark:text-white">
           Share your knowledge with the world
         </h1>
-        <p class="text-gray-700 text-lg font-medium leading-loose text-center  dark:text-gray-300">
+        <p class="text-gray-700 text-lg font-medium leading-loose  dark:text-gray-300">
           Intellectual Space is a place for learning, networking, and
           innovation. Our mission is to give access and guidance to all
           communities, regardless of fiscal or social capital. We present the
@@ -121,7 +121,7 @@ const contactForm = reactive({
         </p>
         <button type="button"
                 @click="$router.push('/register')"
-                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-6 py-3.5">
+                class="self-start text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-6 py-3.5">
           Requirements for educators
         </button>
       </div>
