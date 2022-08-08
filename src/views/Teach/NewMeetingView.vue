@@ -142,7 +142,7 @@ async function getJWT() {
           Configure your meeting
         </h1>
         <form @submit.prevent="createMeeting()"
-              class="flex flex-col gap-6">
+              class="flex flex-col gap-4">
           <div>
             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Meeting name</label>
             <input type="text"
@@ -183,7 +183,7 @@ async function getJWT() {
           </div>
 
           <button type="submit"
-                  class="w-full flex items-center justify-center py-2 px-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                  class="w-full mt-4 flex items-center justify-center py-2 px-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
             Create Meeting
             <svg aria-hidden="true"
                  class="ml-2 -mr-1 w-4 h-4"

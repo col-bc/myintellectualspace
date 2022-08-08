@@ -12,7 +12,7 @@ const contactForm = reactive({
 
 <template>
   <main class="bg-gray-100 dark:bg-slate-800">
-    <div class="min-h-screen">
+    <div class="min-h-screen max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div class="container mx-auto flex flex-col md:flex-row items-center sm:px-2 gap-16 py-12">
         <div class="flex flex-col md:flex-row items-center gap-12">
@@ -36,14 +36,13 @@ const contactForm = reactive({
                       class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-6 py-3.5 text-center flex items-center shadow-lg shadow-blue-400/60 dark:shadow-blue-800/40">
                 Create Your Own Space
                 <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-6 w-6 ml-3"
-                     fill="none"
+                     class="w-5 h-5 fill-current ml-3"
                      viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2">
-                  <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                     width="24"
+                     height="24">
+                  <path fill="none"
+                        d="M0 0h24v24H0z" />
+                  <path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" />
                 </svg>
               </button>
             </div>
@@ -80,11 +79,11 @@ const contactForm = reactive({
         </button>
       </div>
       <img src="https://images.unsplash.com/photo-1531844251246-9a1bfaae09fc?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1216&q=80"
-           class="w-full h-full object-cover" />
+           class="w-full h-full object-cover rounded-l-3xl shadow-2xl" />
     </div>
     <div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
       <img src="https://images.unsplash.com/photo-1582560469753-f2598d73444a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1699&q=80"
-           class="w-full h-full object-cover" />
+           class="w-full h-full object-cover rounded-r-3xl shadow-2xl" />
       <div class="flex flex-col justify-center gap-12 p-12">
         <h1 class="text-gray-900 text-3xl font-bold dark:text-white">
           Explore the topics your passionate about
@@ -126,7 +125,7 @@ const contactForm = reactive({
         </button>
       </div>
       <img src="https://images.unsplash.com/photo-1605711285791-0219e80e43a3?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1738&q=80"
-           class="w-full h-full object-cover" />
+           class="w-full h-full object-cover rounded-l-3xl shadow-2xl" />
     </div>
     <div class="min-h-screen grid grid-cols-1">
       <div class="flex flex-col items-center justify-center gap-12 p-12">

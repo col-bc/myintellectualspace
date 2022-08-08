@@ -48,7 +48,7 @@ async function updateUser() {
         <div class="max-w-screen-md mx-auto flex flex-col bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
             <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 dark:text-white">Account Onboarding</h1>
             <router-link to="/"
-                         class="flex w-auto justify-center items-center mr-auto md:mr-0 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">
+                         class="flex w-auto mb-6 justify-center items-center mr-auto md:mr-0 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="stroke-gray-900 dark:stroke-white h-8 w-8 mr-2"
                      width="24"
@@ -83,7 +83,7 @@ async function updateUser() {
             </router-link>
 
             <p class="text-lg text-center text-gray-700 dark:text-gray-300 mb-6">
-                Welcome toIntellectual Space. Help other's get tp know you by adding information to your profile. You can update or remove your information at any time.
+                Welcome toIntellectual Space. Help other's get tp know you by adding information to your profile. You can update or remove these details at any time by visiting your profile page.
             </p>
             <!-- Name -->
             <div class="py-2 flex items-center">

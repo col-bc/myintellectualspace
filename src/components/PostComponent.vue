@@ -108,7 +108,7 @@ async function deletePost() {
     <div @click="$router.push(`/social/@${postData.owner_handle}`)"
          class="cursor-pointer flex items-center mb-3 p-4 pb-0">
       <img :src="postData.owner_avatar"
-           class="h-8 w-8 rounded-sm mr-4" />
+           class="h-8 w-8 rounded-md mr-4" />
       <h6 class="font-medium text-gray-900 mr-auto dark:text-white">
         {{ postData.owner_handle }}
       </h6>
@@ -131,30 +131,37 @@ async function deletePost() {
       <button type="button"
               @click="handleLike()"
               class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
-        <!-- Outline -->
-        <svg xmlns="http://www.w3.org/2000/svg"
-             class="h-6 w-6"
-             :class="{ 'fill-red-600': liked }"
-             fill="none"
+        <svg v-if="!liked"
+             xmlns="http://www.w3.org/2000/svg"
+             class="w-6 h-6 fill-current"
              viewBox="0 0 24 24"
-             stroke="currentColor"
-             stroke-width="2">
-          <path stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+             width="24"
+             height="24">
+          <path fill="none"
+                d="M0 0H24V24H0z" />
+          <path d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228z" />
+        </svg>
+        <svg v-else
+             xmlns="http://www.w3.org/2000/svg"
+             class="w-6 h-6 fill-red-600"
+             viewBox="0 0 24 24"
+             width="24"
+             height="24">
+          <path fill="none"
+                d="M0 0H24V24H0z" />
+          <path d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228z" />
         </svg>
       </button>
       <button type="button"
               class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
         <svg xmlns="http://www.w3.org/2000/svg"
-             class="h-6 w-6"
-             fill="none"
+             class="w-6 h-6 fill-current"
              viewBox="0 0 24 24"
-             stroke="currentColor"
-             stroke-width="2">
-          <path stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+             width="24"
+             height="24">
+          <path fill="none"
+                d="M0 0h24v24H0z" />
+          <path d="M16.8 19L14 22.5 11.2 19H6a1 1 0 0 1-1-1V7.103a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1h-5.2zM2 2h17v2H3v11H1V3a1 1 0 0 1 1-1z" />
         </svg>
       </button>
       <div class="relative">
@@ -193,14 +200,13 @@ async function deletePost() {
               type="button"
               class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
         <svg xmlns="http://www.w3.org/2000/svg"
-             class="h-6 w-6"
-             fill="none"
+             class="h-6 w-6 fill-current"
              viewBox="0 0 24 24"
-             stroke="currentColor"
-             stroke-width="2">
-          <path stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+             width="24"
+             height="24">
+          <path fill="none"
+                d="M0 0h24v24H0z" />
+          <path d="M3 3h9.382a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5v6H3V3z" />
         </svg>
       </button>
     </div>

@@ -137,9 +137,11 @@ async function login() {
         <p v-if="$route.query.registered">
           <span class="mr-2">&bull;</span>You have successfully registered.
         </p>
-        <p v-if="$route.query.reset">
-          <span class="mr-2">&bull;</span> You have been sent an email with
-          instructions on how to reset your password.
+        <p v-if="$route.query.verified">
+          <span class="mr-2">&bull;</span> Your email has been verified.
+        </p>
+        <p v-if="!$route.query.verified">
+          <span class="mr-2">&bull;</span> Your email could not be verified. Please try again.
         </p>
       </div>
 
@@ -165,7 +167,7 @@ async function login() {
 
         <button type="submit"
                 :disabled="loading"
-                class="col-span-2 inline-flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 uppercase">
+                class="col-span-2 inline-flex items-center text-base justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 uppercase">
           <div role="status"
                v-if="loading">
             <svg aria-hidden="true"
@@ -180,7 +182,19 @@ async function login() {
             </svg>
             <span class="sr-only">Loading...</span>
           </div>
-          <span v-else>Secure Login</span>
+          <span v-else
+                class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="w-5 h-5 fill-current"
+                 viewBox="0 0 24 24"
+                 width="24"
+                 height="24">
+              <path fill="none"
+                    d="M0 0h24v24H0z" />
+              <path d="M7 10h13a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1h1V9a7 7 0 0 1 13.262-3.131l-1.789.894A5 5 0 0 0 7 9v1zm3 5v2h4v-2h-4z" />
+            </svg>
+            Unlock Account
+          </span>
         </button>
       </form>
       <p class="mb-8 dark:text-white">

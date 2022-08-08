@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import useUserStore from '@/stores/user'
+import axios from 'axios'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,18 +15,6 @@ const router = createRouter({
           await userStore.fetchUser()
         }
         return next()
-      },
-    },
-    {
-      path: '/explore',
-      name: 'explore',
-      component: () => import('@/views/ExploreView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/explore')
       },
     },
 
@@ -54,13 +43,23 @@ const router = createRouter({
       },
     },
     // /verify
-    // {
-    //   path: '/verify/:token',
-    //   name: 'verify',
-    //   component: () => import('../views/VerifyView.vue'),
-    //   beforeEnter: async (to, from, next) => {
-    //   }
-    // },
+    {
+      path: '/verify/:token',
+      name: 'verify',
+      beforeEnter: async (to, from, next) => {
+        // Verify the token
+        try {
+          const response = await axios.get(
+            '/api/auth/verify/' + to.params.token
+          )
+          if (response.data.success) {
+            return next('/login?verified=true')
+          }
+        } catch (error) {
+          return next('/login?verified=false')
+        }
+      },
+    },
     // TODO: Forgot Password and Reset Password
 
     // # Social Routes
@@ -68,12 +67,11 @@ const router = createRouter({
     {
       path: '/social/me',
       name: 'account-home',
-      component: () => import('../views/Account/HomeView.vue'),
       beforeEnter: async (to, from, next) => {
         const userStore = useUserStore()
         if (userStore.isLoggedIn) {
           await userStore.fetchUser()
-          return next()
+          return next('/social/@' + userStore.user.handle)  
         } else return next('/login')
       },
     },
@@ -95,6 +93,20 @@ const router = createRouter({
       path: '/user-not-found',
       name: 'user-not-found',
       component: () => import('@/views/Account/UserNotFoundView.vue'),
+    },
+    // # Explore Routes
+    // /explore
+    {
+      path: '/explore',
+      name: 'explore',
+      component: () => import('@/views/Explore/HomeView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/explore')
+      },
     },
 
     // # Learn Routes
@@ -152,7 +164,7 @@ const router = createRouter({
         } else return next('/login?next=/teach/new-meeting')
       },
     },
-    
+
     // # Other Routes
     // /getting-started
     {

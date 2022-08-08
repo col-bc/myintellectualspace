@@ -4,7 +4,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
 
 <template>
   <main class="bg-gray-100 dark:bg-slate-800">
-    <div class="min-h-screen">
+    <div class="min-h-screen  max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div class="container mx-auto flex flex-col md:flex-row items-center sm:px-2 gap-16 py-12">
         <div class="flex flex-col gap-6">

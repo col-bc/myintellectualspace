@@ -31,7 +31,7 @@ async function selectPostImage() {
 }
 function verifyForm() {
   if (!newPost.content) {
-    newPost.error = 'You must say something!'
+    newPost.error = 'Post body cannot be blank'
   }
 }
 async function createPost() {
@@ -80,11 +80,8 @@ async function getPostLocation() {
 
 <template>
   <form @submit.prevent="verifyForm()">
-    <div class="mb-4 w-full bg-gray-50 shadow-sm rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-      <AlertComponent :message="newPost.error"
-                      v-if="!!newPost.error"
-                      :dismissible="false" />
-      <div class="flex py-2 px-4 bg-white rounded-t-lg dark:bg-gray-800">
+    <div class="mb-4 w-full bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-600">
+      <div class="flex py-2 px-4">
         <textarea v-model="newPost.content"
                   rows="4"
                   class="flex-1 px-0 w-full text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400"
@@ -93,6 +90,10 @@ async function getPostLocation() {
              :src="newPost.imageUrl"
              class="h-fll w-48 ml-4 object-cover" />
       </div>
+      <AlertComponent :message="newPost.error"
+                      v-if="!!newPost.error"
+                      :dismissible="false"
+                      type="error" />
       <div class="flex justify-between items-center py-2 px-3 border-t dark:border-gray-600">
         <button type="submit"
                 @click="createPost()"
@@ -105,17 +106,13 @@ async function getPostLocation() {
                   @click="getPostLocation()"
                   class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
             <svg xmlns="http://www.w3.org/2000/svg"
-                 class="h-6 w-6"
-                 fill="none"
+                 class="w-6 h-6 fill-current"
                  viewBox="0 0 24 24"
-                 stroke="currentColor"
-                 stroke-width="2">
-              <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                 width="24"
+                 height="24">
+              <path fill="none"
+                    d="M0 0h24v24H0z" />
+              <path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
             </svg>
             <span class="sr-only">Set location</span>
           </button>
@@ -123,14 +120,13 @@ async function getPostLocation() {
                   @click="selectPostImage()"
                   class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
             <svg xmlns="http://www.w3.org/2000/svg"
-                 class="h-6 w-6"
-                 fill="none"
+                 class="w-6 h-6 fill-current"
                  viewBox="0 0 24 24"
-                 stroke="currentColor"
-                 stroke-width="2">
-              <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                 width="24"
+                 height="24">
+              <path fill="none"
+                    d="M0 0h24v24H0z" />
+              <path d="M20 5H4v14l9.292-9.294a1 1 0 0 1 1.414 0L20 15.01V5zM2 3.993A1 1 0 0 1 2.992 3h18.016c.548 0 .992.445.992.993v16.014a1 1 0 0 1-.992.993H2.992A.993.993 0 0 1 2 20.007V3.993zM8 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" />
             </svg>
             <span class="sr-only">Upload image</span>
           </button>
