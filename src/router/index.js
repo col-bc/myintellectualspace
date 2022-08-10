@@ -189,7 +189,7 @@ const router = createRouter({
     {
       path: '/messages',
       name: 'messages',
-      component: () => import('@/views/MessagesView.vue'),
+      component: () => import('@/views/Account/MessagesView.vue'),
       beforeEnter: async (to, from, next) => {
         const userStore = useUserStore()
         if (userStore.isLoggedIn) {

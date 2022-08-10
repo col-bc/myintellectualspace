@@ -15,7 +15,7 @@ onMounted(async () => {
 
 <template>
     <main class="min-h-screen bg-gray-100 py-12 dark:bg-slate-800">
-        <div class="max-w-screen-md mx-auto flex flex-col bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
+        <div class="max-w-screen-md mx-auto flex flex-col">
             <svg xmlns="http://www.w3.org/2000/svg"
                  class="h-24 w-24 fill-white mb-6 mx-auto p-4 rounded-full bg-gradient-to-b from-blue-400 to-purple-400"
                  viewBox="0 0 24 24"
@@ -62,10 +62,13 @@ onMounted(async () => {
             <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 dark:text-white">
                 Action Required
             </h1>
-
-            <p class="text-lg text-center text-gray-800 dark:text-gray-200">
+            <p class="text-lg text-center text-gray-800 dark:text-gray-200 mb-6">
                 We send a verification email to the address you provided at registration. Please click the link in the email to verify your email address.If you have not received the email, please check your spam folder before contacting us.
             </p>
+            <div class="flex justify-center">
+                <button type="button"
+                        class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Send a new activation email</button>
+            </div>
         </div>
     </main>
 </template>

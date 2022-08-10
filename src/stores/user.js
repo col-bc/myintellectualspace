@@ -12,6 +12,7 @@ export const useUserStore = defineStore({
     getBearerToken: (state) =>
       state.token ? `Bearer ${state.token}` : undefined,
     getUser: (state) => state.user,
+    getHandle: (state) => state.user ? state.user.handle : undefined,
     getUserId: (state) => (state.user ? state.user.id : undefined),
     isLoggedIn: (state) => !!state.token,
   },

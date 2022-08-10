@@ -75,9 +75,9 @@ async function login() {
     }
   } catch (error) {
     console.log(error.response)
-    if (error.response.status >= 400 && error.response.status < 500) {
-      alert.value = 'Invalid email or password.'
-    } else if (error.response.status >= 500) {
+    if (response.status < 500) {
+      alert.value = error.response.data.error
+    } else {
       alert.value = 'Something went wrong. Please try again later.'
     }
   } finally {
@@ -128,23 +128,21 @@ async function login() {
         </span>
       </router-link>
       <p class="text-lg font-semibold mb-6 dark:text-white">Please Sign In</p>
-      <div v-if="$route.query"
-           class="text-gray-600 mb-6 dark:text-gray-300">
-        <p v-if="$route.query.timeout">
-          <span class="mr-2">&bull;</span>You have been logged out due to
-          inactivity..
-        </p>
-        <p v-if="$route.query.registered">
-          <span class="mr-2">&bull;</span>You have successfully registered.
-        </p>
-        <p v-if="$route.query.verified">
-          <span class="mr-2">&bull;</span> Your email has been verified.
-        </p>
-        <p v-if="!$route.query.verified">
-          <span class="mr-2">&bull;</span> Your email could not be verified. Please try again.
-        </p>
-      </div>
+      <div class="flex flex-col gap-4 mb-6">
+        <AlertComponent v-if="$route.query.registered"
+                        message="You have successfully registered. Please verify your email address to log in."
+                        type="success"
+                        :dismissible="false" />
 
+        <AlertComponent v-if="$route.query.verified === 'true'"
+                        message="You have successfully verified your email address. Please log in."
+                        type="success"
+                        :dismissible="false" />
+        <AlertComponent v-if="$route.query.verified === 'false'"
+                        message="Your email address could not be verified. Please try again."
+                        type="error"
+                        :dismissible="false" />
+      </div>  
       <form class="w-full flex flex-col gap-6 mb-6"
             @submit.prevent="verifyForm()">
         <AlertComponent v-if="!!alert"

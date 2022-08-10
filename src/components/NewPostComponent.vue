@@ -101,7 +101,7 @@ async function getPostLocation() {
           Submit Post
         </button>
         <div class="flex pl-0 space-x-1 sm:pl-2 items-center">
-          <p class="text-xs">{{ newPost.location }}</p>
+          <p class="text-xs dark:text-gray-400">{{ newPost.location }}</p>
           <button type="button"
                   @click="getPostLocation()"
                   class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">

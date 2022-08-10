@@ -52,7 +52,7 @@ async function verifyForm() {
   }
   // check is handle is valid. no spaces, no special characters, no numbers, no length less than 3
   if (!/^[a-zA-Z0-9]+$/.test(form.handle) || form.handle.length < 3) {
-    alert.value = 'Please enter a valid handle'
+    alert.value = 'Handles must be at least 3 characters long and contain only letters and numbers.'
     return
   }
   // check if passwords match
@@ -84,7 +84,7 @@ async function verifyForm() {
       if (response.data.available) {
         registerUser()
       } else {
-        alert.value = 'Handle is already taken.'
+        alert.value = 'Handle is not available.'
         return
       }
     }
@@ -94,7 +94,6 @@ async function verifyForm() {
 }
 async function registerUser() {
   // send post request to create user
-  // /api/auth/register
   try {
     const response = await axios.post('/api/auth/register', {
       firstName: form.firstName,
@@ -107,11 +106,14 @@ async function registerUser() {
     })
     if (response.status === 201) {
       router.push('/login?registered=true')
-      return
     }
   } catch (error) {
-    alert.value = 'Error creating account.'
-    return
+    console.log(error.response)
+    if (error.response.status < 500) {
+      alert.value = error.response.data.error
+    } else {
+      alert.value = 'Something went wrong. Please try again later.'
+    }
   }
 }
 </script>

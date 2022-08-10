@@ -45,7 +45,7 @@ async function updateUser() {
 
 <template>
     <main class="min-h-screen bg-gray-100 py-12 dark:bg-slate-800">
-        <div class="max-w-screen-md mx-auto flex flex-col bg-white border border-gray-200 rounded-lg p-6 dark:bg-gray-800 dark:border-gray-700">
+        <div class="max-w-screen-md mx-auto flex flex-col">
             <h1 class="text-3xl font-bold text-center text-gray-800 mb-6 dark:text-white">Account Onboarding</h1>
             <router-link to="/"
                          class="flex w-auto mb-6 justify-center items-center mr-auto md:mr-0 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">
@@ -119,16 +119,6 @@ async function updateUser() {
                           rows="4"></textarea>
 
             </div>
-            <!-- Join Date -->
-            <div class="py-2 flex items-center">
-                <span class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300">Joined</span>
-                <input type="text"
-                       disabled
-                       :value="new Date(user.data.created_at).toLocaleDateString()"
-                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                       placeholder=""
-                       required />
-            </div>
             <!-- Education Level -->
             <div class="py-2 flex items-center">
                 <span class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300">Education Level</span>
@@ -174,7 +164,7 @@ async function updateUser() {
             <div class="py-2 w-full flex gap-4 justify-end">
                 <button type="button"
                         @click="$router.push('/social/me')"
-                        class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Skip</button>
+                        class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">I'll do this later</button>
                 <button type="button"
                         @click="updateUser()"
                         :disabled="loading"

@@ -202,7 +202,7 @@ watch(darkMode, (value) => {
                   class="hidden md:inline-flex">Profile</span>
           </button>
           <div v-if="showUserMenu"
-               class="absolute mt-3 right-0 z-10 w-64 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600 border border-gray-200 dark:border-gray-700">
+               class="absolute mt-3 right-0 z-10 w-64 bg-white rounded border  border-gray-200 divide-y divide-gray-100 shadow-xl dark:bg-gray-800 dark:divide-gray-700 dark:border-gray-700">
             <div class="flex items-center gap-3 py-3 px-4 text-sm bg-gradient-to-br from-blue-300 to-purple-300 rounded-t text-gray-900">
               <img :src="user.data.avatar_uri"
                    class="h-10 w-10 rounded-sm" />
@@ -216,7 +216,7 @@ watch(darkMode, (value) => {
             <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
               <li>
                 <router-link to="/social/me"
-                             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg"
                        class="h-4 w-4 fill-current"
                        viewBox="0 0 24 24"
@@ -231,7 +231,7 @@ watch(darkMode, (value) => {
               </li>
               <li>
                 <router-link to="/messages"
-                             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg"
                        class="h-4 w-4 fill-current"
                        viewBox="0 0 24 24"
@@ -246,7 +246,7 @@ watch(darkMode, (value) => {
               </li>
               <li>
                 <a href="#"
-                   class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                   class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg"
                        class="h-4 w-4 fill-current"
                        viewBox="0 0 24 24"
@@ -260,7 +260,7 @@ watch(darkMode, (value) => {
               </li>
               <li>
                 <a href="#"
-                   class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                   class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg"
                        class="h-4 w-4 fill-current"
                        viewBox="0 0 24 24"
@@ -274,7 +274,7 @@ watch(darkMode, (value) => {
               </li>
               <li>
                 <a href="#"
-                   class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                   class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg"
                        class="h-4 w-4 fill-current"
                        viewBox="0 0 24 24"
@@ -290,7 +290,7 @@ watch(darkMode, (value) => {
             <div class="py-1">
               <router-link to="/logout"
                            @click="user.isLoggedIn = !user.isLoggedIn"
-                           class="flex items-center gap-3 py-2 px-4 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                           class="flex items-center gap-3 py-2 px-4 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-4 w-4 fill-current"
                      viewBox="0 0 24 24"
