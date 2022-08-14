@@ -17,7 +17,8 @@ const loading = ref(true)
 
 const user = reactive({
   isOwnAccount: false,
-  data: {}
+  data: {},
+  comments: []
 })
 onMounted(async () => {
   user.isOwnAccount = false
@@ -44,6 +45,22 @@ onMounted(async () => {
     if (error.response.status === 404) {
       router.push('/user-not-found')
     }
+  }
+  try {
+    const response = await axios.get(
+      `/api/user/handle/${route.params.handle}/comments`,
+      {
+        headers: {
+          Authorization: userStore.getBearerToken
+        }
+      }
+    )
+    if (response.status === 200) {
+      user.comments = response.data
+      console.log(user.comments)
+    }
+  } catch (error) {
+    console.log(error)
   } finally {
     loading.value = false
   }
@@ -227,9 +244,11 @@ async function addFriend() {
                 No bio available.
               </span>
             </p>
+            <!-- Add friend -->
             <button
-              class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
+              type="button"
               @click="addFriend()"
+              class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -249,8 +268,36 @@ async function addFriend() {
               </svg>
               ADD FRIEND
             </button>
-            <a
-              href="#"
+            <!-- Posts -->
+            <button
+              typ="button"
+              @click="$router.push({ name: 'profile' })"
+              class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="h-6 w-6"
+                width="24"
+                height="24"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                ></path>
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                ></path>
+              </svg>
+              SEE POSTS
+            </button>
+            <!-- Comments -->
+            <button
+              typ="button"
+              @click="$router.push({ name: 'profile-comments' })"
               class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
             >
               <svg
@@ -269,20 +316,13 @@ async function addFriend() {
                   d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
                 />
               </svg>
-              SEND MESSAGE
-            </a>
+              SEE COMMENTS
+            </button>
+            <!-- Details -->
             <button
               type="button"
+              @click="$router.push({ name: 'profile-about' })"
               class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
-              @click="
-                () => {
-                  if ($route.name === 'profile') {
-                    $router.push({ name: 'profile-about' })
-                  } else {
-                    $router.push({ name: 'profile' })
-                  }
-                }
-              "
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -300,7 +340,7 @@ async function addFriend() {
                 <line x1="12" y1="16" x2="12" y2="12" />
                 <line x1="12" y1="8" x2="12.01" y2="8" />
               </svg>
-              {{ $route.name === 'profile' ? 'SEE ABOUT' : 'SEE POSTS' }}
+              SEE ABOUT
             </button>
           </div>
         </div>
@@ -738,6 +778,32 @@ async function addFriend() {
                 <span class="ml-2">@{{ friend.handle }}</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Comments -->
+        <div
+          v-if="$route.name === 'profile-comments'"
+          class="flex-1 flex flex-col gap-12 px-2"
+        >
+          <h2 class="text-2xl font-bold py-3 dark:text-white">
+            Comments by @{{ user.data.handle }}
+          </h2>
+          <AlertComponent
+            v-show="profileAlert.message"
+            class="my-4"
+            :type="profileAlert.type"
+            :message="profileAlert.message"
+            :dismissible="false"
+          />
+          <div
+            v-if="!!user.comments && user.comments.length <= 0"
+            class="bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+          >
+            <p class="text-center text-gray-500">No posts found.</p>
+          </div>
+          <div v-for="post of user.comments" :key="post.id">
+            <PostComponent :post="post" class="shadow-sm" />
           </div>
         </div>
 

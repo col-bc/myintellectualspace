@@ -102,6 +102,11 @@ const router = createRouter({
           path: 'about',
           name: 'profile-about',
           component: () => import('@/views/Account/ProfileView.vue')
+        },
+        {
+          path: 'comments',
+          name: 'profile-comments',
+          component: () => import('@/views/Account/ProfileView.vue')
         }
       ]
     },
