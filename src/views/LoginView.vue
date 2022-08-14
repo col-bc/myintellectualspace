@@ -75,7 +75,7 @@ async function login() {
     }
   } catch (error) {
     console.log(error.response)
-    if (response.status < 500) {
+    if (error.response.status < 500) {
       alert.value = error.response.data.error
     } else {
       alert.value = 'Something went wrong. Please try again later.'
@@ -142,7 +142,7 @@ async function login() {
                         message="Your email address could not be verified. Please try again."
                         type="error"
                         :dismissible="false" />
-      </div>  
+      </div>
       <form class="w-full flex flex-col gap-6 mb-6"
             @submit.prevent="verifyForm()">
         <AlertComponent v-if="!!alert"
@@ -183,13 +183,21 @@ async function login() {
           <span v-else
                 class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg"
-                 class="w-5 h-5 fill-current"
-                 viewBox="0 0 24 24"
                  width="24"
-                 height="24">
-              <path fill="none"
-                    d="M0 0h24v24H0z" />
-              <path d="M7 10h13a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1h1V9a7 7 0 0 1 13.262-3.131l-1.789.894A5 5 0 0 0 7 9v1zm3 5v2h4v-2h-4z" />
+                 height="24"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <rect x="3"
+                    y="11"
+                    width="18"
+                    height="11"
+                    rx="2"
+                    ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
             Unlock Account
           </span>

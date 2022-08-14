@@ -3,16 +3,16 @@ import { reactive } from 'vue'
 import axios from 'axios'
 
 import AlertComponent from '@/components/AlertComponent.vue'
-import useUserStore from '@/stores/user';
+import useUserStore from '@/stores/user'
 
-const userStore = useUserStore();
+const userStore = useUserStore()
 
 const newPost = reactive({
   error: '',
   content: '',
   location: '',
   image: null,
-  imageUrl: null,
+  imageUrl: null
 })
 async function selectPostImage() {
   var input = document.createElement('input')
@@ -48,8 +48,8 @@ async function createPost() {
     const response = await axios.post('/api/post/', formData, {
       headers: {
         Authorization: userStore.getBearerToken,
-        'Content-Type': 'multiple/form-data',
-      },
+        'Content-Type': 'multiple/form-data'
+      }
     })
     if (response.status === 201) {
       newPost.content = ''
@@ -59,17 +59,16 @@ async function createPost() {
       newPost.error = ''
 
       userStore.addPost(response.data.post)
-      user.data = userStore.getUser
-      user.data.posts.reverse()
     }
   } catch (error) {
-    newPost.error = error.response.data.message
+    console.log(error)
+    newPost.error = error.response.data
   }
 }
 async function getPostLocation() {
   try {
     const { data } = await axios.get('https://ipinfo.io/json', {
-      headers: { Authorization: 'Bearer c63cde3ca6489b' },
+      headers: { Authorization: 'Bearer c63cde3ca6489b' }
     })
     newPost.location = `${data.city}, ${data.region}, ${data.country}`
   } catch (err) {
@@ -80,53 +79,82 @@ async function getPostLocation() {
 
 <template>
   <form @submit.prevent="verifyForm()">
-    <div class="mb-4 w-full bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-600">
+    <div
+      class="mb-4 w-full bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-600"
+    >
       <div class="flex py-2 px-4">
-        <textarea v-model="newPost.content"
-                  rows="4"
-                  class="flex-1 px-0 w-full text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Share with your network"></textarea>
-        <img v-if="newPost.image !== null"
-             :src="newPost.imageUrl"
-             class="h-fll w-48 ml-4 object-cover" />
+        <textarea
+          v-model="newPost.content"
+          rows="4"
+          class="flex-1 px-0 w-full text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400"
+          placeholder="Share with your network"
+        ></textarea>
+        <img
+          v-if="newPost.image !== null"
+          :src="newPost.imageUrl"
+          class="h-fll w-48 ml-4 object-cover"
+        />
       </div>
-      <AlertComponent :message="newPost.error"
-                      v-if="!!newPost.error"
-                      :dismissible="false"
-                      type="error" />
-      <div class="flex justify-between items-center py-2 px-3 border-t dark:border-gray-600">
-        <button type="submit"
-                @click="createPost()"
-                class="inline-flex items-center py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800">
+      <AlertComponent
+        :message="newPost.error"
+        v-if="!!newPost.error"
+        :dismissible="false"
+        type="error"
+      />
+      <div
+        class="flex justify-between items-center py-2 px-3 border-t dark:border-gray-600"
+      >
+        <button
+          type="submit"
+          @click="createPost()"
+          class="inline-flex items-center py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
+        >
           Submit Post
         </button>
         <div class="flex pl-0 space-x-1 sm:pl-2 items-center">
           <p class="text-xs dark:text-gray-400">{{ newPost.location }}</p>
-          <button type="button"
-                  @click="getPostLocation()"
-                  class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="w-6 h-6 fill-current"
-                 viewBox="0 0 24 24"
-                 width="24"
-                 height="24">
-              <path fill="none"
-                    d="M0 0h24v24H0z" />
-              <path d="M18.364 17.364L12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+          <button
+            type="button"
+            @click="getPostLocation()"
+            class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
             </svg>
             <span class="sr-only">Set location</span>
           </button>
-          <button type="button"
-                  @click="selectPostImage()"
-                  class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="w-6 h-6 fill-current"
-                 viewBox="0 0 24 24"
-                 width="24"
-                 height="24">
-              <path fill="none"
-                    d="M0 0h24v24H0z" />
-              <path d="M20 5H4v14l9.292-9.294a1 1 0 0 1 1.414 0L20 15.01V5zM2 3.993A1 1 0 0 1 2.992 3h18.016c.548 0 .992.445.992.993v16.014a1 1 0 0 1-.992.993H2.992A.993.993 0 0 1 2 20.007V3.993zM8 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" />
+          <button
+            type="button"
+            @click="selectPostImage()"
+            class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
             </svg>
             <span class="sr-only">Upload image</span>
           </button>

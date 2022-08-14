@@ -1,9 +1,8 @@
 # Meeting Notes
-- Twilio Authy pricing https://www.twilio.com/authy/pricing)
 - SendGrid pricing https://sendgrid.com/pricing/
 - Terms / Privacy Policy
+- Handle is checked against list of banned names during registration.
 
 
-# To Implmenet
-- First name + Last name + digit 
+# To Implement
 - Online indicator 
