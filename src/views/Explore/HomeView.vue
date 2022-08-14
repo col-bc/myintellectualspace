@@ -49,36 +49,43 @@ watch(
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
 
-      <div class="flex container mx-auto gap-12 py-12">
+      <div
+        class="max-h-full overflow-y-auto flex container mx-auto gap-12 lg:gap-16 py-12"
+      >
         <div class="w-full max-w-xs">
           <button
             type="button"
-            class="mb-12 w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-6 py-2.5 flex items-center justify-center shadow-lg"
+            class="mb-12 w-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover:bg-gradient-to-l rounded-lg text-white dark:text-gray-900 font-medium text-base px-6 py-2.5 flex items-center justify-center gap-3 shadow-lg"
           >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+              />
+              <path
+                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+              />
+            </svg>
             New Post
           </button>
           <!-- Filters -->
           <div
             class="w-full p-4 bg-white shadow-sm rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
           >
-            <h4
-              class="text-start text-gray-800 dark:text-white text-2xl font-seminold mb-4"
-            >
+            <h4 class="text-gray-800 dark:text-white text-xl font-bold mb-4">
               Filters
             </h4>
             <div class="flex flex-col gap-y-4 w-full">
-              <div class="flex items-center justify-between">
-                <label
-                  class="block text-sm font-medium text-gray-900 dark:text-gray-300"
-                  >Number of posts</label
-                >
-                <input
-                  type="email"
-                  id="email"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-24 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder="20"
-                />
-              </div>
               <div class="flex items-center justify-between">
                 <label
                   class="block text-sm font-medium text-gray-900 dark:text-gray-300"
@@ -112,6 +119,17 @@ watch(
                     class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
                   ></div>
                 </label>
+              </div>
+              <div class="flex items-center justify-between">
+                <label
+                  class="block text-sm font-medium text-gray-900 dark:text-gray-300"
+                  >Number of posts</label
+                >
+                <input
+                  type="number"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-24 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  placeholder="20"
+                />
               </div>
               <button
                 type="button"

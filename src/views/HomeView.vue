@@ -6,14 +6,16 @@ import NavbarComponent from '../components/NavbarComponent.vue'
   <main class="bg-gray-100 dark:bg-slate-800">
     <div class="min-h-screen" id="landing">
       <div class="bg-gray-100 dark:bg-slate-800">
-        <NavbarComponent class="max-w-screen-xl mx-auto" />
+        <div class="max-w-screen-xl mx-auto">
+          <NavbarComponent />
+        </div>
       </div>
       <div
         class="max-w-screen-xl mx-auto flex flex-row items-center px-2 py-12"
       >
         <div class="container mx-auto flex-1 flex flex-col gap-8">
           <h1
-            class="max-w-screen-md text-5xl font-black drop-shadow-xl leading-snug text-white"
+            class="max-w-screen-md text-3xl md:text-5xl font-black drop-shadow-xl leading-snug text-white"
           >
             Your space to learn, grow, share and connect.
           </h1>
