@@ -157,7 +157,7 @@ async function addComment() {
     <div
       class="flex flex-col md:flex-rowr justify-start items-start gap-4 px-4 py-2"
     >
-      <p class="text-gray-800 flex-1 dark:text-white font-medium">
+      <p class="text-gray-800 dark:text-white font-medium">
         {{ state.post.content }}
       </p>
       <img
@@ -381,12 +381,15 @@ async function addComment() {
         class="flex items-start w-full mb-2"
       >
         <router-link
+          class="flex-shrink-0"
           :to="{ name: 'profile', params: { handle: comment.handle } }"
         >
-          <img :src="comment.avatar" class="w-8 h-8 rounded-full" />
+          <img :src="comment.avatar" class="block w-8 h-8 rounded-full" />
         </router-link>
         <div class="flex flex-col ml-2">
-          <p class="text-gray-900 dark:text-white">{{ comment.comment }}</p>
+          <p class="text-gray-900 text-sm dark:text-white">
+            {{ comment.comment }}
+          </p>
           <p class="text-xs text-gray-700 dark:text-gray-400">
             on {{ new Date(comment.created_at).toLocaleString() }}
           </p>
