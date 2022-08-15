@@ -203,6 +203,19 @@ const router = createRouter({
         return next()
       }
     },
+    // /teach/create-course
+    {
+      path: '/teach/new-course',
+      name: 'teach-create-course',
+      component: () => import('@/views/Teach/NewCourseView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/teach/create-course')
+      }
+    },
     // /teach/new-meeting
     {
       path: '/teach/new-meeting',
