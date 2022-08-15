@@ -1,11 +1,12 @@
 <script setup>
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import PostComponent from '@/components/PostComponent.vue'
+import ModalComponent from '@/components/ModalComponent.vue'
+import NewPostComponent from '@/components/NewPostComponent.vue'
 import useUserStore from '@/stores/user'
 import axios from 'axios'
 import { onMounted, reactive, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import ModalComponent from '../../components/ModalComponent.vue'
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -50,34 +51,41 @@ watch(
       <NavbarComponent />
 
       <div
-        class="max-h-full overflow-y-auto flex container mx-auto gap-12 lg:gap-16 py-12"
+        class="flex flex-col md:flex-row container mx-auto gap-12 lg:gap-16 py-12 px-2"
       >
-        <div class="w-full max-w-xs">
-          <button
-            type="button"
-            class="mb-12 w-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover:bg-gradient-to-l rounded-lg text-white dark:text-gray-900 font-medium text-base px-6 py-2.5 flex items-center justify-center gap-3 shadow-lg"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-              />
-              <path
-                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-              />
-            </svg>
-            New Post
-          </button>
+        <div class="w-full md:max-w-xs">
+          <ModalComponent>
+            <template #button>
+              <button
+                type="button"
+                class="mb-12 w-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover:bg-gradient-to-l focus:ring-4 focus:ring-blue-300 rounded-lg text-white darK:text-gray-900 font-bold text-base px-6 py-2.5 flex items-center justify-center gap-3 shadow-lg dark:text-gray-800"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  />
+                </svg>
+                New Post
+              </button>
+            </template>
+            <template #content>
+              <NewPostComponent />
+            </template>
+          </ModalComponent>
           <!-- Filters -->
           <div
             class="w-full p-4 bg-white shadow-sm rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
@@ -133,7 +141,7 @@ watch(
               </div>
               <button
                 type="button"
-                class="py-2.5 px-5 mr-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
               >
                 Apply
               </button>
@@ -225,6 +233,38 @@ watch(
               :post="p"
               class="shadow-sm"
             />
+
+            <div class="flex flex-col items-center">
+              <!-- Help text -->
+              <span class="text-sm text-gray-700 dark:text-gray-400">
+                Showing
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >1</span
+                >
+                to
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >10</span
+                >
+                of
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >100</span
+                >
+                Entries
+              </span>
+              <!-- Buttons -->
+              <div class="inline-flex mt-2 xs:mt-0">
+                <button
+                  class="py-2 px-4 text-sm font-medium text-white bg-gray-800 rounded-l hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  Prev
+                </button>
+                <button
+                  class="py-2 px-4 text-sm font-medium text-white bg-gray-800 rounded-r border-0 border-l border-gray-700 hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

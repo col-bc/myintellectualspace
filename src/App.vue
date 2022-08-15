@@ -1,10 +1,12 @@
 <script setup>
 import { RouterView } from 'vue-router'
+import FooterComponent from './components/FooterComponent.vue'
 </script>
 
 <template>
   <div>
     <RouterView />
+    <FooterComponent />
     <div id="modals-container"></div>
   </div>
 </template>
