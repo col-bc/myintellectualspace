@@ -1,8 +1,9 @@
 <script setup>
-import { defineProps, onMounted, reactive } from 'vue'
+import { defineProps, onMounted, reactive, ref } from 'vue'
 import ModalComponent from './ModalComponent.vue'
 import useUserStore from '@/stores/user'
 import axios from 'axios'
+import { compileScript } from '@vue/compiler-sfc'
 
 const userStore = useUserStore()
 
@@ -24,6 +25,8 @@ onMounted(() => {
   state.post = props.post
   state.liked = state.post.liked_by.includes(userStore.getHandle)
 })
+
+const reportForm = ref()
 
 async function handleLike() {
   if (state.liked) {
@@ -132,6 +135,11 @@ async function addComment() {
   } catch (error) {
     console.log(error)
   }
+}
+async function reportPost() {
+  const form = reportForm.value
+  console.log(form)
+  state.reportMenuOpen = false
 }
 </script>
 
@@ -309,70 +317,120 @@ async function addComment() {
         </div>
       </div>
       <!-- report btn -->
-      <ModalComponent v-if="userStore.user.id !== state.post.user_id">
-        <template #button>
-          <button
-            type="button"
-            class="ml-2 inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
-              />
-              <line x1="4" y1="22" x2="4" y2="15" />
-            </svg></button
-        ></template>
-        <template #content>
-          <div class="flex flex-col gap-4 p-4">
-            <h3 class="text-xl font-bold dark:text-white">Report Post</h3>
-            <p class="text-gray-700 dark:text-gray-300">
-              Reports are taken seriously. You may report a post if it goes
-              against our community guidelines or if it is spam.
-            </p>
-            <select
-              id="countries"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            >
-              <option selected>Choose a reason</option>
-              <option value="">
-                This post contains inappropriate material.
-              </option>
-              <option value="">This post violates community guidelines.</option>
-              <option value="">This post is spam.</option>
-              <option value="">Other</option>
-            </select>
-            <textarea
-              rows="4"
-              class="block mb-4 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Details (optional)"
-            ></textarea>
+      <form @submit.prevent="reportPost()" ref="reportForm">
+        <ModalComponent v-if="userStore.user.id !== state.post.user_id">
+          <template #button>
             <button
               type="button"
-              @click="$emit('close')"
-              class="py-2.5 px-5 w-full text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+              class="ml-2 inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
             >
-              CANCEL
-            </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                />
+                <line x1="4" y1="22" x2="4" y2="15" />
+              </svg></button
+          ></template>
+          <template #content>
+            <div class="flex flex-col gap-4 p-4">
+              <div
+                class="text-white mx-auto p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="w-16 h-16"
+                  width="24"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                  ></path>
+                  <line x1="4" y1="22" x2="4" y2="15"></line>
+                </svg>
+              </div>
+              <h3 class="text-2xl text-center font-bold dark:text-white">
+                Report Post
+              </h3>
+              <div class="flex flex-col gap-4">
+                <label
+                  class="cursor-pointer bg-gray-50 rounded-lg border border-gray-300 dark:border-gray-600 p-4 w-full text-sm font-medium text-gray-900 dark:text-gray-300 dark:bg-gray-800"
+                >
+                  <input
+                    type="checkbox"
+                    value="inappropriate"
+                    name="report_reason"
+                    class="w-4 h-4 mr-2 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  This post contains inappropriate content
+                </label>
+                <label
+                  class="cursor-pointer bg-gray-50 rounded-lg border border-gray-300 dark:border-gray-600 p-4 w-full text-sm font-medium text-gray-900 dark:text-gray-300 dark:bg-gray-800"
+                >
+                  <input
+                    type="checkbox"
+                    name="report_reason"
+                    value="community_guidelines"
+                    class="w-4 h-4 mr-2 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  This post violates the Community Guidelines
+                </label>
+                <label
+                  class="cursor-pointer bg-gray-50 rounded-lg border border-gray-300 dark:border-gray-600 p-4 w-full text-sm font-medium text-gray-900 dark:text-gray-300 dark:bg-gray-800"
+                >
+                  <input
+                    type="checkbox"
+                    name="report_reason"
+                    value="spam"
+                    class="w-4 h-4 mr-2 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  This post is spam or malicious
+                </label>
+                <label
+                  class="cursor-pointer bg-gray-50 rounded-lg border border-gray-300 dark:border-gray-600 p-4 w-full text-sm font-medium text-gray-900 dark:text-gray-300 dark:bg-gray-800"
+                >
+                  <input
+                    type="checkbox"
+                    name="report_reason"
+                    value="other"
+                    class="w-4 h-4 mr-2 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  Other <small>(please specify)</small>
+                </label>
+              </div>
+              <textarea
+                rows="4"
+                name="report_reason_other"
+                class="block mb-4 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Details (optional)"
+              ></textarea>
+            </div>
+          </template>
+          <template #actions>
             <button
-              type="button"
+              type="submit"
               class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
             >
               REPORT POST
             </button>
-          </div>
-        </template>
-      </ModalComponent>
+          </template>
+        </ModalComponent>
+      </form>
     </div>
     <div class="p-4 pt-2 border-t border-gray-300 dark:border-gray-700">
       <div
