@@ -147,6 +147,7 @@ async function reportPost() {
   <div
     class="bg-white border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-700"
   >
+    <!-- Header -->
     <div class="flex items-center p-4 pb-2">
       <div
         class="flex items-center cursor-pointer mr-auto"
@@ -162,8 +163,9 @@ async function reportPost() {
         ago
       </p>
     </div>
+    <!-- Body -->
     <div
-      class="flex flex-col md:flex-rowr justify-start items-start gap-4 px-4 py-2"
+      class="flex flex-col md:flex-row justify-start md:justify-between items-start gap-4 px-4 py-2"
     >
       <p class="text-gray-800 dark:text-white font-medium">
         {{ state.post.content }}
@@ -174,6 +176,7 @@ async function reportPost() {
         class="w-full h-fll md:w-48 lg:w-1/2 rounded object-cover"
       />
     </div>
+    <!-- Action bar -->
     <div class="px-4 py-2 flex items-center justify-end">
       <p
         v-if="!!state.post.location"
@@ -197,7 +200,7 @@ async function reportPost() {
         {{ state.post.location }}
       </p>
       <p class="text-xs text-gray-700 dark:text-gray-300 ml-2">
-        {{ state.post.liked_by.length }}
+        {{ !!state.post.liked_by ? state.post.liked_by.length : 0 }}
       </p>
       <!-- like btn -->
       <button
@@ -241,7 +244,7 @@ async function reportPost() {
         </svg>
       </button>
       <p class="text-xs text-gray-700 dark:text-gray-300 ml-2">
-        {{ JSON.parse(state.post.comments).length }}
+        {{ !!state.post.comments ? JSON.parse(state.post.comments).length : 0 }}
       </p>
       <!-- comments btn -->
       <button
@@ -432,6 +435,7 @@ async function reportPost() {
         </ModalComponent>
       </form>
     </div>
+    <!-- Comments -->
     <div class="p-4 pt-2 border-t border-gray-300 dark:border-gray-700">
       <div
         v-for="comment of JSON.parse(state.post.comments)"
@@ -453,6 +457,7 @@ async function reportPost() {
           </p>
         </div>
       </div>
+      <!-- New comment -->
       <div class="w-full relative mt-2">
         <input
           type="text"
