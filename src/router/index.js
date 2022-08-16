@@ -80,6 +80,8 @@ const router = createRouter({
     },
     // /social/@:handle
     //     - /@:handle/about
+    //     - /@:handle/likes
+    //     - /@:handle/comments
     {
       path: '/social/@:handle',
       name: 'profile',
@@ -106,6 +108,11 @@ const router = createRouter({
         {
           path: 'comments',
           name: 'profile-comments',
+          component: () => import('@/views/Account/ProfileView.vue')
+        },
+        {
+          path: 'comments',
+          name: 'profile-likes',
           component: () => import('@/views/Account/ProfileView.vue')
         }
       ]

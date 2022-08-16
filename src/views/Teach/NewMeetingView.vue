@@ -21,7 +21,7 @@ function startOAuth() {
 async function oAuthCallback(code) {
   // Read access token from OAuth and request ZAK from API
   try {
-    const response = await axios.get(`/api/meetings/zak/${code}`, {
+    const response = await axios.get(`/api/course/zak/${code}`, {
       headers: {
         Authorization: userStore.getBearerToken
       }
@@ -53,7 +53,7 @@ async function createMeeting() {
   // Create a meeting with ZAK and meeting details
   try {
     const response = await axios.post(
-      '/api/meetings/',
+      '/api/course/',
       {
         zak: zak.value,
         name: meeting.name,
@@ -78,7 +78,7 @@ async function createMeeting() {
 
 const jwt = ref('')
 async function getJWT() {
-  let url = `/api/meetings/jwt`
+  let url = `/api/course/jwt`
   try {
     const response = await axios.get(url, {
       headers: {

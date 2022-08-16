@@ -14,59 +14,7 @@ const router = useRouter()
 const route = useRoute()
 
 const loading = ref(true)
-
-const user = reactive({
-  isOwnAccount: false,
-  data: {},
-  comments: []
-})
-onMounted(async () => {
-  user.isOwnAccount = false
-  loading.value = true
-  try {
-    const response = await axios.get(
-      `/api/user/handle/${route.params.handle}`,
-      {
-        headers: {
-          Authorization: userStore.getBearerToken
-        }
-      }
-    )
-    if (response.status === 200) {
-      user.data = response.data
-      user.data.posts.reverse()
-      if (user.data.handle === userStore.getHandle) {
-        user.isOwnAccount = true
-        userStore.user = user.data
-      }
-    }
-  } catch (error) {
-    console.log(error)
-    if (error.response.status === 404) {
-      router.push('/user-not-found')
-    }
-  }
-  try {
-    const response = await axios.get(
-      `/api/user/handle/${route.params.handle}/comments`,
-      {
-        headers: {
-          Authorization: userStore.getBearerToken
-        }
-      }
-    )
-    if (response.status === 200) {
-      user.comments = response.data
-      console.log(user.comments)
-    }
-  } catch (error) {
-    console.log(error)
-  } finally {
-    loading.value = false
-  }
-  user.data.interests = JSON.parse(user.data.interests)
-})
-
+const newInterest = ref('')
 const profileAlert = reactive({
   type: 'primary',
   message: ''
@@ -80,11 +28,51 @@ watch(profileAlert, (value) => {
     })
     setTimeout(() => {
       profileAlert.message = ''
-    }, 3000)
+    }, 5000)
   }
 })
+const user = reactive({
+  isOwnAccount: false,
+  data: {},
+  comments: [],
+  likes: []
+})
 
-const newInterest = ref('')
+onMounted(async () => {
+  user.isOwnAccount = false
+  loading.value = true
+  try {
+    const response = await axios.get(
+      `/api/user/handle/${route.params.handle}`,
+      {
+        headers: {
+          Authorization: userStore.getBearerToken
+        }
+      }
+    )
+
+    user.data = response.data.user
+    user.comments = response.data.comments
+    user.likes = response.data.likes
+    user.isOwnAccount = user.data.handle === userStore.getHandle
+
+    user.data.posts.reverse()
+    user.data.interests = JSON.parse(user.data.interests)
+
+    if (user.isOwnAccount) userStore.user = user.data
+  } catch (error) {
+    console.log(error)
+    console.log(error)
+    if (error.response.status === 404) {
+      router.push('/user-not-found')
+    } else {
+      profileAlert.type = 'danger'
+      profileAlert.message = error.response.data.error
+    }
+  } finally {
+    loading.value = false
+  }
+})
 
 async function updateUser() {
   profileAlert.message = ''
@@ -189,6 +177,13 @@ async function addFriend() {
       <NavbarComponent />
       <div v-if="loading" class="text-center">
         <div role="status">
+          <AlertComponent
+            v-show="profileAlert.message"
+            class="my-4"
+            :type="profileAlert.type"
+            :message="profileAlert.message"
+            :dismissible="false"
+          />
           <svg
             class="inline mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
             viewBox="0 0 100 101"
@@ -228,12 +223,12 @@ async function addFriend() {
               Change Avatar
             </button>
           </div>
-          <!-- Actions/About -->
-          <div class="sm:flex-1 divide-y divide-gray-300 dark:divide-gray-600">
-            <h3 class="px-4 py-2 text-3xl font-semibold dark:text-white">
+          <!-- Menu/About -->
+          <div class="sm:flex-1 w-full flex flex-col gap-4">
+            <h3 class="text-3xl font-semibold dark:text-white">
               @{{ user.data.handle }}
             </h3>
-            <p class="px-4 py-4 leading-tight text-gray-700 dark:text-gray-300">
+            <p class="leading-tight text-gray-700 dark:text-gray-300">
               <span v-if="user.data.bio">
                 {{ user.data.bio }}
               </span>
@@ -244,11 +239,123 @@ async function addFriend() {
                 No bio available.
               </span>
             </p>
+
+            <!-- User menu -->
+            <div
+              class="flex flex-col text-gray-900 divide-y dark:text-gray-200 divide-gray-300 dark:divide-gray-600"
+            >
+              <router-link
+                :to="{ name: 'profile' }"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                :class="{
+                  'text-blue-700 dark:text-white': $route.name === 'profile'
+                }"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 mr-3"
+                  width="24"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  ></path>
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  ></path>
+                </svg>
+                Posts
+              </router-link>
+              <router-link
+                :to="{ name: 'profile-comments' }"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                :class="{
+                  'text-blue-700 dark:text-white':
+                    $route.name === 'profile-comments'
+                }"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 mr-3"
+                  width="24"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                  ></path>
+                </svg>
+                Comments
+              </router-link>
+              <router-link
+                type="button"
+                :to="{ name: 'profile-likes' }"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                :class="{
+                  'text-blue-700 dark:text-white':
+                    $route.name === 'profile-likes'
+                }"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 mr-3"
+                  width="24"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                  ></path>
+                </svg>
+                Likes
+              </router-link>
+              <router-link
+                type="button"
+                :to="{ name: 'profile-about' }"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                :class="{
+                  'text-blue-700 dark:text-white':
+                    $route.name === 'profile-about'
+                }"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 mr-3"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                About
+              </router-link>
+            </div>
+
             <!-- Add friend -->
             <button
               type="button"
               @click="addFriend()"
-              class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
+              class="w-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover:bg-gradient-to-l focus:ring-4 focus:ring-blue-300 rounded-lg text-white darK:text-gray-900 font-bold text-base px-6 py-2.5 flex items-center justify-center gap-3 shadow-lg dark:text-gray-800"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -267,79 +374,6 @@ async function addFriend() {
                 <line x1="23" y1="11" x2="17" y2="11" />
               </svg>
               ADD FRIEND
-            </button>
-            <!-- Posts -->
-            <button
-              typ="button"
-              @click="$router.push({ name: 'profile' })"
-              class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                class="h-6 w-6"
-                width="24"
-                height="24"
-                stroke="currentColor"
-                stroke-width="2"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                ></path>
-                <path
-                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                ></path>
-              </svg>
-              SEE POSTS
-            </button>
-            <!-- Comments -->
-            <button
-              typ="button"
-              @click="$router.push({ name: 'profile-comments' })"
-              class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                class="h-6 w-6"
-                width="24"
-                height="24"
-                stroke="currentColor"
-                stroke-width="2"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-                ></path>
-              </svg>
-              SEE COMMENTS
-            </button>
-            <!-- Details -->
-            <button
-              type="button"
-              @click="$router.push({ name: 'profile-about' })"
-              class="inline-flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-blue-600 hover:underline hover:bg-gray-200 dark:text-blue-400 dark:hover:bg-gray-700"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-              SEE ABOUT
             </button>
           </div>
         </div>
@@ -384,7 +418,7 @@ async function addFriend() {
               :dismissible="false"
             />
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mb-4">
               <h2 class="text-2xl font-bold py-3 dark:text-white">
                 About @{{ user.data.handle }}
               </h2>
@@ -785,9 +819,6 @@ async function addFriend() {
           v-if="$route.name === 'profile-comments'"
           class="flex-1 flex flex-col gap-12 px-2"
         >
-          <h2 class="text-2xl font-bold py-3 dark:text-white">
-            Comments by @{{ user.data.handle }}
-          </h2>
           <AlertComponent
             v-show="profileAlert.message"
             class="my-4"
@@ -802,6 +833,29 @@ async function addFriend() {
             <p class="text-center text-gray-500">No posts found.</p>
           </div>
           <div v-for="post of user.comments" :key="post.id">
+            <PostComponent :post="post" class="shadow-sm" />
+          </div>
+        </div>
+
+        <!-- Likes -->
+        <div
+          v-if="$route.name === 'profile-likes'"
+          class="flex-1 flex flex-col gap-12 px-2"
+        >
+          <AlertComponent
+            v-show="profileAlert.message"
+            class="my-4"
+            :type="profileAlert.type"
+            :message="profileAlert.message"
+            :dismissible="false"
+          />
+          <div
+            v-if="!!user.likes && user.likes.length <= 0"
+            class="bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+          >
+            <p class="text-center text-gray-500">No posts found.</p>
+          </div>
+          <div v-for="post of user.likes" :key="post.id">
             <PostComponent :post="post" class="shadow-sm" />
           </div>
         </div>
