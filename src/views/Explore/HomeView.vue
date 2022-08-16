@@ -54,6 +54,7 @@ watch(
         class="flex flex-col md:flex-row container mx-auto gap-12 lg:gap-16 py-12 px-2"
       >
         <div class="w-full md:max-w-xs">
+          <!-- New post modal -->
           <ModalComponent>
             <template #button>
               <button
@@ -150,62 +151,54 @@ watch(
         </div>
         <!-- Content -->
         <div class="w-full max-h-full overflow-y-auto">
-          <ul
-            class="w-full mb-12 p-1 bg-white shadow-sm rounded-lg border border-gray-300 flex items-start overflow-x-auto text-sm font-medium text-center text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
+          <div
+            class="w-full mb-12 p-1 bg-white shadow-sm rounded-lg border border-gray-300 flex items-center gap-4 overflow-x-auto text-sm font-medium text-center text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
           >
-            <li class="mr-2">
-              <router-link
-                :to="{ name: 'explore-network' }"
-                class="inline-block py-1.5 px-3 rounded-lg text-sm"
-                :class="[
-                  route.name === 'explore-network'
-                    ? 'text-white bg-blue-600 active'
-                    : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-                ]"
-              >
-                Network
-              </router-link>
-            </li>
-            <li class="mr-2">
-              <router-link
-                :to="{ name: 'explore-interests' }"
-                class="inline-block py-1.5 px-3 rounded-lg text-sm"
-                :class="[
-                  route.name === 'explore-interests'
-                    ? 'text-white bg-blue-600 active'
-                    : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-                ]"
-              >
-                Interests
-              </router-link>
-            </li>
-            <li class="mr-2">
-              <router-link
-                :to="{ name: 'explore-education' }"
-                class="inline-block py-1.5 px-3 rounded-lg text-sm"
-                :class="[
-                  route.name === 'explore-education'
-                    ? 'text-white bg-blue-600 active'
-                    : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-                ]"
-              >
-                Education
-              </router-link>
-            </li>
-            <li class="mr-2">
-              <router-link
-                :to="{ name: 'explore-all' }"
-                class="inline-block py-1.5 px-3 rounded-lg text-sm"
-                :class="[
-                  route.name === 'explore-all'
-                    ? 'text-white bg-blue-600 active'
-                    : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-                ]"
-              >
-                Everything
-              </router-link>
-            </li>
-          </ul>
+            <router-link
+              :to="{ name: 'explore-network' }"
+              class="inline-flex flex-1 py-1.5 px-5 justify-center rounded-md text-sm"
+              :class="[
+                route.name === 'explore-network'
+                  ? 'text-white bg-blue-600 active shadow'
+                  : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              ]"
+            >
+              Network
+            </router-link>
+            <router-link
+              :to="{ name: 'explore-interests' }"
+              class="inline-flex flex-1 py-1.5 px-5 justify-center rounded-md text-sm"
+              :class="[
+                route.name === 'explore-interests'
+                  ? 'text-white bg-blue-600 active shadow'
+                  : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              ]"
+            >
+              Interests
+            </router-link>
+            <router-link
+              :to="{ name: 'explore-education' }"
+              class="inline-flex flex-1 py-1.5 px-5 justify-center rounded-md text-sm"
+              :class="[
+                route.name === 'explore-education'
+                  ? 'text-white bg-blue-600 active shadow'
+                  : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              ]"
+            >
+              Education
+            </router-link>
+            <router-link
+              :to="{ name: 'explore-all' }"
+              class="inline-flex flex-1 py-1.5 px-5 justify-center rounded-md text-sm"
+              :class="[
+                route.name === 'explore-all'
+                  ? 'text-white bg-blue-600 active shadow'
+                  : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              ]"
+            >
+              Everything
+            </router-link>
+          </div>
 
           <div v-if="state.loading" role="status" class="text-center h=full">
             <svg
@@ -249,19 +242,48 @@ watch(
                 <span class="font-semibold text-gray-900 dark:text-white"
                   >100</span
                 >
-                Entries
+                Posts
               </span>
               <!-- Buttons -->
               <div class="inline-flex mt-2 xs:mt-0">
                 <button
-                  class="py-2 px-4 text-sm font-medium text-white bg-gray-800 rounded-l hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  type="button"
+                  class="inline-flex items-center py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg rounded-r-none border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                 >
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="w-5 h-5 mr-3"
+                    width="24"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
                   Prev
                 </button>
                 <button
-                  class="py-2 px-4 text-sm font-medium text-white bg-gray-800 rounded-r border-0 border-l border-gray-700 hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  class="inline-flex gap-3 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg rounded-l-none border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                 >
                   Next
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="w-5 h-5 ml-3"
+                    width="24"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
                 </button>
               </div>
             </div>
