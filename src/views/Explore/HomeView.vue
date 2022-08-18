@@ -16,6 +16,12 @@ const state = reactive({
   loading: true,
   error: null
 })
+const filters = reactive({
+  page: 1,
+  limit: 10,
+  expandComments: false,
+  showOwnPosts: true
+})
 
 async function getPosts() {
   state.loading = true
@@ -103,7 +109,7 @@ watch(
                 <label class="inline-flex relative items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    value=""
+                    v-model="filters.showOwnPosts"
                     checked
                     class="sr-only peer"
                   />
@@ -120,7 +126,7 @@ watch(
                 <label class="inline-flex relative items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    value=""
+                    v-model="filters.expandComments"
                     checked
                     class="sr-only peer"
                   />
@@ -136,6 +142,7 @@ watch(
                 >
                 <input
                   type="number"
+                  v-model="filters.limit"
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-24 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder="20"
                 />
@@ -224,6 +231,7 @@ watch(
               v-for="p in state.posts"
               :key="p.id"
               :post="p"
+              :expand="filters.expandComments"
               class="shadow-sm"
             />
 
