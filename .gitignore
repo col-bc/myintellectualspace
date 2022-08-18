@@ -28,3 +28,4 @@ coverage
 *.sw?
 
 src/secrets.js
+meeting notes.md
