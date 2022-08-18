@@ -13,7 +13,6 @@ const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
 
-const loading = ref(true)
 const newInterest = ref('')
 const profileAlert = reactive({
   type: 'primary',
@@ -34,13 +33,18 @@ watch(profileAlert, (value) => {
 const user = reactive({
   isOwnAccount: false,
   data: {},
+  connections: [],
   comments: [],
   likes: []
+})
+const state = reactive({
+  loading: true,
+  filtersExpanded: true
 })
 
 onMounted(async () => {
   user.isOwnAccount = false
-  loading.value = true
+  state.loading = true
   try {
     const response = await axios.get(
       `/api/user/handle/${route.params.handle}`,
@@ -54,10 +58,11 @@ onMounted(async () => {
     user.data = response.data.user
     user.comments = response.data.comments
     user.likes = response.data.likes
+    user.data.interests = JSON.parse(user.data.interests)
+    user.connections = response.data.connections
     user.isOwnAccount = user.data.handle === userStore.getHandle
 
     user.data.posts.reverse()
-    user.data.interests = JSON.parse(user.data.interests)
 
     if (user.isOwnAccount) userStore.user = user.data
   } catch (error) {
@@ -70,7 +75,7 @@ onMounted(async () => {
       profileAlert.message = error.response.data.error
     }
   } finally {
-    loading.value = false
+    state.loading = false
   }
 })
 
@@ -175,7 +180,7 @@ async function addFriend() {
   <main class="bg-gray-100 min-h-screen dark:bg-slate-800">
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
-      <div v-if="loading" class="text-center">
+      <div v-if="state.loading" class="text-center">
         <div role="status">
           <AlertComponent
             v-show="profileAlert.message"
@@ -199,11 +204,11 @@ async function addFriend() {
               fill="currentFill"
             />
           </svg>
-          <span class="sr-only">Loading...</span>
+          <span class="sr-only">state.loading...</span>
         </div>
       </div>
       <div
-        v-if="!loading"
+        v-if="!state.loading"
         class="container mx-auto flex flex-col md:flex-row items-start px-2 gap-6 md:gap:12 lg:gap-16 py-12"
       >
         <div class="flex flex-col items-start gap-12 w-full md:w-80">
@@ -321,6 +326,34 @@ async function addFriend() {
                   ></path>
                 </svg>
                 Likes
+              </router-link>
+              <router-link
+                type="button"
+                :to="{ name: 'profile-connections' }"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                :class="{
+                  'text-blue-700 dark:text-white':
+                    $route.name === 'profile-connections'
+                }"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 mr-3"
+                  width="24"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="18" cy="5" r="3"></circle>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="19" r="3"></circle>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                Connections
               </router-link>
               <router-link
                 type="button"
@@ -659,27 +692,6 @@ async function addFriend() {
                 placeholder=""
               />
             </div>
-            <!-- Friends -->
-            <div class="py-2 flex items-start">
-              <span
-                class="font-semibold mr-2 uppercase text-sm w-44 dark:text-gray-300"
-                >Friends</span
-              >
-              <div
-                v-for="friend in user.data.friends"
-                :key="friend"
-                @click="
-                  $router.push({
-                    name: 'profile',
-                    params: { handle: friend.handle }
-                  })
-                "
-                class="cursor-pointer flex flex-col items-center just-fiy-center p-2 gap-2 text-sm font-medium text-gray-700 bg-white border rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-              >
-                <img :src="friend.avatar_uri" class="w-8 h-8 rounded-full" />
-                <span class="ml-2">@{{ friend.handle }}</span>
-              </div>
-            </div>
           </div>
 
           <div v-else class="flex flex-col dark:text-gray-200">
@@ -857,6 +869,129 @@ async function addFriend() {
           </div>
           <div v-for="post of user.likes" :key="post.id">
             <PostComponent :post="post" class="shadow-sm" />
+          </div>
+        </div>
+
+        <!-- Connections -->
+        <div
+          v-if="$route.name === 'profile-connections'"
+          class="flex-1 flex flex-col gap-12 px-2"
+        >
+          <!-- TODO: if own account show suggestions -->
+          <AlertComponent
+            v-show="profileAlert.message"
+            class="my-4"
+            :type="profileAlert.type"
+            :message="profileAlert.message"
+            :dismissible="false"
+          />
+          <div
+            v-if="!!user.connections && user.connections.length <= 0"
+            class="bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+          >
+            <p class="text-center text-gray-500">No connections found.</p>
+          </div>
+          <div
+            class="cursor-pointer bg-white border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-700 p-4"
+            v-for="friend of user.connections"
+            @click="
+              $router.push({
+                name: 'profile',
+                params: { handle: friend.handle }
+              })
+            "
+            :key="friend.id"
+          >
+            <div class="flex items-start gap-6">
+              <div class="flex-shrink-0">
+                <img :src="friend.avatar_uri" class="w-16 h-16 rounded-lg" />
+              </div>
+              <div class="flex-1 flex flex-col gap-2">
+                <h3 class="text-xl text-gray-900 font-semibold dark:text-white">
+                  @{{ friend.handle }}
+                </h3>
+                <p class="text-gray-700 text-sm dark:text-gray-300">
+                  {{ friend.bio }}
+                </p>
+                <div class="flex items-center justify-between">
+                  <p
+                    class="text-gray-700 text-sm flex items-center dark:text-gray-300"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="w-4 h-4 mr-2"
+                      width="24"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+                      ></path>
+                      <circle cx="12" cy="10" r="3"></circle></svg
+                    >{{ !!friend.location ? friend.location : 'No location' }}
+                  </p>
+                  <p
+                    class="text-gray-700 text-sm flex items-center dark:text-gray-300"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="w-4 h-4 mr-2"
+                      width="24"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="2"
+                        y="7"
+                        width="20"
+                        height="14"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <path
+                        d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"
+                      ></path>
+                    </svg>
+                    {{
+                      !!friend.occupation ? friend.occupation : 'No occupation'
+                    }}
+                  </p>
+                  <p
+                    class="text-gray-700 text-sm flex items-center dark:text-gray-300"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="w-4 h-4 mr-2"
+                      width="24"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                      <path
+                        d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+                      ></path>
+                    </svg>
+                    {{
+                      !!friend.education_major
+                        ? friend.education_major
+                        : 'No education'
+                    }}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

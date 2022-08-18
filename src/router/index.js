@@ -114,6 +114,11 @@ const router = createRouter({
           path: 'comments',
           name: 'profile-likes',
           component: () => import('@/views/Account/ProfileView.vue')
+        },
+        {
+          path: 'connections',
+          name: 'profile-connections',
+          component: () => import('@/views/Account/ProfileView.vue')
         }
       ]
     },
