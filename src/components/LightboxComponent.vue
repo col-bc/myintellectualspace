@@ -1,50 +1,95 @@
 <script setup>
-import { defineProps, ref } from 'vue'
+import { defineProps, reactive, onMounted, onUpdated } from 'vue'
 
+const state = reactive({
+  show: false,
+  image: null,
+  caption: null
+})
 const props = defineProps({
+  show: {
+    type: Boolean,
+    default: false
+  },
   image: {
     type: String,
-    required: true
+    default: null
+  },
+  caption: {
+    type: String,
+    default: null
   }
 })
-const show = ref(false)
+onMounted(() => {
+  state.show = props.show
+  state.image = props.image
+  state.caption = props.caption
+})
 </script>
 
 <template>
-  <button type="button" @click="show = !show">
-    <slot> </slot>
-  </button>
+  <img
+    @click="state.show = true"
+    :src="state.image"
+    class="w-full cursor-pointer"
+  />
+
   <Teleport to="#modals-container">
+    <!-- Overlay -->
     <div
-      v-if="show"
-      class="fixed z-30 top-0 left-0 w-screen h-screen bg-black bg-opacity-40"
-    ></div>
-    <button
-      type="button"
-      v-if="show"
-      @click="show = false"
-      class="fixed z-50 top-0 right-0 m-4 p-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded"
+      v-if="state.show"
+      @click="state.show = false"
+      class="cursor-pointer absolute z-40 top-0 right-0 w-full h-full bg-gray-900 bg-opacity-80"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
-    </button>
-    <div
-      v-if="show"
-      class="fixed top-0 left-0 z-40 flex flex-col items-center justify-center"
-    >
-      <img :src="props.image" class-="w-full mx-auto h-auto shadow-xl" />
+      &nbsp;
     </div>
+    <Transition>
+      <div
+        tabindex="-1"
+        v-show="state.show"
+        class="overflow-y-auto overflow-x-hidden fixed top-0 right-0 z-40 w-full md:inset-0 h-modal md:h-full"
+      >
+        <button
+          type="button"
+          @click="state.show = false"
+          class="absolute z-50 top-3 right-3 text-white bg-transparent hover:bg-gray-900 hover:bg-opacity-100 rounded-lg text-sm p-1.5 inline-flex items-center"
+        >
+          <svg
+            aria-hidden="true"
+            class="w-5 h-5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+        <div class="relative p-4 w-full max-w-lg mx-auto h-full md:h-auto">
+          <!-- Modal content -->
+          <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
+            <img :src="state.image" class="w-full h-full" />
+            <!-- Modal Actions -->
+          </div>
+        </div>
+      </div>
+    </Transition>
   </Teleport>
 </template>
+
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+  transition: all 0.25s ease-in-out;
+  top: 0px;
+}
+
+.v-enter-from,
+.v-leave-to {
+  top: -100%;
+}
+</style>

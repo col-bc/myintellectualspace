@@ -1,9 +1,9 @@
 <script setup>
-import { defineProps, onMounted, reactive, ref } from 'vue'
+import { defineProps, onMounted, onUpdated, reactive, ref } from 'vue'
 import ModalComponent from './ModalComponent.vue'
+import LightboxComponent from './LightboxComponent.vue'
 import useUserStore from '@/stores/user'
 import axios from 'axios'
-import { compileScript } from '@vue/compiler-sfc'
 
 const userStore = useUserStore()
 
@@ -11,22 +11,37 @@ const props = defineProps({
   post: {
     type: Object,
     required: true
+  },
+  expand: {
+    type: Boolean,
+    default: false
   }
 })
 const state = reactive({
   post: props.post,
   liked: false,
-  shoeUserMenu: false,
+  isPostOwner: false,
+  commentsExpended: false,
   newComment: '',
   commentError: '',
   reportMenuOpen: false
 })
 onMounted(() => {
+  state.commentsExpended =
+    JSON.parse(state.post.comments).length > 0 || props.expand
   state.post = props.post
   state.liked = state.post.liked_by.includes(userStore.getHandle)
+  state.isPostOwner = state.post.user_id === userStore.user.id
+})
+onUpdated(() => {
+  state.post = props.post
+  state.liked = state.post.liked_by.includes(userStore.getHandle)
+  state.isPostOwner = state.post.user_id === userStore.user.id
+  state.commentsExpended =
+    JSON.parse(state.post.comments).length > 0 || props.expand
 })
 
-const reportForm = ref()
+const reportForm = ref() // <form> ...
 
 async function handleLike() {
   if (state.liked) {
@@ -167,14 +182,17 @@ async function reportPost() {
     <div
       class="flex flex-col md:flex-row justify-start md:justify-between items-start gap-4 px-4 py-2"
     >
-      <p class="text-gray-800 dark:text-white font-medium">
-        {{ state.post.content }}
-      </p>
-      <img
-        v-if="state.post.image_uri"
-        :src="state.post.image_uri"
-        class="w-full h-fll md:w-48 lg:w-1/2 rounded object-cover"
-      />
+      <div class="w-1/2">
+        <p class="text-gray-800 dark:text-white font-medium">
+          {{ state.post.content }}
+        </p>
+      </div>
+      <div class="w-1/2">
+        <LightboxComponent
+          :image="state.post.image_uri"
+          class="rounded-lg object-cover"
+        />
+      </div>
     </div>
     <!-- Action bar -->
     <div class="px-4 py-2 flex items-center justify-end">
@@ -199,126 +217,15 @@ async function reportPost() {
         </svg>
         {{ state.post.location }}
       </p>
-      <p class="text-xs text-gray-700 dark:text-gray-300 ml-2">
-        {{ !!state.post.liked_by ? state.post.liked_by.length : 0 }}
-      </p>
-      <!-- like btn -->
+      <!-- Delete btn -->
       <button
+        v-if="state.isPostOwner"
+        @click="deletePost()"
         type="button"
-        @click="handleLike()"
-        class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        class="inline-flex items-center justify-center gap-2 p-2 text-red-500 rounded font-medium text-xs hover:text-red-700 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-600"
       >
-        <svg
-          v-if="!state.liked"
-          xmlns="http://www.w3.org/2000/svg"
-          class="w-5 h-5"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-          />
-        </svg>
-        <svg
-          v-else
-          xmlns="http://www.w3.org/2000/svg"
-          class="w-5 h-5 fill-red-500 stroke-red-500"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-          />
-        </svg>
+        DELETE
       </button>
-      <p class="text-xs text-gray-700 dark:text-gray-300 ml-2">
-        {{ !!state.post.comments ? JSON.parse(state.post.comments).length : 0 }}
-      </p>
-      <!-- comments btn -->
-      <button
-        type="button"
-        class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="w-5 h-5"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-          />
-        </svg>
-      </button>
-      <!-- user menu -->
-      <div class="relative ml-2">
-        <button
-          v-if="userStore.user.id === state.post.user_id"
-          @click="state.showUserMenu = !state.showUserMenu"
-          type="button"
-          class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="1" />
-            <circle cx="12" cy="5" r="1" />
-            <circle cx="12" cy="19" r="1" />
-          </svg>
-        </button>
-        <div
-          v-if="state.showUserMenu"
-          class="absolute right-0 top-full z-10 w-44 bg-white rounded border border-gray-300 shadow dark:bg-gray-700 dark:border-gray-600"
-        >
-          <ul
-            class="py-1 text-sm text-gray-700 dark:text-gray-200"
-            aria-labelledby="dropdownDefault"
-          >
-            <li>
-              <a
-                href="#"
-                class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                >Edit Post</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                @click="deletePost()"
-                class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                >Delete Post</a
-              >
-            </li>
-          </ul>
-        </div>
-      </div>
       <!-- report btn -->
       <form @submit.prevent="reportPost()" ref="reportForm">
         <ModalComponent v-if="userStore.user.id !== state.post.user_id">
@@ -434,13 +341,78 @@ async function reportPost() {
           </template>
         </ModalComponent>
       </form>
+      <!-- comments btn -->
+      <button
+        type="button"
+        @click="state.commentsExpended = !state.commentsExpended"
+        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+      >
+        <span
+          class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
+        >
+          {{
+            !!state.post.comments ? JSON.parse(state.post.comments).length : ''
+          }}
+        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-5 h-5"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+          />
+        </svg>
+      </button>
+
+      <!-- like btn -->
+      <button
+        type="button"
+        @click="handleLike()"
+        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+      >
+        <span
+          class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
+        >
+          {{ !!state.post.liked_by ? state.post.liked_by.length : '' }}
+        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-5 h-5"
+          :class="{
+            'fill-red-500 stroke-red-500': state.liked
+          }"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          />
+        </svg>
+      </button>
     </div>
     <!-- Comments -->
-    <div class="p-4 pt-2 border-t border-gray-300 dark:border-gray-700">
+    <div
+      v-if="state.commentsExpended"
+      class="p-4 pt-2 border-t border-gray-300 dark:border-gray-700"
+    >
       <div
         v-for="comment of JSON.parse(state.post.comments)"
         :key="comment"
-        class="flex items-start w-full mb-2"
+        class="flex items-start w-full mb-4"
       >
         <router-link
           class="flex-shrink-0"
@@ -458,7 +430,7 @@ async function reportPost() {
         </div>
       </div>
       <!-- New comment -->
-      <div class="w-full relative mt-2">
+      <div class="w-full relative mt-4">
         <input
           type="text"
           v-model="state.newComment"
