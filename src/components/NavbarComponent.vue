@@ -70,7 +70,7 @@ onBeforeUnmount(() => {
   <div
     v-if="drawerOpen"
     @click="drawerOpen = false"
-    class="cursor-pointer absolute z-40 top-0 right-0 w-full h-full bg-gray-900 bg-opacity-60"
+    class="cursor-pointer absolute z-40 top-0 right-0 w-full h-full bg-black bg-opacity-60"
   ></div>
   <Transition>
     <div
@@ -158,8 +158,11 @@ onBeforeUnmount(() => {
           </router-link>
         </li>
         <li>
-          <a
-            href="#"
+          <router-link
+            :to="{
+              name: 'profile-connections',
+              params: { handle: userStore.getHandle }
+            }"
             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <svg
@@ -179,7 +182,7 @@ onBeforeUnmount(() => {
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
-            Connections</a
+            Connections</router-link
           >
         </li>
         <li>
@@ -206,8 +209,8 @@ onBeforeUnmount(() => {
           >
         </li>
         <li>
-          <a
-            href="#"
+          <router-link
+            :to="{ name: 'settings' }"
             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <svg
@@ -227,7 +230,7 @@ onBeforeUnmount(() => {
                 d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
               />
             </svg>
-            Settings</a
+            Settings</router-link
           >
         </li>
       </ul>
@@ -301,7 +304,7 @@ onBeforeUnmount(() => {
           <input
             type="text"
             v-model="searchText"
-            class="bg-white w-full max-w-xm border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            class="bg-gray-50 w-full max-w-xm border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             placeholder="Search"
           />
           <div
@@ -478,119 +481,121 @@ onBeforeUnmount(() => {
         </button>
       </div>
       <!-- Links -->
-      <div
-        v-show="!isMobile || (isMobile && menuOpen)"
-        class="w-full md:flex-1"
-      >
-        <ul
-          class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium"
+      <Transition name="nav">
+        <div
+          v-show="!isMobile || (isMobile && menuOpen)"
+          class="w-full md:flex-1"
         >
-          <!-- Search -->
-          <div class="relative block md:hidden mb-2">
-            <input
-              type="text"
-              v-model="searchText"
-              class="bg-white w-full max-w-xm border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Search"
-            />
-            <div
-              v-if="searchText"
-              class="absolute z-10 w-full bg-white border border-gray-200 rounded divide-y divide-gray-100 shadow-xl dark:bg-gray-700 mt-2"
-            >
-              <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-                <li>
-                  <router-link
-                    :to="{ name: 'profile', params: { handle: searchText } }"
-                    class="inline-flex items-center gap-3 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
+          <ul
+            class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:mr-8 md:text-sm md:font-medium"
+          >
+            <!-- Search -->
+            <div class="relative block md:hidden mb-2">
+              <input
+                type="text"
+                v-model="searchText"
+                class="bg-gray-50 w-full max-w-xm border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Search"
+              />
+              <div
+                v-if="searchText"
+                class="absolute z-10 w-full bg-white border border-gray-200 rounded divide-y divide-gray-100 shadow-xl dark:bg-gray-700 mt-2"
+              >
+                <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                  <li>
+                    <router-link
+                      :to="{ name: 'profile', params: { handle: searchText } }"
+                      class="inline-flex items-center gap-3 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    {{ searchText }}
-                  </router-link>
-                </li>
-                <li>
-                  <router-link
-                    :to="''"
-                    class="inline-flex items-center gap-3 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      {{ searchText }}
+                    </router-link>
+                  </li>
+                  <li>
+                    <router-link
+                      :to="''"
+                      class="inline-flex items-center gap-3 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      />
-                    </svg>
-                    {{ searchText }}
-                  </router-link>
-                </li>
-              </ul>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                        />
+                      </svg>
+                      {{ searchText }}
+                    </router-link>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
-          <li>
-            <router-link
-              :to="{ name: 'index' }"
-              :class="[
-                $route.path === '/'
-                  ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
-                  : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-              ]"
-              >Home</router-link
-            >
-          </li>
-          <li>
-            <router-link
-              :to="{ name: 'learn-home' }"
-              :class="[
-                $route.path.includes('learn')
-                  ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
-                  : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-              ]"
-              >Learn</router-link
-            >
-          </li>
-          <li>
-            <router-link
-              :to="{ name: 'teach-home' }"
-              :class="[
-                $route.path.startsWith('/teach')
-                  ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
-                  : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-              ]"
-              >Teach</router-link
-            >
-          </li>
-          <li>
-            <router-link
-              :to="{ name: 'explore-all' }"
-              :class="[
-                $route.path.startsWith('/explore')
-                  ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
-                  : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-              ]"
-              >Explore</router-link
-            >
-          </li>
-        </ul>
-      </div>
+            <li>
+              <router-link
+                :to="{ name: 'index' }"
+                :class="[
+                  $route.path === '/'
+                    ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
+                    : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
+                ]"
+                >Home</router-link
+              >
+            </li>
+            <li>
+              <router-link
+                :to="{ name: 'learn-home' }"
+                :class="[
+                  $route.path.includes('learn')
+                    ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
+                    : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
+                ]"
+                >Learn</router-link
+              >
+            </li>
+            <li>
+              <router-link
+                :to="{ name: 'teach-home' }"
+                :class="[
+                  $route.path.startsWith('/teach')
+                    ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
+                    : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
+                ]"
+                >Teach</router-link
+              >
+            </li>
+            <li>
+              <router-link
+                :to="{ name: 'explore-all' }"
+                :class="[
+                  $route.path.startsWith('/explore')
+                    ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
+                    : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
+                ]"
+                >Explore</router-link
+              >
+            </li>
+          </ul>
+        </div>
+      </Transition>
     </div>
   </nav>
 </template>
@@ -605,5 +610,16 @@ onBeforeUnmount(() => {
 .v-enter-from,
 .v-leave-to {
   right: -320px;
+}
+
+.nav-enter-active,
+.nav-leave-active {
+  transition: all 0.25s ease-in-out;
+  opacity: 1;
+}
+
+.nav-enter-from,
+.nav-leave-to {
+  opacity: 0;
 }
 </style>

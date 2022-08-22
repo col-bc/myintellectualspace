@@ -130,7 +130,7 @@ async function getPostLocation() {
           <button
             type="button"
             @click="getPostLocation()"
-            class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+            class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -152,7 +152,7 @@ async function getPostLocation() {
           <button
             type="button"
             @click="selectPostImage()"
-            class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+            class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

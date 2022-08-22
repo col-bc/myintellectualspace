@@ -1,8 +1,15 @@
 <script setup>
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 
 const state = reactive({
   isOpen: false
+})
+watch(state, () => {
+  if (state.isOpen) {
+    document.body.classList.toggle('overflow-hidden')
+  } else {
+    document.body.classList.toggle('overflow-hidden')
+  }
 })
 </script>
 
@@ -16,7 +23,7 @@ const state = reactive({
       <div
         v-if="state.isOpen"
         @click="state.isOpen = false"
-        class="cursor-pointer absolute z-40 top-0 right-0 w-full h-full bg-gray-900 bg-opacity-60"
+        class="cursor-pointer fixed z-40 top-0 right-0 w-full h-full bg-black bg-opacity-60 blur-"
       >
         &nbsp;
       </div>
@@ -56,7 +63,7 @@ const state = reactive({
                   <button
                     type="button"
                     @click="state.isOpen = false"
-                    class="py-2.5 px-5 w-full text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    class="py-2.5 px-5 w-full text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
                     CLOSE
                   </button>

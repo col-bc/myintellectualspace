@@ -1,11 +1,11 @@
 <template>
-  <div class="bg-white sm:p-6 dark:bg-gray-900">
+  <div class="bg-gray-100 sm:p-6 dark:bg-gray-900">
     <footer class="p-4 max-w-screen-xl w-full mx-auto px-2 sm:px-4">
       <div class="md:flex md:justify-between">
         <div class="mb-6 md:mb-0">
           <router-link
             to="/"
-            class="flex w-auto justify-center items-center mr-auto md:mr-0 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+            class="flex w-auto items-center mr-auto md:mr-0 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

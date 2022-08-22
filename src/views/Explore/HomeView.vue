@@ -52,7 +52,7 @@ watch(
 </script>
 
 <template>
-  <main class="bg-gray-100 min-h-screen dark:bg-slate-800">
+  <main class="bg-white min-h-screen dark:bg-slate-800">
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
 
@@ -65,7 +65,7 @@ watch(
             <template #button>
               <button
                 type="button"
-                class="mb-12 w-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover:bg-gradient-to-l focus:ring-4 focus:ring-blue-300 rounded-lg text-white darK:text-gray-900 font-bold text-base px-6 py-2.5 flex items-center justify-center gap-3 shadow-lg dark:text-gray-800"
+                class="inline-flex w-full mb-12 items-center gap-4 justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-7 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -149,7 +149,7 @@ watch(
               </div>
               <button
                 type="button"
-                class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
               >
                 Apply
               </button>
@@ -167,7 +167,7 @@ watch(
               :class="[
                 route.name === 'explore-network'
                   ? 'text-white bg-blue-600 active shadow'
-                  : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+                  : 'hover:text-gray-900 hover:bg-white dark:hover:bg-gray-800 dark:hover:text-white'
               ]"
             >
               Network
@@ -178,7 +178,7 @@ watch(
               :class="[
                 route.name === 'explore-interests'
                   ? 'text-white bg-blue-600 active shadow'
-                  : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+                  : 'hover:text-gray-900 hover:bg-white dark:hover:bg-gray-800 dark:hover:text-white'
               ]"
             >
               Interests
@@ -189,7 +189,7 @@ watch(
               :class="[
                 route.name === 'explore-education'
                   ? 'text-white bg-blue-600 active shadow'
-                  : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+                  : 'hover:text-gray-900 hover:bg-white dark:hover:bg-gray-800 dark:hover:text-white'
               ]"
             >
               Education
@@ -200,7 +200,7 @@ watch(
               :class="[
                 route.name === 'explore-all'
                   ? 'text-white bg-blue-600 active shadow'
-                  : 'hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+                  : 'hover:text-gray-900 hover:bg-white dark:hover:bg-gray-800 dark:hover:text-white'
               ]"
             >
               Everything
@@ -256,7 +256,7 @@ watch(
               <div class="inline-flex mt-2 xs:mt-0">
                 <button
                   type="button"
-                  class="inline-flex items-center py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg rounded-r-none border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  class="inline-flex items-center py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg rounded-r-none border border-gray-200 hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -275,7 +275,7 @@ watch(
                   Prev
                 </button>
                 <button
-                  class="inline-flex gap-3 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg rounded-l-none border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  class="inline-flex gap-3 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg rounded-l-none border border-gray-200 hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                 >
                   Next
                   <svg

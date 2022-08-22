@@ -1,13 +1,26 @@
 <script setup>
-import { RouterView } from 'vue-router'
 import FooterComponent from './components/FooterComponent.vue'
+import { RouterView } from 'vue-router'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  if (localStorage.getItem('color-theme') === 'dark') {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+})
 </script>
 
 <template>
   <div>
-    <RouterView />
-    <FooterComponent />
+    <router-view v-slot="{ Component }">
+      <transition>
+        <component :is="Component" />
+      </transition>
+    </router-view>
     <div id="modals-container"></div>
+    <FooterComponent />
   </div>
 </template>
 
@@ -20,5 +33,18 @@ import FooterComponent from './components/FooterComponent.vue'
 
 body {
   font-family: 'Poppins', sans-serif;
+}
+
+html,
+body {
+  @apply bg-white dark:bg-slate-800;
+}
+
+#modals-container {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
 }
 </style>

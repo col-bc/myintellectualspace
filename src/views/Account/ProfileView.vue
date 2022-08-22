@@ -177,7 +177,7 @@ async function addFriend() {
 </script>
 
 <template>
-  <main class="bg-gray-100 min-h-screen dark:bg-slate-800">
+  <main class="bg-white min-h-screen dark:bg-slate-800">
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div v-if="state.loading" class="text-center">
@@ -214,7 +214,7 @@ async function addFriend() {
         <div class="flex flex-col items-start gap-12 w-full md:w-80">
           <!-- Avatar -->
           <div
-            class="sm:flex-1 relative group p-2 bg-gradient-to-br from-blue-400 to-purple-400 rounded-xl"
+            class="sm:flex-1 relative group p-2 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 rounded-lg text-white shadow-lg shadow-purple-400/30 dark:text-gray-900"
           >
             <img
               :src="user.data.avatar_uri"
@@ -388,7 +388,7 @@ async function addFriend() {
             <button
               type="button"
               @click="addFriend()"
-              class="w-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover:bg-gradient-to-l focus:ring-4 focus:ring-blue-300 rounded-lg text-white darK:text-gray-900 font-bold text-base px-6 py-2.5 flex items-center justify-center gap-3 shadow-lg dark:text-gray-800"
+              class="inline-flex items-center justify-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -474,14 +474,14 @@ async function addFriend() {
                 <input
                   v-model="user.data.first_name"
                   type="text"
-                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder=""
                   required
                 />
                 <input
                   v-model="user.data.last_name"
                   type="text"
-                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder=""
                   required
                 />
@@ -496,7 +496,7 @@ async function addFriend() {
               <input
                 v-model="user.data.location"
                 type="text"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
                 required
               />
@@ -509,7 +509,7 @@ async function addFriend() {
               >
               <textarea
                 v-model="user.data.bio"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
                 rows="4"
               />
@@ -524,7 +524,7 @@ async function addFriend() {
                 type="text"
                 disabled
                 :value="new Date(user.data.created_at).toLocaleDateString()"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
                 required
               />
@@ -536,7 +536,7 @@ async function addFriend() {
                 >Education Level</span
               >
               <select
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               >
                 <option value="" :selected="!user.data.education_level">
                   Select
@@ -582,7 +582,7 @@ async function addFriend() {
               <input
                 v-model="user.data.education_institution"
                 type="text"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
@@ -595,7 +595,7 @@ async function addFriend() {
               <input
                 v-model="user.data.education_major"
                 type="text"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
@@ -608,7 +608,7 @@ async function addFriend() {
               <input
                 v-model="user.data.occupation"
                 type="text"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
@@ -624,7 +624,7 @@ async function addFriend() {
                     v-model="newInterest"
                     @keyup.enter="addInterest"
                     type="text"
-                    class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="Add a new interest"
                   />
                   <button
@@ -653,7 +653,7 @@ async function addFriend() {
                   <span
                     v-for="(interest, index) of user.data.interests"
                     :key="interest"
-                    class="inline-flex items-center pl-2 text-sm font-medium bg-white border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500"
+                    class="inline-flex items-center pl-2 text-sm font-medium bg-gray-50 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500"
                   >
                     {{ interest }}
                     <button
@@ -675,7 +675,7 @@ async function addFriend() {
               <input
                 v-model="user.data.business_name"
                 type="text"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
@@ -688,7 +688,7 @@ async function addFriend() {
               <input
                 v-model="user.data.years_in_business"
                 type="text"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
@@ -782,7 +782,7 @@ async function addFriend() {
                 <span
                   v-for="interest of user.data.interests"
                   :key="interest"
-                  class="inline-flex items-center px-2 text-sm font-medium bg-white border border-gray-300 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white 0"
+                  class="inline-flex items-center px-2 text-sm font-medium bg-gray-50 border border-gray-300 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white 0"
                 >
                   {{ interest }}
                 </span>
@@ -817,7 +817,7 @@ async function addFriend() {
                     params: { handle: friend.handle }
                   })
                 "
-                class="cursor-pointer flex flex-col items-center just-fiy-center p-2 gap-2 text-sm font-medium text-gray-700 bg-white border rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                class="cursor-pointer flex flex-col items-center just-fiy-center p-2 gap-2 text-sm font-medium text-gray-700 bg-gray-50 border rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
               >
                 <img :src="friend.avatar_uri" class="w-8 h-8 rounded-full" />
                 <span class="ml-2">@{{ friend.handle }}</span>
@@ -840,7 +840,7 @@ async function addFriend() {
           />
           <div
             v-if="!!user.comments && user.comments.length <= 0"
-            class="bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+            class="bg-gray-50 border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
           >
             <p class="text-center text-gray-500">No posts found.</p>
           </div>
@@ -863,7 +863,7 @@ async function addFriend() {
           />
           <div
             v-if="!!user.likes && user.likes.length <= 0"
-            class="bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+            class="bg-gray-50 border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
           >
             <p class="text-center text-gray-500">No posts found.</p>
           </div>
@@ -887,12 +887,12 @@ async function addFriend() {
           />
           <div
             v-if="!!user.connections && user.connections.length <= 0"
-            class="bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+            class="bg-gray-50 border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
           >
             <p class="text-center text-gray-500">No connections found.</p>
           </div>
           <div
-            class="cursor-pointer bg-white border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-700 p-4"
+            class="cursor-pointer bg-gray-50 border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-700 p-4"
             v-for="friend of user.connections"
             @click="
               $router.push({

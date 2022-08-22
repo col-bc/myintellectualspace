@@ -222,7 +222,7 @@ async function reportPost() {
         v-if="state.isPostOwner"
         @click="deletePost()"
         type="button"
-        class="inline-flex items-center justify-center gap-2 p-2 text-red-500 rounded font-medium text-xs hover:text-red-700 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-600"
+        class="inline-flex items-center justify-center gap-2 p-2 text-red-500 rounded font-medium text-xs hover:text-red-700 hover:bg-white dark:text-red-400 dark:hover:bg-gray-600"
       >
         DELETE
       </button>
@@ -232,7 +232,7 @@ async function reportPost() {
           <template #button>
             <button
               type="button"
-              class="ml-2 inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+              class="ml-2 inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -285,7 +285,7 @@ async function reportPost() {
                     type="checkbox"
                     value="inappropriate"
                     name="report_reason"
-                    class="w-4 h-4 mr-2 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
                   This post contains inappropriate content
                 </label>
@@ -296,7 +296,7 @@ async function reportPost() {
                     type="checkbox"
                     name="report_reason"
                     value="community_guidelines"
-                    class="w-4 h-4 mr-2 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
                   This post violates the Community Guidelines
                 </label>
@@ -307,7 +307,7 @@ async function reportPost() {
                     type="checkbox"
                     name="report_reason"
                     value="spam"
-                    class="w-4 h-4 mr-2 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
                   This post is spam or malicious
                 </label>
@@ -318,7 +318,7 @@ async function reportPost() {
                     type="checkbox"
                     name="report_reason"
                     value="other"
-                    class="w-4 h-4 mr-2 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
                   Other <small>(please specify)</small>
                 </label>
@@ -345,7 +345,7 @@ async function reportPost() {
       <button
         type="button"
         @click="state.commentsExpended = !state.commentsExpended"
-        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
       >
         <span
           class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
@@ -376,7 +376,7 @@ async function reportPost() {
       <button
         type="button"
         @click="handleLike()"
-        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
       >
         <span
           class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"

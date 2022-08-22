@@ -17,6 +17,9 @@ const data = reactive({
   openMessage: null,
   newMessage: false,
   loading: false,
+  searching: false,
+  search: '',
+  searchResults: [],
   error: null
 })
 onMounted(async () => {
@@ -38,47 +41,18 @@ onMounted(async () => {
 
 function newMessage() {
   data.openMessage = {
-    to: '',
-    subject: '',
-    body: ''
+    sender: ''
   }
   data.newMessage = true
-  data.openMessage = null
 }
 function openMessage(message) {
   data.openMessage = message
   data.newMessage = false
 }
-async function sendMessage() {
-  data.error = null
-  if (
-    data.openMessage.to === '' ||
-    data.openMessage.subject === '' ||
-    data.openMessage.body === ''
-  ) {
-    data.error = 'All fields are required'
-    return
-  }
-  try {
-    const response = axios.post(
-      `/api/message/${data.openMessage.to}`,
-      data.openMessage,
-      {
-        headers: {
-          Authorization: userStore.getBearerToken
-        }
-      }
-    )
-    if (response.data) {
-    }
-  } catch (error) {
-    data.error = error.response.data.error
-  }
-}
 </script>
 
 <template>
-  <main class="min-h-screen bg-gray-100 dark:bg-slate-800">
+  <main class="min-h-screen bg-white dark:bg-slate-800">
     <div class="container max-w-screen-lg mx-auto sm:px-2">
       <NavbarComponent />
 
@@ -103,7 +77,7 @@ async function sendMessage() {
           <button
             @click="data.folder = 'inbox'"
             type="button"
-            class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+            class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
             :class="{
               'text-blue-700 dark:text-white': data.folder === 'inbox'
             }"
@@ -130,7 +104,7 @@ async function sendMessage() {
           <button
             @click="data.folder = 'sent'"
             type="button"
-            class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+            class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
             :class="{ 'text-blue-700 dark:text-white': data.folder === 'sent' }"
           >
             <svg
@@ -153,7 +127,7 @@ async function sendMessage() {
           <button
             @click="data.folder = 'archive'"
             type="button"
-            class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+            class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
             :class="{
               'text-blue-700 dark:text-white': data.folder === 'archive'
             }"
@@ -207,7 +181,7 @@ async function sendMessage() {
               <li
                 v-for="message of data.received"
                 :key="message"
-                class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-white dark:hover:bg-gray-800"
                 @click="openMessage(message)"
               >
                 <img
@@ -235,7 +209,7 @@ async function sendMessage() {
               <li
                 v-for="message of data.sent"
                 :key="message"
-                class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-white dark:hover:bg-gray-800"
                 @click="openMessage(message)"
               >
                 <img
@@ -263,7 +237,7 @@ async function sendMessage() {
               <li
                 v-for="message of data.archive"
                 :key="message"
-                class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-white dark:hover:bg-gray-800"
                 @click="openMessage(message)"
               >
                 <img
@@ -295,7 +269,6 @@ async function sendMessage() {
                   type="button"
                   @click="data.newMessage = false"
                   class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  data-modal-toggle="defaultModal"
                 >
                   <svg
                     aria-hidden="true"
@@ -314,18 +287,34 @@ async function sendMessage() {
                 </button>
               </div>
               <form class="flex flex-col gap-6" @submit.prevent="null">
-                <input
-                  type="text"
-                  disabled
-                  v-model="userStore.getHandle"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder="From"
-                />
-                <input
-                  type="text"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder="Recipient"
-                />
+                <div class="flex">
+                  <span
+                    class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 rounded-l-md border border-r-0 border-gray-300 dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600"
+                  >
+                    @
+                  </span>
+                  <input
+                    type="text"
+                    disabled
+                    v-model="userStore.getHandle"
+                    class="rounded-none cursor-not-allowed rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    placeholder="Your handle"
+                  />
+                </div>
+                <div class="flex">
+                  <span
+                    class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 rounded-l-md border border-r-0 border-gray-300 dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600"
+                  >
+                    @
+                  </span>
+                  <input
+                    type="text"
+                    v-model="data.openMessage.to"
+                    @blur="searchUsers()"
+                    class="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    placeholder="Recipient's handle"
+                  />
+                </div>
                 <input
                   type="text"
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -436,7 +425,7 @@ async function sendMessage() {
                   </button>
                   <button
                     type="button"
-                    class="py-2.5 px-5 ml-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    class="py-2.5 px-5 ml-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
                     Delete
                   </button>

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 
-onMounted(async () => {
+onMounted(() => {
   if (localStorage.getItem('color-theme') === 'dark') {
     document.documentElement.classList.add('dark')
   } else {
@@ -11,7 +11,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="min-h-screen bg-gray-100 py-12 dark:bg-slate-800">
+  <main class="min-h-screen bg-white py-12 dark:bg-slate-800">
     <div class="max-w-screen-md mx-auto flex flex-col">
       <div
         class="text-white mb-6 mx-auto p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
@@ -76,7 +76,7 @@ onMounted(async () => {
       <div class="flex justify-center">
         <button
           type="button"
-          class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+          class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
         >
           Send a new activation email
         </button>

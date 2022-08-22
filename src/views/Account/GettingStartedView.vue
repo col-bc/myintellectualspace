@@ -51,7 +51,7 @@ async function updateUser() {
 </script>
 
 <template>
-  <main class="min-h-screen bg-gray-100 py-12 dark:bg-slate-800">
+  <main class="min-h-screen bg-white py-12 dark:bg-slate-800">
     <div class="max-w-screen-md mx-auto flex flex-col">
       <h1
         class="text-3xl font-bold text-center text-gray-800 mb-6 dark:text-white"
@@ -268,7 +268,7 @@ async function updateUser() {
         <button
           type="button"
           @click="$router.push('/social/me')"
-          class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+          class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
         >
           I'll do this later
         </button>

@@ -4,11 +4,15 @@ import axios from 'axios'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from, savedPosition) {
+    // always scroll to top
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/',
       name: 'index',
-      component: () => import('@/views/HomeView.vue'),
+      component: () => import('../views/IndexView.vue'),
       beforeEnter: async (to, from, next) => {
         const userStore = useUserStore()
         if (userStore.isLoggedIn) {
@@ -35,14 +39,14 @@ const router = createRouter({
     {
       path: '/logout',
       name: 'logout',
-      component: () => import('../views/HomeView.vue'),
+      component: () => import('../views/IndexView.vue'),
       beforeEnter: async (to, from, next) => {
         const userStore = useUserStore()
         await userStore.logout()
-        return next()
+        return next('/?logout=true')
       }
     },
-    // /verify
+    // /verify/:token
     {
       path: '/verify/:token',
       name: 'verify',
@@ -60,10 +64,21 @@ const router = createRouter({
         }
       }
     },
-    // TODO: Forgot Password and Reset Password
+    // /verify-email
+    {
+      path: '/verify-email',
+      name: 'verify-email',
+      component: () => import('@/views/Account/VerifyEmailView.vue')
+    },
 
     // # Social Routes
     // /social/me
+    // /social/@:handle
+    //  - /about
+    //  - /comments
+    //  - /likes
+    //  - D/connections
+    // /social/not-found
     {
       path: '/social/me',
       name: 'my-profile',
@@ -78,10 +93,6 @@ const router = createRouter({
         } else return next('/login')
       }
     },
-    // /social/@:handle
-    //     - /@:handle/about
-    //     - /@:handle/likes
-    //     - /@:handle/comments
     {
       path: '/social/@:handle',
       name: 'profile',
@@ -92,13 +103,6 @@ const router = createRouter({
         }
       },
       component: () => import('@/views/Account/ProfileView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/social/@:handle')
-      },
       children: [
         {
           path: 'about',
@@ -111,7 +115,7 @@ const router = createRouter({
           component: () => import('@/views/Account/ProfileView.vue')
         },
         {
-          path: 'comments',
+          path: 'likes',
           name: 'profile-likes',
           component: () => import('@/views/Account/ProfileView.vue')
         },
@@ -120,20 +124,27 @@ const router = createRouter({
           name: 'profile-connections',
           component: () => import('@/views/Account/ProfileView.vue')
         }
-      ]
+      ],
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/social/@:handle')
+      }
     },
-    // /user-not-found
     {
-      path: '/user-not-found',
-      name: 'user-not-found',
+      path: '/not-found',
+      name: 'not-found',
       component: () => import('@/views/Account/UserNotFoundView.vue')
     },
+
     // # Explore Routes
     // /explore
-    //  - /explore/network
-    //  - /explore/interest
-    //  - /explore/education
-    // - /explore/all
+    //  - /network
+    //  - /interest
+    //  - /education
+    // - /all
     {
       path: '/explore',
       name: 'explore',
@@ -175,6 +186,8 @@ const router = createRouter({
 
     // # Learn Routes
     // /learn
+    //  - /learn/:name
+    // /learn/join-meeting
     {
       path: '/learn',
       name: 'learn-home',
@@ -187,7 +200,24 @@ const router = createRouter({
         return next()
       }
     },
-    // /learn/join-meeting
+    {
+      path: '/learn/:name',
+      name: 'learn-course',
+      params: {
+        name: {
+          type: String,
+          required: true
+        }
+      },
+      component: () => import('@/views/Learn/CourseView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+        }
+        return next()
+      }
+    },
     {
       path: '/learn/join-meeting',
       name: 'learn-join-meeting',
@@ -203,6 +233,10 @@ const router = createRouter({
 
     // # Teach Routes
     // /teach
+    // /teach/new-course
+    // /teach/my-courses
+    // /teach/:id/dashboard
+    // /teach/new-meeting
     {
       path: '/teach',
       name: 'teach-home',
@@ -215,10 +249,9 @@ const router = createRouter({
         return next()
       }
     },
-    // /teach/create-course
     {
       path: '/teach/new-course',
-      name: 'teach-create-course',
+      name: 'teach-new-course',
       component: () => import('@/views/Teach/NewCourseView.vue'),
       beforeEnter: async (to, from, next) => {
         const userStore = useUserStore()
@@ -228,7 +261,36 @@ const router = createRouter({
         } else return next('/login?next=/teach/create-course')
       }
     },
-    // /teach/new-meeting
+    {
+      path: '/teach/my-courses',
+      name: 'teach-my-courses',
+      component: () => import('@/views/Teach/MyCoursesView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/teach/my-courses')
+      }
+    },
+    {
+      path: '/teach/:id/dashboard',
+      name: 'teach-course-dashboard',
+      params: {
+        id: {
+          type: String,
+          required: true
+        }
+      },
+      component: () => import('@/views/Teach/CourseDashboardView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/teach/:id/dashboard')
+      }
+    },
     {
       path: '/teach/new-meeting',
       name: 'teach-new-meeting',
@@ -256,12 +318,6 @@ const router = createRouter({
         } else return next('/login?next=/getting-started')
       }
     },
-    // /verify-email
-    {
-      path: '/verify-email',
-      name: 'verify-email',
-      component: () => import('@/views/Account/VerifyEmailView.vue')
-    },
     // /messages
     {
       path: '/messages',
@@ -274,6 +330,26 @@ const router = createRouter({
           return next()
         } else return next('/login?next=/messages')
       }
+    },
+    // /settings
+    {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/Account/SettingsView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/settings')
+      }
+    },
+
+    // # 404 Route
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/404View.vue')
     }
   ]
 })

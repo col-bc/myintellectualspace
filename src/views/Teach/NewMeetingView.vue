@@ -93,7 +93,7 @@ async function getJWT() {
 </script>
 
 <template>
-  <main class="bg-gray-100 min-h-screen dark:bg-slate-800">
+  <main class="bg-white min-h-screen dark:bg-slate-800">
     <NavbarComponent />
     <div
       v-if="!accessToken"
