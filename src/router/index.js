@@ -186,7 +186,7 @@ const router = createRouter({
 
     // # Learn Routes
     // /learn
-    //  - /learn/:name
+    //  - /learn/:id
     // /learn/join-meeting
     {
       path: '/learn',
@@ -201,11 +201,11 @@ const router = createRouter({
       }
     },
     {
-      path: '/learn/:name',
+      path: '/learn/:id',
       name: 'learn-course',
       params: {
         name: {
-          type: String,
+          type: Number,
           required: true
         }
       },
@@ -234,7 +234,6 @@ const router = createRouter({
     // # Teach Routes
     // /teach
     // /teach/new-course
-    // /teach/my-courses
     // /teach/:id/dashboard
     // /teach/new-meeting
     {
@@ -259,18 +258,6 @@ const router = createRouter({
           await userStore.fetchUser()
           return next()
         } else return next('/login?next=/teach/create-course')
-      }
-    },
-    {
-      path: '/teach/my-courses',
-      name: 'teach-my-courses',
-      component: () => import('@/views/Teach/MyCoursesView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/teach/my-courses')
       }
     },
     {
@@ -305,6 +292,18 @@ const router = createRouter({
     },
 
     // # Other Routes
+    {
+      path: '/my-courses',
+      name: 'my-courses',
+      component: () => import('@/views/Account/MyCoursesView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/my-courses')
+      }
+    },
     // /getting-started
     {
       path: '/getting-started',
@@ -342,6 +341,19 @@ const router = createRouter({
           await userStore.fetchUser()
           return next()
         } else return next('/login?next=/settings')
+      }
+    },
+    // /settings/2fa
+    {
+      path: '/settings/2fa',
+      name: 'settings-2fa',
+      component: () => import('@/views/Account/Settings2FAView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/settings/2fa')
       }
     },
 

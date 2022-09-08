@@ -75,13 +75,13 @@ onBeforeUnmount(() => {
   <Transition>
     <div
       v-if="drawerOpen"
-      class="absolute z-50 right-0 top-0 h-full w-80 shadow-xl p-4 overflow-y-auto bg-white border-l border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+      class="absolute z-50 right-0 top-0 flex flex-col h-full w-80 shadow-xl p-4 overflow-y-auto bg-white border-l border-gray-300 dark:border-gray-700 dark:bg-gray-800"
       tabindex="-1"
     >
       <div
         class="flex items-center gap-3 py-3 px-4 text-sm bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover: rounded-lg text-white dark:text-gray-900"
       >
-        <img :src="user.data.avatar_uri" class="h-10 w-10 rounded-sm" />
+        <img :src="user.data.avatar_uri" class="h-12 w-12 rounded-md" />
         <div class="flex flex-1 flex-col gap-0.5">
           <h6 class="font-semibold">@{{ user.data.handle }}</h6>
           <p class="font-medium truncate">
@@ -108,7 +108,7 @@ onBeforeUnmount(() => {
           <span class="sr-only">Close menu</span>
         </button>
       </div>
-      <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+      <ul class="py-2.5 text-sm text-gray-700 dark:text-gray-200">
         <li>
           <router-link
             to="/social/me"
@@ -131,6 +131,33 @@ onBeforeUnmount(() => {
               <circle cx="12" cy="7" r="4" />
             </svg>
             My Profile
+          </router-link>
+        </li>
+        <li>
+          <router-link
+            to="/my-courses"
+            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+              <path
+                d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12z"
+              ></path>
+              <path d="M19 16h-12a2 2 0 0 0 -2 2"></path>
+              <path d="M9 8h6"></path>
+            </svg>
+            My Courses
           </router-link>
         </li>
         <li>
@@ -208,6 +235,10 @@ onBeforeUnmount(() => {
             Meetings</a
           >
         </li>
+      </ul>
+      <ul
+        class="mt-auto py-2.5 border-t border-gray-700 text-gray-700 dark:text-gray-300 dark:border-gray-300"
+      >
         <li>
           <router-link
             :to="{ name: 'settings' }"
@@ -233,74 +264,64 @@ onBeforeUnmount(() => {
             Settings</router-link
           >
         </li>
-      </ul>
-      <div class="py-1 text-gray-700 dark:text-gray-200">
-        <router-link
-          to="/logout"
-          @click="
-            ;(user.isLoggedIn = !user.isLoggedIn),
-              (showUserMenu = !showUserMenu)
-          "
-          class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+        <li>
+          <router-link
+            to="/logout"
+            @click="
+              ;(user.isLoggedIn = !user.isLoggedIn),
+                (showUserMenu = !showUserMenu)
+            "
+            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Logout
-        </router-link>
-      </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Logout
+          </router-link>
+        </li>
+      </ul>
     </div>
   </Transition>
+  <!-- Navbar -->
   <nav class="px-2 sm:px-4 py-2.5">
     <div class="container flex flex-wrap md:flex-nowrap items-center mx-auto">
       <router-link
         to="/"
-        class="flex items-center mr-auto md:mr-0 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+        class="flex items-center mr-auto md:mr-0 text-gray-900 dark:text-white"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="stroke-gray-900 dark:stroke-white h-8 w-8 mr-2"
+          class="fill-current h-8 w-8 mr-3"
+          viewBox="0 0 24 24"
           width="24"
           height="24"
-          viewBox="0 0 24 24"
-          stroke-width="2"
-          stroke="currentColor"
-          fill="none"
-          stroke-linecap="round"
-          stroke-linejoin="round"
         >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-          <path d="M5.931 6.936l1.275 4.249m5.607 5.609l4.251 1.275"></path>
-          <path d="M11.683 12.317l5.759 -5.759"></path>
-          <circle cx="5.5" cy="5.5" r="1.5"></circle>
-          <circle cx="18.5" cy="5.5" r="1.5"></circle>
-          <circle cx="18.5" cy="18.5" r="1.5"></circle>
-          <circle cx="8.5" cy="15.5" r="4.5"></circle>
+          <path fill="none" d="M0 0H24V24H0z" />
+          <path
+            d="M11 2c4.068 0 7.426 3.036 7.934 6.965l2.25 3.539c.148.233.118.58-.225.728L19 14.07V17c0 1.105-.895 2-2 2h-1.999L15 22H6v-3.694c0-1.18-.436-2.297-1.244-3.305C3.657 13.631 3 11.892 3 10c0-4.418 3.582-8 8-8zm0 5c-.552 0-1 .448-1 1v.999L9 9c-.552 0-1 .448-1 1s.448 1 1 1l1-.001V12c0 .552.448 1 1 1s1-.448 1-1v-1h1c.552 0 1-.448 1-1s-.448-1-1-1h-1V8c0-.552-.448-1-1-1z"
+          />
         </svg>
-        <span class="hidden self-center text-3xl font-bold whitespace-nowrap">
-          Intellectual Space
-        </span>
-        <span class="self-center text-3xl font-bold whitespace-nowrap"
-          >MIS</span
+        <span class="self-center text-xl font-bold whitespace-nowrap"
+          >Intellectual Space</span
         >
       </router-link>
       <!-- Actions -->
       <div class="flex flex-shrink items-center gap-2 md:order-2">
         <!-- Search -->
-        <div class="relative hidden md:inline-flex">
+        <div class="relative hidden lg:inline-flex">
           <input
             type="text"
             v-model="searchText"

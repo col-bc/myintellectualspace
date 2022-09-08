@@ -13,12 +13,6 @@ const form = ref()
 const error = ref('')
 const imagePreview = ref('')
 
-const state = reactive({
-  nameLoading: false,
-  nameAvailable: true,
-  nameError: null
-})
-
 function handleFileChange() {
   // read the file
   const file = form.value.image.files[0]
@@ -28,42 +22,17 @@ function handleFileChange() {
     imagePreview.value = reader.result
   }
 }
-async function checkCourseName() {
-  state.nameLoading = true
-  state.nameError = null
-
-  if (!form.value.nameX) {
-    state.nameLoading = false
-    state.nameAvailable = true
-    return
-  }
-
-  try {
-    const response = await axios.get(`/api/course/name/${form.name}`, {
-      headers: {
-        Authorization: userStore.getBearerToken
-      }
-    })
-    if (response.data.exists) {
-      state.nameError = 'A course with this name already exists.'
-    }
-  } catch (error) {
-    console.log(error)
-    if (!error.response.data.exists) {
-      state.nameAvailable = true
-    } else {
-      state.nameError = 'An error occurred.'
-    }
-  } finally {
-    state.nameLoading = false
-  }
-}
 async function createCourse() {
   error.value = null
   var formData = new FormData(form.value)
 
   if (!formData.get('name')) {
     error.value = 'Please enter a name for the course.'
+    window.scroll({ top: 0, left: 0, behavior: 'smooth' })
+    return
+  }
+  if (!formData.get('image')) {
+    error.value = 'Please upload an image for the course.'
     window.scroll({ top: 0, left: 0, behavior: 'smooth' })
     return
   }
@@ -113,7 +82,7 @@ async function createCourse() {
   <main class="bg-white min-h-screen dark:bg-slate-800">
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
-      <div class="container mx-auto px-2 py-12">
+      <div class="container mx-auto px-4 py-12">
         <div
           v-if="
             !userStore.user.education_level ||
@@ -142,11 +111,13 @@ async function createCourse() {
             </svg>
           </div>
           <h1
-            class="w-full text-3xl md:text-center font-bold text-gray-900 dark:text-white"
+            class="w-full text-3xl text-center font-bold text-gray-900 dark:text-white"
           >
             Missing Information
           </h1>
-          <p class="text-lg max-w-lg mx-auto text-gray-700 dark:text-gra-300">
+          <p
+            class="text-lg text-center max-w-lg mx-auto text-gray-700 dark:text-gray-300"
+          >
             You must complete more of your profile before you can create a
             course. Instructor profiles must include an
             <span class="font-medium"
@@ -174,35 +145,40 @@ async function createCourse() {
             class="text-white mb-6 mx-auto p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
           >
             <svg
-              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
               class="h-24 w-24"
               width="24"
               height="24"
-              stroke="currentColor"
+              viewBox="0 0 24 24"
               stroke-width="2"
+              stroke="currentColor"
               fill="none"
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+              <path
+                d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12z"
+              ></path>
+              <path d="M19 16h-12a2 2 0 0 0 -2 2"></path>
+              <path d="M9 8h6"></path>
             </svg>
           </div>
           <h1
             class="w-full text-3xl md:text-center font-bold text-gray-900 dark:text-white"
           >
-            Your Course Details
+            Details about your course
           </h1>
           <p
             class="max-w-xl mx-auto md:text-center text-gray-700 dark:text-gray-300 mb-6"
           >
-            Course names must be unique and descriptive. You can add a short
-            description to help people understand what your course is about.
+            To get started, please enter the details about your course. You can
+            always update this information from your course dashboard.
           </p>
           <form
             @submit.prevent="createCourse()"
             ref="form"
-            class="flex w-full max-w-xl mx-auto flex-col gap-4 mb-12"
+            class="flex w-full max-w-xl mx-auto flex-col gap-6 mb-12"
           >
             <AlertComponent
               v-if="!!error"
@@ -210,10 +186,10 @@ async function createCourse() {
               :message="error"
               :dismissible="false"
             />
-            <div class="relative w-full">
+            <div>
               <label
                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                >Name</label
+                >Course Name</label
               >
               <input
                 type="text"
@@ -221,64 +197,14 @@ async function createCourse() {
                 @blur="checkCourseName()"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
-              <p
-                v-if="state.nameError"
-                class="text-xs text-red-700 dark:text-red-400"
-              >
-                {{ state.nameError }}
+              <p class="mt-2 text-xs text-gray-700 dark:text-gray-300">
+                Course name must be unique, contain only letters numbers. Spaces
+                and spacial characters are not allowed.
+                <span class="font-bold"
+                  >Course names cannot be changed once the course is
+                  created.</span
+                >
               </p>
-              <div
-                role="status"
-                class="flex items-center absolute top-9 right-2"
-              >
-                <svg
-                  v-if="state.nameLoading"
-                  class="inline w-6 h-6 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-                  viewBox="0 0 100 101"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                    fill="currentFill"
-                  />
-                </svg>
-                <svg
-                  v-if="!state.nameLoading && !state.nameAvailable"
-                  viewBox="0 0 24 24"
-                  class="w-6 h-6 text-red-500 dark:text-red-400"
-                  width="24"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <svg
-                  v-if="!state.nameLoading && state.nameAvailable"
-                  viewBox="0 0 24 24"
-                  class="w-6 h-6 text-green-500 dark:text-green-400"
-                  width="24"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-              </div>
             </div>
             <div>
               <label
@@ -410,7 +336,7 @@ async function createCourse() {
             <div>
               <label
                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                >Length</label
+                >Duration</label
               >
               <input
                 type="text"
@@ -419,35 +345,18 @@ async function createCourse() {
                 placeholder="4 hours"
               />
             </div>
-            <div>
+            <div class="grid grid-cols-2 mt-4">
               <button
                 type="submit"
-                class="inline-flex items-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  class="w-4 h-4"
-                  width="24"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-                  ></path>
-                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                  <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                Save and Create
+                Create Course
               </button>
               <button
                 type="button"
                 class="py-2.5 px-5 ml-4 text-sm font-medium text-gray-900 focus:outline-none bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
               >
-                See Preview
+                View Preview
               </button>
             </div>
           </form>

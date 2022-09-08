@@ -1,30 +1,52 @@
 <script setup>
-import { onMounted, reactive } from 'vue'
+import axios from 'axios'
+import { computed, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AlertComponent from '../../components/AlertComponent.vue'
 import NavbarComponent from '../../components/NavbarComponent.vue'
 import useUserStore from '../../stores/user'
-import axios from 'axios'
+
+import '@/assets/course_content.css'
+import StarsComponent from '../../components/StarsComponent.vue'
 
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 
 const state = reactive({
-  loading: true
+  loading: true,
+  rating: 0,
+  showRating: false
 })
 const course = reactive({
-  data: null
+  data: null,
+  review: null
 })
 
+const isJoined = computed(() => {
+  // returns true if user is joined or user is instructor
+  if (course.data.instructor.id === userStore.user.id) {
+    return true
+  } else {
+    for (const user of course.data.participants) {
+      if (user.id === userStore.user.id) {
+        return true
+      }
+    }
+  }
+})
 onMounted(async () => {
   state.loading = true
   try {
-    const { data } = await axios.get(`/api/course/name/${route.params.name}`, {
+    const { data } = await axios.get(`/api/course/${route.params.id}`, {
       headers: {
         Authorization: userStore.getBearerToken
       }
     })
     course.data = data
+    for (var content of course.data.content) {
+      content.collapsed = true
+    }
   } catch (error) {
     console.log(error)
     if (error.response.status === 404) {
@@ -34,12 +56,103 @@ onMounted(async () => {
     state.loading = false
   }
 })
+watch(course, (value) => {
+  if (value.error) {
+    setTimeout(() => {
+      course.error = null
+      course.errorType = null
+    }, 5000)
+  }
+})
+
+function scrollToAlert() {
+  const alert = document.querySelector('.alert')
+  if (alert) {
+    alert.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+async function joinCourse() {
+  try {
+    await axios.post(
+      `/api/course/${route.params.id}/join`,
+      {},
+      {
+        headers: {
+          Authorization: userStore.getBearerToken
+        }
+      }
+    )
+    course.error = 'You have successfully left the course'
+    course.errorType = 'success'
+    scrollToAlert()
+  } catch (error) {
+    console.log(error)
+    course.error = error.response.data.error
+    course.errorType = 'error'
+    scrollToAlert()
+  }
+}
+async function leaveCourse() {
+  try {
+    await axios.post(
+      `/api/course/${route.params.id}/leave`,
+      {},
+      {
+        headers: {
+          Authorization: userStore.getBearerToken
+        }
+      }
+    )
+    course.error = 'You have successfully left the course'
+    course.errorType = 'success'
+    scrollToAlert()
+  } catch (error) {
+    console.log(error)
+    course.error = error.response.data.error
+    course.errorType = 'error'
+    scrollToAlert()
+  }
+}
+async function toggleContentComplete(id) {
+  const editing = course.data.content.find((content) => content.id === id)
+  try {
+    const { data } = await axios.post(
+      `/api/course/${route.params.id}/content/${id}/complete`,
+      {},
+      {
+        headers: {
+          Authorization: userStore.getBearerToken
+        }
+      }
+    )
+    if (data.complete) {
+      JSON.parse(editing.completed_by).push(userStore.user.id)
+    } else {
+      JSON.parse(editing.completed_by).splice(
+        JSON.parse(editing.completed_by).indexOf(userStore.user.id),
+        1
+      )
+    }
+    course.error = data.complete
+      ? 'You have completed the content'
+      : 'You have uncompleted the content'
+    course.errorType = 'success'
+  } catch (error) {
+    console.log(error)
+    course.error = error.response.data.error
+    course.errorType = 'error'
+    scrollToAlert()
+  }
+}
+function saveRating() {}
 </script>
 
 <template>
   <main class="bg-white dark:bg-slate-800">
     <div class="min-h-screen">
-      <NavbarComponent />
+      <div class="container max-w-screen-xl mx-auto">
+        <NavbarComponent />
+      </div>
       <!-- Loading State -->
       <div v-if="state.loading" class="text-center">
         <div role="status">
@@ -66,140 +179,232 @@ onMounted(async () => {
         v-if="!state.loading && !!course.data"
         :src="course.data.image_uri"
         alt="course image"
-        class="w-full h-72 object-cover"
+        class="w-full h-96 object-cover mb-12"
       />
 
       <div
         v-if="!state.loading && !!course.data"
-        class="container max-screen-xl mx-auto flex flex-col md:flex-row gap-12 mb-6 lg:gap-16 px-4 sm:px-2 my-6"
+        class="container max-w-screen-xl mx-auto px-4 my-6"
       >
-        <div class="flex-1 flex flex-col gap-6">
-          <h1
-            class="text-3xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
-          >
-            {{ course.data.name }}
-          </h1>
-          <p class="text-gray-700 leading-loose dark:text-gray-300">
-            {{ course.data.description }}
-          </p>
-          <p class="flex items-center gap-2 flex-wrap">
-            <span
-              class="bg-blue-300 text-blue-800 font-medium px-2.5 py-0.5 rounded dark:bg-blue-300 dark:text-blue-900"
-              >{{
-                course.data.price === 0.0 ? 'FREE' : `$${course.data.price}`
-              }}</span
-            >
-            <span
-              class="bg-blue-300 text-blue-800 font-medium px-2.5 py-0.5 rounded dark:bg-blue-300 dark:text-blue-900"
-              >{{ course.data.difficulty }}
-            </span>
-            <span
-              class="bg-blue-300 text-blue-800 font-medium px-2.5 py-0.5 rounded dark:bg-blue-300 dark:text-blue-900"
-              >{{ course.data.category }}
-            </span>
-          </p>
-          <p class="flex items-center text-gray-700 dark:text-gray-300">
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-5 h-5 mr-3"
-            >
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            {{ !!course.participants ? course.participants.length : 0 }}
-            participants
-          </p>
-          <p
-            class="text-sm inline-flex items-center text-gray-700 dark:text-gray-300"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-5 h-5 mr-1"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span class="font-medium ml-2">
-              {{ course.data.duration }} to complete</span
-            >
-          </p>
-          <div class="flex items-center text-gray-700 dark:text-gray-300">
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-6 h-6"
-            >
-              <polygon
-                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-              ></polygon>
-            </svg>
-            <p class="ml-3 text-sm font-bold text-gray-900 dark:text-white">
-              4.95
+        <Transition>
+          <AlertComponent
+            v-if="!!course.error"
+            :message="course.error"
+            :type="course.errorType"
+            class="mb-6"
+          />
+        </Transition>
+
+        <div class="flex flex-col md:flex-row gap-12 mb-12 lg:gap-16">
+          <div class="flex-1 flex flex-col gap-6">
+            <div class="flex items-start justify-between">
+              <h1
+                class="text-3xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
+              >
+                {{ course.data.name }}
+              </h1>
+              <button
+                type="button"
+                class="flex items-center gap-2.5 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="6" r="3"></circle>
+                  <circle cx="18" cy="18" r="3"></circle>
+                  <line x1="8.7" y1="10.7" x2="15.3" y2="7.3"></line>
+                  <line x1="8.7" y1="13.3" x2="15.3" y2="16.7"></line>
+                </svg>
+                Share
+              </button>
+            </div>
+            <p class="text-gray-700 leading-loose dark:text-gray-300">
+              {{ course.data.description }}
             </p>
-            <span
-              class="w-1 h-1 mx-1.5 bg-gray-500 rounded-full dark:bg-gray-400"
-            ></span>
-            <a
-              href="#"
-              class="text-sm font-medium text-gray-900 underline hover:no-underline dark:text-white"
-              >73 reviews</a
+            <p class="flex items-center gap-2 flex-wrap">
+              <span
+                class="bg-blue-300 text-blue-800 font-medium px-2.5 py-0.5 rounded dark:bg-blue-300 dark:text-blue-900"
+                >{{
+                  course.data.price === 0.0
+                    ? 'FREE'
+                    : `$ ${course.data.price} USD`
+                }}</span
+              >
+              <span
+                class="bg-blue-300 text-blue-800 font-medium px-2.5 py-0.5 rounded dark:bg-blue-300 dark:text-blue-900"
+                >{{ course.data.difficulty }}
+              </span>
+              <span
+                class="bg-blue-300 text-blue-800 font-medium px-2.5 py-0.5 rounded dark:bg-blue-300 dark:text-blue-900"
+                >{{ course.data.category }}
+              </span>
+            </p>
+            <p class="flex items-center text-gray-700 dark:text-gray-300">
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5 mr-3"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              {{ !!course.participants ? course.participants.length : 0 }}
+              participants
+            </p>
+            <p
+              class="text-sm inline-flex items-center text-gray-700 dark:text-gray-300"
             >
-          </div>
-        </div>
-        <div class="flex-1 flex flex-col gap-6">
-          <button
-            type="button"
-            class="shadow-lg py-3 px-5 text-base font-semibold text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            <span
-              class="bg-gray-100 text-gray-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300"
-            >
-              {{ course.data.price === 0.0 ? 'FREE' : `$${course.data.price}` }}
-            </span>
-            Join Course
-          </button>
-          <h4
-            class="text-xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
-          >
-            Meet Your Instructor
-          </h4>
-          <div
-            class="flex items-start gap-4 p-4 bg-white shadow-sm rounded-lg border border-gray-300 dark:bg-gray-800 dark:border-gray-600"
-          >
-            <img
-              :src="course.data.instructor.avatar_uri"
-              class="w-12 h-12 rounded-full flex-shrink-0"
-              alt="instructor image"
-            />
-            <div class="flex-1 flex flex-col">
-              <h6 class="text-lg font-bold text-gray-900 dark:text-white">
-                @{{ course.data.instructor.handle }}
-              </h6>
-              <p class="text-gray-700 text-sm mb-4 dark:text-gray-300">
-                {{ course.data.instructor.name }}
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5 mr-1"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span class="font-medium ml-2">
+                {{ course.data.duration }} to complete</span
+              >
+            </p>
+            <div class="flex items-center dark:text-gray-300">
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-6 h-6 fill-yellow-500"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                ></polygon>
+              </svg>
+              <p class="ml-3 text-sm font-bold text-gray-900 dark:text-white">
+                4.95
               </p>
+              <span
+                class="w-1 h-1 mx-1.5 bg-gray-500 rounded-full dark:bg-gray-400"
+              ></span>
+              <a
+                href="#"
+                class="text-sm font-medium text-gray-900 underline hover:no-underline dark:text-white"
+                >73 reviews</a
+              >
+            </div>
+            <div>
+              <button
+                type="button"
+                @click="state.showRating = true"
+                v-if="!state.showRating"
+                class="text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Write a review
+              </button>
+            </div>
+            <div
+              v-if="state.showRating"
+              class="flex flex-col gap-4 p-4 border rounded-lg dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+            >
+              <h4 class="text-lg font-bold text-gray-900 dark:text-white">
+                Write a review
+              </h4>
+              <StarsComponent @rated="(rating) => setRating(rating)" />
+              <textarea
+                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Your comments"
+                rows="4"
+                v-model="course.rating"
+              ></textarea>
+              <div class="flex items-center gap-4">
+                <button
+                  type="button"
+                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                >
+                  Post Review
+                </button>
+                <button
+                  type="button"
+                  @click="state.showRating = false"
+                  class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="flex-1 max-w-sm flex flex-col gap-6">
+            <button
+              type="button"
+              v-if="!isJoined"
+              @click="joinCourse()"
+              class="shadow-lg py-3 px-5 text-base font-semibold text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              <span
+                class="bg-gray-100 text-gray-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300"
+              >
+                {{
+                  course.data.price === 0.0 ? 'FREE' : `$${course.data.price}`
+                }}
+              </span>
+              Join Course
+            </button>
+            <button
+              type="button"
+              @click="leaveCourse()"
+              v-else
+              class="shadow-lg py-3 px-5 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+            >
+              Leave Course
+            </button>
+            <h4
+              class="text-xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
+            >
+              Meet Your Instructor
+            </h4>
+            <div class="flex flex-col items-start">
+              <div class="flex items-start gap-4">
+                <img
+                  :src="course.data.instructor.avatar_uri"
+                  class="w-12 h-12 rounded-full flex-shrink-0"
+                  alt="instructor image"
+                />
+                <div>
+                  <h6 class="text-lg font-bold text-gray-900 dark:text-white">
+                    @{{ course.data.instructor.handle }}
+                  </h6>
+                  <p class="text-gray-700 text-sm mb-4 dark:text-gray-300">
+                    {{ course.data.instructor.name }}
+                  </p>
+                </div>
+              </div>
+
               <p class="text-gray-800 text-base mb-4 dark:text-gray-200">
                 {{ course.data.instructor.bio }}
               </p>
@@ -280,7 +485,7 @@ onMounted(async () => {
                 </svg>
                 {{ course.data.instructor.occupation }}
               </p>
-              <div class="w-full flex justify-end">
+              <div class="w-full flex justify-start">
                 <button
                   @click="
                     $router.push({
@@ -297,7 +502,206 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+
+        <AlertComponent
+          v-if="!isJoined"
+          message="Join this course to view it's content."
+          type="primary"
+          class="mb-12"
+        />
+
+        <div v-else class="flex flex-col md:flex-row items-start gap-12 mb-24">
+          <div
+            class="w-full md:w-48 shadow-sm flex-shrink-0 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-700 dark:text-white"
+          >
+            <a
+              href="#"
+              class="block py-2 px-4 w-full rounded-t-lg border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+            >
+              All Content
+            </a>
+            <a
+              href="#"
+              class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+            >
+              Reading
+            </a>
+            <a
+              href="#"
+              class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+            >
+              Videos
+            </a>
+            <a
+              href="#"
+              class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+            >
+              Meetings
+            </a>
+            <a
+              href="#"
+              class="block py-2 px-4 w-full rounded-b-lg cursor-pointer hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+            >
+              Assessments
+            </a>
+          </div>
+
+          <div
+            v-for="content of course.data.content"
+            :key="content.id"
+            class="w-full flex flex-col gap-4 p-2.5 bg-white shadow-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+          >
+            <div class="flex items-center justify-between px-2.5">
+              <h6
+                class="inline-flex items-center text-lg font-bold text-gray-900 dark:text-gray-300"
+              >
+                <span
+                  v-if="
+                    JSON.parse(content.completed_by).includes(userStore.user.id)
+                  "
+                  class="mr-3 bg-green-500 text-white p-1 rounded-full dark:bg-green-400 dark:text-gray-900"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M5 12l5 5l10 -10"></path></svg
+                ></span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 mr-3"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                  <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                  <path
+                    d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"
+                  ></path>
+                  <line x1="9" y1="9" x2="10" y2="9"></line>
+                  <line x1="9" y1="13" x2="15" y2="13"></line>
+                  <line x1="9" y1="17" x2="15" y2="17"></line>
+                </svg>
+                {{ content.title }}
+              </h6>
+              <div class="flex items-center gap-4">
+                <p class="text-gray-700 dark:text-gray-400">
+                  {{ new Date(content.created_at).toLocaleDateString() }} @
+                  {{ new Date(content.created_at).toLocaleTimeString() }}
+                </p>
+                <button
+                  type="button"
+                  @click="content.expanded = !content.expanded"
+                  class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    :class="{ 'rotate-180': content.expanded }"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div
+              v-if="content.expanded"
+              class="course-content py-2.5 border-y border-gray-300 dark:border-gray-700"
+              v-html="content.body"
+            ></div>
+            <div
+              v-if="content.expanded"
+              class="flex items-center justify-between gap-4 b px-2.5"
+            >
+              <button
+                type="button"
+                v-if="
+                  !JSON.parse(content.completed_by).includes(userStore.user.id)
+                "
+                @click="toggleContentComplete(content.id)"
+                class="inline-flex items-center gap-3 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                  <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                  <path d="M9 12l2 2l4 -4"></path>
+                </svg>
+                Mark Complete
+              </button>
+              <button
+                type="button"
+                v-else
+                @click="toggleContentComplete(content.id)"
+                class="py-2.5 px-5 flex items-center gap-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                  <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                </svg>
+                Mark Incomplete
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
 </template>
+
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+</style>

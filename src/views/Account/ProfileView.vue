@@ -829,7 +829,7 @@ async function addFriend() {
         <!-- Comments -->
         <div
           v-if="$route.name === 'profile-comments'"
-          class="flex-1 flex flex-col gap-12 px-2"
+          class="flex-1 w-full flex flex-col gap-12 px-2"
         >
           <AlertComponent
             v-show="profileAlert.message"

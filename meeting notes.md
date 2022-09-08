@@ -5,3 +5,6 @@
 
 # To Implement
 - Online indicator 
+
+# To Review
+- Heading tags have consistant text-{size} class

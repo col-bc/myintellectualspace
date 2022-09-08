@@ -64,7 +64,7 @@ onUpdated(() => {
       class="w-5 h-5"
       :class="{
         'text-gray-700 dark:text-gray-800': alert.type === 'default',
-        'text-red-700 dark:text-red-900': alert.type === 'error',
+        'text-red-700 dark:text-red-800': alert.type === 'error',
         'text-green-700 dark:text-green-800': alert.type === 'success',
         'text-blue-700 dark:text-blue-800': alert.type === 'primary'
       }"

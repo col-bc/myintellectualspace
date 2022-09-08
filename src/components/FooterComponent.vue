@@ -1,35 +1,27 @@
 <template>
   <div class="bg-gray-100 sm:p-6 dark:bg-gray-900">
-    <footer class="p-4 max-w-screen-xl w-full mx-auto px-2 sm:px-4">
+    <footer class="p-4 container max-w-screen-xl w-full mx-auto px-2 sm:px-4">
       <div class="md:flex md:justify-between">
         <div class="mb-6 md:mb-0">
           <router-link
             to="/"
-            class="flex w-auto items-center mr-auto md:mr-0 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+            class="flex items-center mr-auto md:mr-0 text-gray-900 dark:text-white"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="stroke-gray-900 dark:stroke-white h-8 w-8 mr-2"
+              class="fill-current h-8 w-8 mr-3"
+              viewBox="0 0 24 24"
               width="24"
               height="24"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M5.931 6.936l1.275 4.249m5.607 5.609l4.251 1.275"></path>
-              <path d="M11.683 12.317l5.759 -5.759"></path>
-              <circle cx="5.5" cy="5.5" r="1.5"></circle>
-              <circle cx="18.5" cy="5.5" r="1.5"></circle>
-              <circle cx="18.5" cy="18.5" r="1.5"></circle>
-              <circle cx="8.5" cy="15.5" r="4.5"></circle>
+              <path fill="none" d="M0 0H24V24H0z" />
+              <path
+                d="M11 2c4.068 0 7.426 3.036 7.934 6.965l2.25 3.539c.148.233.118.58-.225.728L19 14.07V17c0 1.105-.895 2-2 2h-1.999L15 22H6v-3.694c0-1.18-.436-2.297-1.244-3.305C3.657 13.631 3 11.892 3 10c0-4.418 3.582-8 8-8zm0 5c-.552 0-1 .448-1 1v.999L9 9c-.552 0-1 .448-1 1s.448 1 1 1l1-.001V12c0 .552.448 1 1 1s1-.448 1-1v-1h1c.552 0 1-.448 1-1s-.448-1-1-1h-1V8c0-.552-.448-1-1-1z"
+              />
             </svg>
-            <span class="self-center text-3xl font-bold whitespace-nowrap">
-              Intellectual Space
-            </span>
+            <span class="self-center text-xl font-bold whitespace-nowrap"
+              >Intellectual Space</span
+            >
           </router-link>
         </div>
         <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">

@@ -1,11 +1,14 @@
 <script setup>
+import Editor from '@tinymce/tinymce-vue'
 import axios from 'axios'
 import { onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Editor from '@tinymce/tinymce-vue'
+import AlertComponent from '../../components/AlertComponent.vue'
+import ModalComponent from '../../components/ModalComponent.vue'
 import NavbarComponent from '../../components/NavbarComponent.vue'
 import useUserStore from '../../stores/user'
-import AlertComponent from '../../components/AlertComponent.vue'
+
+import '@/assets/course_content.css'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -13,11 +16,15 @@ const router = useRouter()
 
 const state = reactive({
   loading: true,
-  showDropdown: false
+  tab: 0,
+  showDropdown: false,
+  error: null,
+  errorType: null
 })
 const course = reactive({
   data: null,
-  newContent: null
+  editor: null,
+  meeting: null
 })
 
 onMounted(async () => {
@@ -29,6 +36,10 @@ onMounted(async () => {
       }
     })
     course.data = data
+
+    for (var content of course.data.content) {
+      content.collapsed = true
+    }
   } catch (error) {
     console.log(error)
     if (error.response.status === 404) {
@@ -37,55 +48,205 @@ onMounted(async () => {
   } finally {
     state.loading = false
   }
+  hljs.highlightAll()
 })
-
-function addNewContent(type) {
-  state.showDropdown = false
-  course.newContent = {
-    title: '',
-    type: type,
-    content: '',
-    link: '',
-    error: null
-  }
-}
 watch(course, (value) => {
+  // Auto dismiss error message after 5 seconds
   if (!!value.newContent && !!value.newContent.error) {
     setTimeout(() => {
       course.newContent.error = null
     }, 5000)
   }
 })
+watch(state, (value) => {
+  // Auto dismiss error message after 5 seconds
+  if (!!value.error) {
+    setTimeout(() => {
+      state.error = null
+      state.errorType = null
+    }, 5000)
+  }
+})
 
-function clearNewContent() {
-  course.newContent = null
+function newContent() {
+  state.showDropdown = false
+  course.meeting = null
+  course.editor = {
+    title: '',
+    body: '',
+    error: null
+  }
 }
-async function submitContentForm() {
-  course.newContent.error = null
-  if (!course.newContent.title) {
-    course.newContent.error = 'Title is required'
+function setEditor(id) {
+  const editing = course.data.content.find((content) => content.id === id)
+  course.editor = {
+    id: id,
+    body: editing.body,
+    title: editing.title,
+    date: editing.created_at
+  }
+  const tabsEl = document.querySelector('#tabs')
+  tabsEl.scrollIntoView({ behavior: 'smooth' })
+}
+function clearEditor() {
+  course.editor = null
+}
+async function saveContent() {
+  course.editor.error = null
+  if (!course.editor.title) {
+    course.editor.error = 'Title is required'
     return
   }
+
+  // check if updating or saving content
+  if (!!course.editor.id) {
+    // send PUT request to update content
+    try {
+      const { data } = await axios.put(
+        `/api/course/${route.params.id}/content/${course.editor.id}`,
+        {
+          title: course.editor.title,
+          body: course.editor.body
+        },
+        {
+          headers: {
+            Authorization: userStore.getBearerToken
+          }
+        }
+      )
+      course.data.content.find(
+        (content) => content.id === course.editor.id
+      )[0] = data.content
+      clearEditor()
+      state.error = 'Content updated successfully'
+      state.errorType = 'success'
+    } catch (error) {
+      console.log(error)
+      state.error = error.response.data.message
+      state.errorType = 'danger'
+    }
+  } else {
+    try {
+      // set POST request to create
+      const { data } = await axios.post(
+        `/api/course/${route.params.id}/content`,
+        {
+          title: course.editor.title,
+          type: course.editor.type,
+          body: course.editor.body
+        },
+        {
+          headers: {
+            Authorization: userStore.getBearerToken
+          }
+        }
+      )
+      course.data = data.course
+      clearEditor()
+    } catch (error) {
+      console.log(error)
+      course.editor.error = error.response.data.error
+      state.errorType = 'danger'
+    }
+  }
+}
+async function deleteContent(index) {
+  console.log(course.data.content)
+  try {
+    await axios.delete(`/api/course/${route.params.id}/content/${index}`, {
+      headers: {
+        Authorization: userStore.getBearerToken
+      }
+    })
+    course.data.content.split(contentIndex, 1)
+    state.errorType = 'success'
+    state.error = 'Content deleted successfully'
+  } catch (error) {
+    console.log(error)
+    state.error = error.response.data.error
+    state.errorType = 'error'
+  }
+}
+function newMeeting() {
+  state.showDropdown = false
+  course.editor = null
+  course.meeting = {
+    title: '',
+    description: '',
+    date: '',
+    error: null
+  }
+}
+function setMeeting(id) {
+  const meeting = course.data.meetings.find((meeting) => meeting.id === id)
+  course.meeting = {
+    id: id,
+    title: meeting.title,
+    description: meeting.description,
+    date: meeting.date,
+    duration: meeting.duration,
+    error: null
+  }
+}
+function clearMeeting() {
+  course.meeting = null
+}
+async function saveMeeting() {
+  course.meeting.error = null
+  if (!course.meeting.title) {
+    course.meeting.error = 'Title is required'
+    return
+  }
+  if (!course.meeting.description) {
+    course.meeting.error = 'Description is required'
+    return
+  }
+  if (!course.meeting.date) {
+    course.meeting.error = 'Date is required'
+    return
+  }
+  if (!course.meeting.duration) {
+    course.meeting.error = 'Duration is required'
+    return
+  }
+  if (!!course.meeting.id) {
+    // send PUT request to update meeting
+  } else {
+    // set POST request to create meeting
+  }
+}
+async function updateCourse() {
+  const formData = new FormData()
+  formData.append('description', course.data.description)
+  if (!!document.querySelector('#update-course-image').files[0]) {
+    formData.append(
+      'image',
+      document.querySelector('#update-course-image').files[0]
+    )
+  }
+  formData.append('price', course.data.price)
+  formData.append('duration', course.data.duration)
+  formData.append('category', course.data.category)
+  formData.append('difficulty', course.data.difficulty)
+
   try {
     const { data } = await axios.put(
-      `/api/course/${route.params.id}/content`,
-      {
-        title: course.newContent.title,
-        type: course.newContent.type,
-        content: course.newContent.content,
-        link: course.newContent.link
-      },
+      `/api/course/${course.data.id}`,
+      formData,
       {
         headers: {
-          Authorization: userStore.getBearerToken
+          Authorization: userStore.getBearerToken,
+          'Content-Type': 'multipart/form-data'
         }
       }
     )
     course.data = data.course
-    clearNewContent()
+    state.errorType = 'success'
+    state.error = 'Course updated successfully'
   } catch (error) {
     console.log(error)
-    course.newContent.error = error.response.data.error
+    state.error = error.response.data.error
+    state.errorType = 'error'
   }
 }
 </script>
@@ -94,7 +255,7 @@ async function submitContentForm() {
   <main class="bg-white dark:bg-slate-800">
     <div class="min-h-screen max-w-screen-xl mx-auto">
       <NavbarComponent />
-      <div class="container mx-auto px-4 sm:px-2 my-12">
+      <div class="container mx-auto px-4 my-12 mb-24">
         <!-- Loading State -->
         <div v-if="state.loading" class="text-center">
           <div role="status">
@@ -116,17 +277,21 @@ async function submitContentForm() {
             <span class="sr-only">Loading...</span>
           </div>
         </div>
+
         <div v-if="!state.loading && !!course.data">
+          <!-- Jumbotron -->
           <div
-            class="bg-gray-100 rounded-lg p-6 flex flex-col md:flex-row gap-12 justify-between items-start mb-12 dark:bg-gray-700"
+            class="flex flex-col-reverse lg:flex-row gap-12 justify-between items-start mb-12"
           >
             <div class="space-y-6">
               <h1
                 class="text-3xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
               >
-                {{ course.data.name }}
+                {{ course.data.name }} Dashboard
               </h1>
-              <p class="text-gray-700 leading-loose dark:text-gray-300">
+              <p
+                class="text-gray-700 text-lg font-medium leading-relaxed dark:text-gray-300"
+              >
                 {{ course.data.description }}
               </p>
               <p class="flex items-center gap-2 flex-wrap">
@@ -162,7 +327,11 @@ async function submitContentForm() {
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
-                {{ !!course.participants ? course.participants.length : 0 }}
+                {{
+                  !!course.data.participants
+                    ? course.data.participants.length
+                    : 0
+                }}
                 participants
               </p>
               <p
@@ -183,7 +352,8 @@ async function submitContentForm() {
                   <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
                 <span class="font-medium ml-2">
-                  {{ course.data.duration }} to complete</span
+                  {{ course.data.duration }}
+                  to complete</span
                 >
               </p>
               <div class="flex items-center text-gray-700 dark:text-gray-300">
@@ -215,26 +385,91 @@ async function submitContentForm() {
                 >
               </div>
             </div>
-            <div class="w-full max-w-lg mb-6">
+            <div class="space-y-6 w-full ;g:max-w-lg">
               <img
                 :src="course.data.image_uri"
-                class="w-full h-full object-cover mb-4 rounded"
+                class="w-full h-full object-cover mb-4 rounded-2xl"
               />
-              <button
-                type="button"
-                class="w-full text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+              <router-link
+                :to="{
+                  name: 'learn-course',
+                  params: { name: course.data.name }
+                }"
+                class="block w-full text-center text-blue-700 hover:underline dark:text-blue-400"
+                >Go to Course Home</router-link
               >
-                Change Image
-              </button>
             </div>
           </div>
-          <div class="flex flex-col gap-6 mb-12">
-            <div class="flex items-start justify-between">
+
+          <!-- Tabs -->
+          <div id="tabs" class="flex flex-col gap-6 mb-6">
+            <div class="flex items-center gap-4">
+              <ul
+                id="course-tabs"
+                class="flex-1 flex flex-wrap gap-2.5 py-2.5 text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+              >
+                <li>
+                  <button
+                    type="button"
+                    @click="state.tab = 0"
+                    class="inline-block py-3 px-4 rounded-lg"
+                    :class="[
+                      state.tab === 0
+                        ? ' text-white bg-blue-600 shadow-m active'
+                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white'
+                    ]"
+                  >
+                    Content
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    @click="state.tab = 1"
+                    class="inline-block py-3 px-4 rounded-lg"
+                    :class="[
+                      state.tab === 1
+                        ? ' text-white bg-blue-600 shadow-m active'
+                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white'
+                    ]"
+                  >
+                    Reviews
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    @click="state.tab = 2"
+                    class="inline-block py-3 px-4 rounded-lg"
+                    :class="[
+                      state.tab === 2
+                        ? ' text-white bg-blue-600 shadow-md active'
+                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white'
+                    ]"
+                  >
+                    Participants
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    @click="state.tab = 3"
+                    class="inline-block py-3 px-4 rounded-lg"
+                    :class="[
+                      state.tab === 3
+                        ? ' text-white bg-blue-600 shadow-md active'
+                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white'
+                    ]"
+                  >
+                    Settings
+                  </button>
+                </li>
+              </ul>
               <div class="relative">
                 <button
                   type="button"
                   @click="state.showDropdown = !state.showDropdown"
-                  class="shadow-lg inline-flex items-center py-3 px-5 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  class="shadow-lg inline-flex items-center py-2.5 px-5 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -254,159 +489,928 @@ async function submitContentForm() {
                 </button>
                 <div
                   v-if="state.showDropdown"
-                  class="absolute z-10 mt-2 w-44 bg-white rounded shadow-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  class="absolute z-10 mt-1.5 w-full bg-white rounded shadow-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                 >
                   <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
                     <li>
                       <button
                         type="button"
-                        @click="addNewContent('text')"
-                        class="block w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        @click="newContent()"
+                        class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                       >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-5 h-5 mr-2"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                          <path
+                            d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"
+                          ></path>
+                          <line x1="9" y1="9" x2="10" y2="9"></line>
+                          <line x1="9" y1="13" x2="15" y2="13"></line>
+                          <line x1="9" y1="17" x2="15" y2="17"></line>
+                        </svg>
                         Text Content
                       </button>
                     </li>
                     <li>
                       <button
                         type="button"
-                        @click="addNewContent('link')"
-                        class="block w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        @click="newMeeting()"
+                        class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                       >
-                        External Link
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-5 h-5 mr-2"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <path
+                            d="M15 10l4.553 -2.276a1 1 0 0 1 1.447 .894v6.764a1 1 0 0 1 -1.447 .894l-4.553 -2.276v-4z"
+                          ></path>
+                          <rect
+                            x="3"
+                            y="6"
+                            width="12"
+                            height="12"
+                            rx="2"
+                          ></rect>
+                        </svg>
+                        Meeting
                       </button>
                     </li>
                     <li>
                       <button
                         type="button"
-                        @click="addNewContent('meeting')"
-                        class="block w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                       >
-                        Schedule Meeting
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        type="button"
-                        @click="addNewContent('assessment')"
-                        class="block w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-5 h-5 mr-2"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                          <path
+                            d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"
+                          ></path>
+                          <path d="M9 15l2 2l4 -4"></path>
+                        </svg>
                         Assessment
                       </button>
                     </li>
                   </ul>
                 </div>
               </div>
-
-              <button
-                type="button"
-                class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-              >
-                Edit Course Info
-              </button>
             </div>
-            <div
-              v-if="!!course.newContent && course.newContent.type === 'text'"
+          </div>
+
+          <AlertComponent
+            :message="state.error"
+            v-if="!!state.error"
+            :type="state.errorType"
+            :dismissible="true"
+          />
+
+          <!-- Content editor -->
+          <Transition>
+            <form
+              v-if="!!course.editor"
+              @submit.prevent="saveContent()"
+              class="flex flex-col gap-6 mb-6"
             >
-              <form
-                @submit.prevent="submitContentForm()"
-                class="flex flex-col gap-6"
-              >
-                <AlertComponent
-                  id="content-form-alert"
-                  v-if="!!course.newContent && !!course.newContent.error"
-                  :message="course.newContent.error"
-                  type="error"
-                />
-                <div class="flex items-center gap-6">
-                  <div class="flex-1">
+              <AlertComponent
+                v-if="!!course.editor && !!course.editor.error"
+                :message="course.editor.error"
+                type="error"
+              />
+              <div class="flex items-center gap-6">
+                <div class="flex-1">
+                  <label
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >Content Title</label
+                  >
+                  <input
+                    type="text"
+                    v-model="course.editor.title"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  />
+                </div>
+                <div class="flex-1">
+                  <div>
                     <label
                       class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                      >Content Title</label
+                      >Date</label
                     >
                     <input
                       type="text"
-                      v-model="course.newContent.title"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      disabled
+                      name="date"
+                      class="cursor-not-allowed bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      :value="new Date().toISOString().split('T')[0]"
                     />
                   </div>
-                  <div class="flex-1">
-                    <div>
-                      <label
-                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                        >Date</label
+                </div>
+              </div>
+              <editor
+                v-model="course.editor.body"
+                api-key="8azlju673ibdtyv28md61v0t568tztcnr4ojvceomyy6bkib"
+                :init="{
+                  height: 500,
+                  plugins: [
+                    'advlist',
+                    'autolink',
+                    'lists',
+                    'link',
+                    'image',
+                    'charmap',
+                    'preview',
+                    'anchor',
+                    'searchreplace',
+                    'visualblocks',
+                    'codesample',
+                    'fullscreen',
+                    'insertdatetime',
+                    'media',
+                    'table',
+                    'help',
+                    'wordcount'
+                  ],
+                  toolbar:
+                    'undo redo | blocks | ' +
+                    'bold italic backcolor | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | codesample | help'
+                }"
+              />
+              <div class="flex items-center gap-6">
+                <button
+                  type="submit"
+                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Save and Publish
+                </button>
+                <button
+                  type="button"
+                  @click="clearEditor()"
+                  class="py-2.5 px-5 flex items-center gap-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </Transition>
+
+          <!-- Meeting form -->
+          <Transition>
+            <form
+              v-if="!!course.meeting"
+              @submit.prevent="saveMeeting()"
+              class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"
+            >
+              <AlertComponent
+                v-if="!!course.meeting && !!course.meeting.error"
+                :message="course.meeting.error"
+                :type="course.meeting.errorType"
+                class="md:col-span-2"
+              />
+              <div>
+                <label
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >
+                  Meeting Title
+                </label>
+                <input
+                  type="text"
+                  v-model="course.meeting.title"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >
+                  Date
+                </label>
+                <input
+                  type="datetime-local"
+                  v-model="course.meeting.date"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                />
+              </div>
+              <div class="md:col-span-2">
+                <label
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >
+                  Description
+                </label>
+                <textarea
+                  v-model="course.meeting.description"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  rows="4"
+                ></textarea>
+              </div>
+              <div class="flex items-center gap-6">
+                <button
+                  type="submit"
+                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Save and Schedule
+                </button>
+                <button
+                  type="button"
+                  @click="clearMeeting()"
+                  class="py-2.5 px-5 flex items-center gap-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </Transition>
+
+          <!-- Content list -->
+          <Transition>
+            <div v-if="state.tab === 0" class="flex flex-col gap-6 mb-6">
+              <h4
+                class="text-xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
+              >
+                Course Content
+              </h4>
+
+              <div
+                v-if="course.data.content.length === 0"
+                class="flex flex-col gap-6"
+              >
+                <p class="text-gray-700 dark:text-gray-400">
+                  No content has been added to this course yet.
+                </p>
+              </div>
+              <div
+                v-for="content of course.data.content"
+                :key="content.id"
+                class="flex flex-col gap-4 p-2.5 bg-white shadow-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+              >
+                <div class="flex items-center justify-between px-2.5">
+                  <h6
+                    class="inline-flex items-center text-lg font-bold text-gray-900 dark:text-gray-300"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-6 h-6 mr-3"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                      <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                      <path
+                        d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"
+                      ></path>
+                      <line x1="9" y1="9" x2="10" y2="9"></line>
+                      <line x1="9" y1="13" x2="15" y2="13"></line>
+                      <line x1="9" y1="17" x2="15" y2="17"></line>
+                    </svg>
+                    {{ content.title }}
+                  </h6>
+                  <div class="flex items-center gap-4">
+                    <p class="text-gray-700 dark:text-gray-400">
+                      {{ new Date(content.created_at).toLocaleDateString() }} @
+                      {{ new Date(content.created_at).toLocaleTimeString() }}
+                    </p>
+                    <button
+                      type="button"
+                      @click="content.expanded = !content.expanded"
+                      class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-4 h-4"
+                        :class="{ 'rotate-180': content.expanded }"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        fill="none"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
                       >
-                      <input
-                        type="text"
-                        disabled
-                        name="date"
-                        class="cursor-not-allowed bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        :value="new Date().toISOString().split('T')[0]"
-                      />
+                        <path
+                          stroke="none"
+                          d="M0 0h24v24H0z"
+                          fill="none"
+                        ></path>
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  v-if="content.expanded"
+                  class="course-content py-2.5 border-y border-gray-300 dark:border-gray-700"
+                  v-html="content.body"
+                ></div>
+                <div
+                  v-if="content.expanded"
+                  class="flex items-center justify-between gap-4 b px-2.5"
+                >
+                  <div class="flex items-center gap-4">
+                    <button
+                      type="button"
+                      @click="setEditor(content.id)"
+                      class="py-2.5 px-5 flex items-center gap-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="24"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        fill="none"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="w-4 h-4"
+                      >
+                        <path
+                          d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                        ></path>
+                        <path
+                          d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                        ></path>
+                      </svg>
+                      Edit
+                    </button>
+                    <ModalComponent>
+                      <template #button>
+                        <button
+                          type="button"
+                          class="inline-flex gap-2.5 text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="w-h h-4"
+                          >
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path
+                              d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                            ></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                          </svg>
+                          Delete
+                        </button>
+                      </template>
+                      <template #content>
+                        <div class="flex flex-col gap-4 p-4">
+                          <div
+                            class="text-white mx-auto p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="w-16 h-16"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              stroke-width="2"
+                              stroke="currentColor"
+                              fill="none"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path
+                                stroke="none"
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              ></path>
+                              <path d="M4 7h16"></path>
+                              <path
+                                d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"
+                              ></path>
+                              <path
+                                d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"
+                              ></path>
+                              <path d="M10 12l4 4m0 -4l-4 4"></path>
+                            </svg>
+                          </div>
+                          <h3
+                            class="text-2xl text-center font-bold dark:text-white"
+                          >
+                            Are you sure you want to delete this content?
+                          </h3>
+                          <p
+                            class="text-center text-gray-700 dark:text-gray-300"
+                          >
+                            <span class="font-bold"
+                              >This action cannot be undone</span
+                            >. The content and all associated data will be
+                            permanently deleted for all participants.
+                          </p>
+                        </div>
+                      </template>
+                      <template #actions>
+                        <button
+                          type="button"
+                          @click="deleteContent(content.id)"
+                          class="inline-flex justify-center items-center gap-2.5 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                        >
+                          Yes. I want to permanently delete this content.
+                        </button>
+                      </template>
+                    </ModalComponent>
+                  </div>
+                  <ModalComponent>
+                    <template #button>
+                      <button
+                        type="button"
+                        class="ml-auto py-2.5 px-5 flex items-center gap-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-4 h-4"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <path d="M7 12l5 5l10 -10"></path>
+                          <path d="M2 12l5 5m5 -5l5 -5"></path>
+                        </svg>
+                        Completed by
+                      </button>
+                    </template>
+                    <template #content>
+                      <h3
+                        class="text-2xl text-center font-bold dark:text-white mb-6"
+                      >
+                        Completed by
+                      </h3>
+                      <p
+                        v-if="
+                          !content.completed_by ||
+                          JSON.parse(content.completed_by).length === 0
+                        "
+                        class="text-center text-gray-700 dark:text-gray-300"
+                      >
+                        No one has completed this content yet.
+                      </p>
+                      <div
+                        v-for="user in JSON.parse(content.completed_by)"
+                        :key="user"
+                      >
+                        {{ user }}
+                      </div>
+                    </template>
+                  </ModalComponent>
+                </div>
+              </div>
+            </div>
+          </Transition>
+          <!-- Reviews -->
+          <Transition>
+            <div v-if="state.tab === 1" class="flex flex-col gap-6 mb-6">
+              <h4
+                class="text-xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
+              >
+                Reviews
+              </h4>
+            </div>
+          </Transition>
+          <!-- Participants -->
+          <Transition>
+            <div
+              v-if="state.tab === 2"
+              class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"
+            >
+              <h4
+                class="md:col-span-2 text-xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
+              >
+                Participants
+              </h4>
+              <p
+                v-if="course.data.participants.length === 0"
+                class="md:col-span-2 bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-center text-gray-500"
+              >
+                There are no participants.
+              </p>
+              <div
+                v-else
+                v-for="user of course.data.participants"
+                :key="user.id"
+                @click="
+                  $router.push({
+                    name: 'profile-about',
+                    params: { handle: user.handle }
+                  })
+                "
+                class="cursor-pointer shadow-sm bg-white border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-700 p-4"
+              >
+                <div class="flex items-start gap-6">
+                  <div class="flex-shrink-0">
+                    <img :src="user.avatar_uri" class="w-16 h-16 rounded-lg" />
+                  </div>
+                  <div class="flex-1 flex flex-col gap-2">
+                    <h3
+                      class="text-xl text-gray-900 font-semibold dark:text-white"
+                    >
+                      @{{ user.handle }}
+                    </h3>
+                    <p class="text-gray-700 text-sm dark:text-gray-300">
+                      {{ user.bio }}
+                    </p>
+                    <div class="flex items-center justify-between">
+                      <p
+                        class="text-gray-700 text-sm flex items-center dark:text-gray-300"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="w-4 h-4 mr-2"
+                          width="24"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+                          ></path>
+                          <circle cx="12" cy="10" r="3"></circle></svg
+                        >{{ !!user.location ? user.location : 'No location' }}
+                      </p>
+                      <p
+                        class="text-gray-700 text-sm flex items-center dark:text-gray-300"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="w-4 h-4 mr-2"
+                          width="24"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect
+                            x="2"
+                            y="7"
+                            width="20"
+                            height="14"
+                            rx="2"
+                            ry="2"
+                          ></rect>
+                          <path
+                            d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"
+                          ></path>
+                        </svg>
+                        {{
+                          !!user.occupation ? user.occupation : 'No occupation'
+                        }}
+                      </p>
+                      <p
+                        class="text-gray-700 text-sm flex items-center dark:text-gray-300"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="w-4 h-4 mr-2"
+                          width="24"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                          <path
+                            d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+                          ></path>
+                        </svg>
+                        {{
+                          !!user.education_major
+                            ? user.education_major
+                            : 'No education'
+                        }}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <editor
-                  v-model="course.newContent.content"
-                  name="content"
-                  api-key="8azlju673ibdtyv28md61v0t568tztcnr4ojvceomyy6bkib"
-                  :init="{
-                    height: 500,
-                    plugins: [
-                      'advlist',
-                      'autolink',
-                      'lists',
-                      'link',
-                      'image',
-                      'charmap',
-                      'preview',
-                      'anchor',
-                      'searchreplace',
-                      'visualblocks',
-                      'code',
-                      'fullscreen',
-                      'insertdatetime',
-                      'media',
-                      'table',
-                      'help',
-                      'wordcount'
-                    ],
-                    toolbar:
-                      'undo redo | blocks | ' +
-                      'bold italic backcolor | alignleft aligncenter ' +
-                      'alignright alignjustify | bullist numlist outdent indent | ' +
-                      'removeformat | help'
-                  }"
-                />
-
-                <div class="">
-                  <button
-                    type="submit"
-                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              </div>
+            </div>
+          </Transition>
+          <!-- Settings -->
+          <Transition>
+            <div v-if="state.tab === 3" class="flex flex-col gap-6 mb-6">
+              <h4
+                class="text-xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
+              >
+                Course Settings
+              </h4>
+              <form
+                @submit.prevent="updateCourse()"
+                class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-12"
+              >
+                <div>
+                  <label
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >Course name</label
                   >
-                    Save and Publish
+                  <input
+                    type="text"
+                    v-model="course.data.name"
+                    disabled
+                    class="cursor-not-allowed bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >Course cost</label
+                  >
+                  <div class="flex">
+                    <span
+                      class="inline-flex items-center px-3 font-medium text-gray-900 bg-gray-200 rounded-l-md border border-r-0 border-gray-300 dark:bg-gray-600 dark:text-white dark:border-gray-600"
+                    >
+                      USD $
+                    </span>
+                    <input
+                      type="number"
+                      v-model="course.data.price"
+                      min="0"
+                      step="0.01"
+                      class="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      placeholder="0.00"
+                      e
+                    />
+                  </div>
+                  <p class="mt-1 text-xs text-gray-700 dark:text-gray-300">
+                    Enter 0.00 to make your course free
+                  </p>
+                </div>
+                <div>
+                  <label
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >Category</label
+                  >
+                  <select
+                    name="category"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  >
+                    <option selected value="initial">Choose a country</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Digital Art">Digital Art / Design</option>
+                    <option value="English">English</option>
+                    <option value="Finance">Finance</option>
+                    <option value="History">History</option>
+                    <option value="Literature">Literature</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Sciences">Sciences</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >Difficulty Level</label
+                  >
+                  <select
+                    name="difficulty"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  >
+                    <option selected value="initial">Choose a country</option>
+                    <option value="Introductory">Introductory</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Difficult">Difficult</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >Image</label
+                  >
+                  <input
+                    class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                    type="file"
+                    id="update-course-image"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >Course duration</label
+                  >
+                  <input
+                    type="text"
+                    v-model="course.data.duration"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  />
+                </div>
+                <div class="md:col-span-2">
+                  <label
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >Description</label
+                  >
+                  <textarea
+                    v-model="course.data.description"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    rows="4"
+                    placeholder="Course description"
+                  ></textarea>
+                </div>
+                <div class="md:col-span-2 flex items-center gap-2">
+                  <button
+                    typ="submit"
+                    class="mr-auto shadow-lg inline-flex items-center gap-2.5 py-2.5 px-5 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-5 h-5"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                      <path
+                        d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"
+                      ></path>
+                      <circle cx="12" cy="14" r="2"></circle>
+                      <polyline points="14 4 14 8 8 8 8 4"></polyline>
+                    </svg>
+                    Save Changes
                   </button>
+                  <ModalComponent>
+                    <template #button>
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-2.5 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-5 h-5"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <path d="M4 7h16"></path>
+                          <path
+                            d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"
+                          ></path>
+                          <path
+                            d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"
+                          ></path>
+                          <path d="M10 12l4 4m0 -4l-4 4"></path>
+                        </svg>
+                        Delete Course
+                      </button>
+                    </template>
+                    <template #content>
+                      <div class="flex flex-col gap-4 p-4">
+                        <div
+                          class="text-white mx-auto p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-16 h-16"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            stroke-width="2"
+                            stroke="currentColor"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path
+                              stroke="none"
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            ></path>
+                            <path d="M4 7h16"></path>
+                            <path
+                              d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"
+                            ></path>
+                            <path
+                              d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"
+                            ></path>
+                            <path d="M10 12l4 4m0 -4l-4 4"></path>
+                          </svg>
+                        </div>
+                        <h3
+                          class="text-2xl text-center font-bold dark:text-white"
+                        >
+                          Are you sure you want to delete your
+                          {{ course.data.name }} course?
+                        </h3>
+                        <p class="text-center text-gray-700 dark:text-gray-300">
+                          <span class="font-bold"
+                            >This action cannot be undone</span
+                          >. The course and all associated data will be
+                          permanently deleted for all participants.
+                        </p>
+                      </div>
+                    </template>
+                    <template #actions>
+                      <button
+                        type="button"
+                        class="inline-flex justify-center items-center gap-2.5 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                      >
+                        Yes. I want to permanently delete this course.
+                      </button>
+                    </template>
+                  </ModalComponent>
                 </div>
               </form>
             </div>
-          </div>
-
-          <div class="flex flex-col gap-6 mb-6">
-            <div
-              v-for="content in JSON.parse(course.data.content)"
-              :key="content"
-              class="flex flex-col gap-4 p-2.5 bg-white shadow-sm border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600"
-            >
-              <h6 class="text-lg font-medium text-gray-900 dark:text-gray-300">
-                {{ content.title }}
-              </h6>
-              <p
-                class="text-gray-700 text-sm leading-relaxed dark:text-gray-300"
-                v-html="content.content"
-              ></p>
-            </div>
-          </div>
+          </Transition>
         </div>
       </div>
     </div>
   </main>
 </template>
+
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+</style>

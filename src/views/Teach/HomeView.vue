@@ -7,15 +7,15 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
     <div class="min-h-screen max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div
-        class="container mx-auto flex flex-col md:flex-row items-center sm:px-2 gap-16 px-2 md:py-12"
+        class="container mx-auto flex flex-col md:flex-row items-center gap-16 px-4 md:py-12"
       >
-        <div class="flex-1 flex flex-col gap-6">
+        <div class="flex-1 flex flex-col gap-12">
           <h1
             class="text-3xl md:text-5xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
           >
             Share your knowledge with the world
           </h1>
-          <p class="leading-relaxed text-gray-700 dark:text-gray-300">
+          <p class="leading-loose text-gray-700 dark:text-gray-300">
             Lorem ipsum, dolor sit amet consectetur adipisicing elit. Et
             exercitationem iure, fugit fugiat, aperiam dignissimos dolorum,
             molestiae placeat libero cupiditate odit? Eveniet quibusdam
@@ -31,7 +31,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
             </button>
             <button
               type="button"
-              @click="$router.push('/teach/my-courses')"
+              @click="$router.push('/my-courses')"
               class="flex-1 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
             >
               View My Courses
@@ -39,7 +39,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
           </div>
         </div>
         <lottie-player
-          src="https://assets4.lottiefiles.com/packages/lf20_i9mtrven.json"
+          src="https://assets9.lottiefiles.com/packages/lf20_gjtpn03m.json"
           background="transparent"
           class="flex-shrink-0 md:max-w-sm lg:max-w-lg"
           speed="1"

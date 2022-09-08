@@ -92,7 +92,7 @@ import FooterComponent from '../components/FooterComponent.vue'
     </div>
 
     <div
-      class="bg-white dark:bg-slate-800 py-12 bg- flex flex-col overflow-x-hidden"
+      class="bg-white dark:bg-slate-800 py-12 bg- flex flex-col px-4 overflow-x-hidden"
     >
       <h2
         class="text-gray-900 text-center text-4xl font-black drop-shadow-xl leading-snug dark:text-white mb-12"
@@ -180,6 +180,7 @@ import FooterComponent from '../components/FooterComponent.vue'
     url('https://images.unsplash.com/photo-1573164574572-cb89e39749b4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1738&q=80')
       no-repeat;
   background-size: cover;
+  background-position: center;
   background-attachment: fixed;
 }
 

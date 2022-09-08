@@ -7,15 +7,15 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
     <div class="min-h-screen max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div
-        class="container mx-auto flex flex-col md:flex-row items-center sm:px-2 gap-16 px-2 md:py-12"
+        class="container mx-auto flex flex-col md:flex-row items-center gap-16 px-4 md:py-12"
       >
-        <div class="flex-1 flex flex-col gap-6">
+        <div class="flex-1 flex flex-col gap-12">
           <h1
             class="text-3xl md:text-5xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
           >
             Learn the way you that works for you
           </h1>
-          <p class="leading-relaxed text-gray-700 dark:text-gray-300">
+          <p class="leading-loose text-gray-700 dark:text-gray-300">
             Lorem ipsum, dolor sit amet consectetur adipisicing elit. Et
             exercitationem iure, fugit fugiat, aperiam dignissimos dolorum,
             molestiae placeat libero cupiditate odit? Eveniet quibusdam
@@ -24,6 +24,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
           <div class="flex items-center gap-6">
             <button
               type="button"
+              @click="$router.push({ name: 'my-courses' })"
               class="flex-1 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
             >
               View Joined Courses
@@ -38,11 +39,10 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
           </div>
         </div>
         <lottie-player
-          src="https://assets2.lottiefiles.com/packages/lf20_j2rjqphu.json"
+          src="https://assets9.lottiefiles.com/packages/lf20_kcixdxqk/animations/lf30_editor_opilardo.json"
           background="transparent"
           class="flex-shrink-0 md:max-w-sm lg:max-w-lg"
           speed="1"
-          loop
           autoplay
         ></lottie-player>
       </div>
@@ -57,9 +57,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
         class="max-w-screen-xl w-full mx-auto px-2 md:px-0 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12 mb-12 sm:px-4"
       >
         <div
-          @click="
-            $router.push({ name: 'learn-course', params: { name: 'test' } })
-          "
+          @click="$router.push({ name: 'learn-course', params: { id: 1 } })"
           class="placeholder-course"
         >
           &nbsp;
@@ -85,9 +83,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
         </button>
       </div>
     </div>
-    <div
-      class="min-h-screen flex flex-col justify-center bg-gradient-to-b from-blue-200 to-purple-200"
-    >
+    <div class="min-h-screen flex flex-col justify-center dark:text-white">
       <h2
         class="text-center drop-shadow-lg text-4xl font-bold leading-relaxed mb-12"
       >

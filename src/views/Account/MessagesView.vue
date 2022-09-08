@@ -53,7 +53,7 @@ function openMessage(message) {
 
 <template>
   <main class="min-h-screen bg-white dark:bg-slate-800">
-    <div class="container max-w-screen-lg mx-auto sm:px-2">
+    <div class="container max-w-screen-lg mx-auto px-4">
       <NavbarComponent />
 
       <div class="flex items-center justify-between pt-12 mb-6">

@@ -10,19 +10,22 @@ import NavbarComponent from '../../components/NavbarComponent.vue'
         class="text-white mb-12 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
       >
         <svg
-          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
           class="h-24 w-24"
           width="24"
           height="24"
-          stroke="currentColor"
+          viewBox="0 0 24 24"
           stroke-width="2"
+          stroke="currentColor"
           fill="none"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+          <circle cx="10" cy="10" r="7"></circle>
+          <path d="M21 21l-6 -6"></path>
+          <line x1="10" y1="13" x2="10" y2="13.01"></line>
+          <path d="M10 10a1.5 1.5 0 1 0 -1.14 -2.474"></path>
         </svg>
       </div>
       <h1

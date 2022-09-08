@@ -12,12 +12,7 @@ const user = reactive({
 onMounted(async () => {
   await userStore.fetchUser()
   user.data = userStore.getUser
-  user.isLoggedIn = userStore.isLoggedIn
 })
-
-const accountForm = ref() // <form> ...
-const passwordForm = ref() // <form> ...
-const privacyForm = ref() // <form> ...
 </script>
 
 <template>
@@ -25,56 +20,68 @@ const privacyForm = ref() // <form> ...
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div class="container flex flex-col mx-auto px-2 py-12">
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-whit mb-12">
-          Settings
-        </h1>
         <div class="flex flex-col md:flex-row items-start gap-12 lg:gap-16">
-          <!-- Menu -->
-          <div
-            class="w-60 text-sm shadow-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          >
-            <a
-              href="#account"
-              class="block py-2 px-4 w-full text-white bg-blue-700 rounded-t-lg border-b border-gray-200 cursor-pointer dark:bg-gray-800 dark:border-gray-600"
+          <div class="flex flex-col w-full md:w-auto">
+            <h1
+              class="w-full text-3xl mb-12 font-bold text-gray-900 dark:text-white"
             >
-              Account
-            </a>
-            <a
-              href="#password"
-              class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+              Account Settings
+            </h1>
+            <!-- Menu -->
+            <div
+              class="w-full md:w-60 text-sm shadow-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
-              Password
-            </a>
-            <a
-              href="#2fa"
-              class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-            >
-              2-Factor Authentication
-            </a>
-            <a
-              href="#privacy"
-              class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-            >
-              Privacy
-            </a>
-            <a
-              href="#"
-              class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-            >
-              Messages
-            </a>
-            <a
-              href="#"
-              class="block py-2 px-4 w-full rounded-b-lg cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-            >
-              Download
-            </a>
+              <a
+                href="#account"
+                class="block py-2 px-4 w-full rounded-t-lg border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+              >
+                Account
+              </a>
+              <a
+                href="#password"
+                class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+              >
+                Password
+              </a>
+              <a
+                href="#2fa"
+                class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+              >
+                2-Factor Authentication
+              </a>
+              <a
+                href="#privacy"
+                class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+              >
+                Privacy
+              </a>
+              <a
+                href="#"
+                class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+              >
+                Messages
+              </a>
+              <a
+                href="#"
+                class="block py-2 px-4 w-full rounded-b-lg cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+              >
+                Download
+              </a>
+            </div>
           </div>
           <!-- Content -->
-          <div class="flex-1 w-full max-w-xl mx-auto flex flex-col gap-12">
+          <div
+            class="flex-1 w-full max-w-xl mx-auto flex flex-col divide-y divide-gray-400 dark:divide-gray-600"
+          >
             <!-- Account -->
-            <form ref="accountForm" id="account" class="flex flex-col gap-4">
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            <form
+              ref="accountForm"
+              id="account"
+              class="flex flex-col gap-5 py-12"
+            >
+              <h3
+                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              >
                 Account
               </h3>
               <div>
@@ -88,13 +95,24 @@ const privacyForm = ref() // <form> ...
                   class="bg-white cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   disabled
                 />
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   You cannot change you email.
                 </p>
               </div>
               <div>
                 <label
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400"
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                  >Your phone number</label
+                >
+                <input
+                  type="tel"
+                  v-model="user.data.phone"
+                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
                   >Account type</label
                 >
                 <select
@@ -156,18 +174,24 @@ const privacyForm = ref() // <form> ...
               </div>
             </form>
             <!-- Password -->
-            <form ref="passwordForm" id="security" class="flex flex-col gap-4">
+            <form
+              ref="passwordForm"
+              id="security"
+              class="flex flex-col gap-6 py-12"
+            >
               <!-- Password -->
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+              <h3
+                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              >
                 Security
               </h3>
               <div
-                class="inline-flex items-center p-4 mb-4 text-sm text-blue-700 bg-blue-100 rounded-lg dark:bg-blue-200 dark:text-blue-800"
+                class="inline-flex ite,s-center p-4 text-blue-700 bg-blue-200 rounded-lg dark:bg-transparent dark:border dark:rounded-lg dark:border-blue-300 dark:text-blue-300"
                 role="alert"
               >
                 <svg
                   viewBox="0 0 24 24"
-                  class="w-4 h-4 mr-2"
+                  class="w-6 h-6 mr-3"
                   width="24"
                   height="24"
                   stroke="currentColor"
@@ -227,13 +251,69 @@ const privacyForm = ref() // <form> ...
                 </button>
               </div>
             </form>
+            <!-- 2FA -->
+            <div id="2fa" class="flex flex-col gap-6 py-12">
+              <h3
+                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              >
+                2-Factor Authentication
+              </h3>
+              <div
+                class="flex items-center text-sm p-4"
+                :class="[
+                  user.data.two_fa_enabled
+                    ? 'text-blue-700 bg-blue-200 rounded-lg dark:bg-transparent dark:border dark:rounded-lg dark:border-blue-300 dark:text-blue-300'
+                    : ' text-red-700 bg-red-200 rounded-lg dark:bg-transparent dark:border dark:rounded-lg dark:border-red-300 dark:text-red-300'
+                ]"
+                role="alert"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 mr-3"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                  <path
+                    d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"
+                  ></path>
+                  <circle cx="12" cy="11" r="1"></circle>
+                  <line x1="12" y1="12" x2="12" y2="14.5"></line>
+                </svg>
+                <span class="font-medium mr-2"
+                  >2FA is
+
+                  {{ user.data.two_fa_enabled ? 'ENABLED' : 'DISABLED' }}
+                </span>
+              </div>
+              <div>
+                <router-link
+                  to="/settings/2fa"
+                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                >
+                  Manage 2FA
+                </router-link>
+              </div>
+            </div>
             <!-- Privacy -->
-            <form ref="privacyForm" id="privacy" class="flex flex-col gap-4">
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            <form
+              ref="privacyForm"
+              id="privacy"
+              class="flex flex-col gap-6 py-12"
+            >
+              <h3
+                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              >
                 Privacy
               </h3>
               <div
-                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700"
+                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800"
               >
                 <input
                   type="radio"
@@ -271,7 +351,7 @@ const privacyForm = ref() // <form> ...
                 </label>
               </div>
               <div
-                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700"
+                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800"
               >
                 <input
                   type="radio"
@@ -307,7 +387,7 @@ const privacyForm = ref() // <form> ...
                 </label>
               </div>
               <div
-                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700"
+                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800"
               >
                 <input
                   type="radio"
