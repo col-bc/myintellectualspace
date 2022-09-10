@@ -187,7 +187,6 @@ const router = createRouter({
     // # Learn Routes
     // /learn
     //  - /learn/:id
-    // /learn/join-meeting
     {
       path: '/learn',
       name: 'learn-home',
@@ -218,24 +217,11 @@ const router = createRouter({
         return next()
       }
     },
-    {
-      path: '/learn/join-meeting',
-      name: 'learn-join-meeting',
-      component: () => import('@/views/Learn/JoinMeetingView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login>?next=/learn/join-meeting')
-      }
-    },
 
     // # Teach Routes
     // /teach
     // /teach/new-course
     // /teach/:id/dashboard
-    // /teach/new-meeting
     {
       path: '/teach',
       name: 'teach-home',
@@ -278,16 +264,27 @@ const router = createRouter({
         } else return next('/login?next=/teach/:id/dashboard')
       }
     },
+
+    // # Meeting Routes
+    // /meetings
     {
-      path: '/teach/new-meeting',
-      name: 'teach-new-meeting',
-      component: () => import('@/views/Teach/NewMeetingView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/teach/new-meeting')
+      path: '/meetings',
+      name: 'meetings',
+      component: () => import('@/views/Account/MeetingsView.vue')
+    },
+    {
+      path: '/meetings/new',
+      name: 'new-meeting',
+      component: () => import('@/views/Account/NewMeetingView.vue')
+    },
+    {
+      path: '/meetings/:id',
+      name: 'meeting',
+      params: {
+        id: {
+          type: String,
+          required: true
+        }
       }
     },
 

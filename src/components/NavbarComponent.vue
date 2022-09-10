@@ -213,8 +213,8 @@ onBeforeUnmount(() => {
           >
         </li>
         <li>
-          <a
-            href="#"
+          <router-link
+            to="/meetings"
             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <svg
@@ -232,7 +232,7 @@ onBeforeUnmount(() => {
               <polygon points="23 7 16 12 23 17 23 7" />
               <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
             </svg>
-            Meetings</a
+            Meetings</router-link
           >
         </li>
       </ul>

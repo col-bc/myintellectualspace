@@ -14,7 +14,6 @@
     "autoprefixer": "^10.4.7",
     "axios": "^0.27.2",
     "flowbite": "^1.5.1",
-    "highlight.js": "^11.6.0",
     "pinia": "^2.0.16",
     "pinia-plugin-persistedstate": "^1.6.3",
     "postcss": "^8.4.14",

@@ -107,6 +107,19 @@ async function updateUser() {
           />
         </div>
       </div>
+      <!-- Phone -->
+      <div class="py-2 flex items-center">
+        <span
+          class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+          >Phone Number</span
+        >
+        <input
+          type="text"
+          v-model="user.data.phone"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          placeholder=""
+        />
+      </div>
       <!-- Location -->
       <div class="py-2 flex items-center">
         <span

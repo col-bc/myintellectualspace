@@ -4,10 +4,11 @@ import { computed, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AlertComponent from '../../components/AlertComponent.vue'
 import NavbarComponent from '../../components/NavbarComponent.vue'
+import StarsComponent from '../../components/StarsComponent.vue'
+import ModalComponent from '../../components/ModalComponent.vue'
 import useUserStore from '../../stores/user'
 
 import '@/assets/course_content.css'
-import StarsComponent from '../../components/StarsComponent.vue'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -137,6 +138,7 @@ async function toggleContentComplete(id) {
       ? 'You have completed the content'
       : 'You have uncompleted the content'
     course.errorType = 'success'
+    scrollToAlert()
   } catch (error) {
     console.log(error)
     course.error = error.response.data.error
@@ -203,31 +205,207 @@ function saveRating() {}
               >
                 {{ course.data.name }}
               </h1>
-              <button
-                type="button"
-                class="flex items-center gap-2.5 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                  <circle cx="6" cy="12" r="3"></circle>
-                  <circle cx="18" cy="6" r="3"></circle>
-                  <circle cx="18" cy="18" r="3"></circle>
-                  <line x1="8.7" y1="10.7" x2="15.3" y2="7.3"></line>
-                  <line x1="8.7" y1="13.3" x2="15.3" y2="16.7"></line>
-                </svg>
-                Share
-              </button>
+              <ModalComponent>
+                <template #button>
+                  <button
+                    type="button"
+                    class="flex items-center gap-2.5 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-6 h-6"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="6" r="3"></circle>
+                      <circle cx="18" cy="18" r="3"></circle>
+                      <line x1="8.7" y1="10.7" x2="15.3" y2="7.3"></line>
+                      <line x1="8.7" y1="13.3" x2="15.3" y2="16.7"></line>
+                    </svg>
+                    Share
+                  </button>
+                </template>
+                <template #content>
+                  <div class="flex flex-col gap-4 p-4">
+                    <div
+                      class="text-white mx-auto p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-16 h-16"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        fill="none"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          stroke="none"
+                          d="M0 0h24v24H0z"
+                          fill="none"
+                        ></path>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="6" r="3"></circle>
+                        <circle cx="18" cy="18" r="3"></circle>
+                        <line x1="8.7" y1="10.7" x2="15.3" y2="7.3"></line>
+                        <line x1="8.7" y1="13.3" x2="15.3" y2="16.7"></line>
+                      </svg>
+                    </div>
+                    <h3 class="text-2xl text-center font-bold dark:text-white">
+                      Share this Course
+                    </h3>
+                    <div class="w-full">
+                      <label
+                        class="block text-sm text-gray-700 font-medium mb-2 dark:text-gray-300"
+                        >Url</label
+                      >
+                      <p
+                        class="w-full block bg-gray-800 text-white font-mono p-2.5 select-all rounded-lg dark:bg-gray-700"
+                      >
+                        https://myintellectualspace.com{{ route.path }}
+                      </p>
+                    </div>
+                    <div class="w-full">
+                      <label
+                        class="block text-sm text-gray-700 font-medium mb-2 dark:text-gray-300"
+                        >Message</label
+                      >
+                      <p
+                        class="w-full block bg-gray-800 text-white p-2.5 select-all rounded-lg dark:bg-gray-700"
+                      >
+                        Check out this course on My Intellectual Space!
+                        <span class="font-mono">
+                          https://myintellectualspace.com{{ route.path }}</span
+                        >
+                      </p>
+                    </div>
+                    <div class="flex items-center justify-between w-full">
+                      <button
+                        type="button"
+                        class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-8 h-8"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <path
+                            d="M12 20l-3 -3h-2a3 3 0 0 1 -3 -3v-6a3 3 0 0 1 3 -3h10a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-2l-3 3"
+                          ></path>
+                          <line x1="8" y1="9" x2="16" y2="9"></line>
+                          <line x1="8" y1="13" x2="14" y2="13"></line>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-8 h-8"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <rect
+                            x="3"
+                            y="5"
+                            width="18"
+                            height="14"
+                            rx="2"
+                          ></rect>
+                          <polyline points="3 7 12 13 21 7"></polyline>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-8 h-8"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <path
+                            d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"
+                          ></path>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="w-81 h-8"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            stroke="none"
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          ></path>
+                          <path
+                            d="M22 4.01c-1 .49 -1.98 .689 -3 .99c-1.121 -1.265 -2.783 -1.335 -4.38 -.737s-2.643 2.06 -2.62 3.737v1c-3.245 .083 -6.135 -1.395 -8 -4c0 0 -4.182 7.433 4 11c-1.872 1.247 -3.739 2.088 -6 2c3.308 1.803 6.913 2.423 10.034 1.517c3.58 -1.04 6.522 -3.723 7.651 -7.742a13.84 13.84 0 0 0 .497 -3.753c-.002 -.249 1.51 -2.772 1.818 -4.013z"
+                          ></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </ModalComponent>
             </div>
             <p class="text-gray-700 leading-loose dark:text-gray-300">
               {{ course.data.description }}
@@ -359,7 +537,7 @@ function saveRating() {}
               </div>
             </div>
           </div>
-          <div class="flex-1 max-w-sm flex flex-col gap-6">
+          <div class="flex-1 md:max-w-sm flex flex-col gap-6">
             <button
               type="button"
               v-if="!isJoined"

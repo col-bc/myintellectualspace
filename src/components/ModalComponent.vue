@@ -15,7 +15,7 @@ watch(state, () => {
 
 <template>
   <div>
-    <button @click="state.isOpen = !state.isOpen" class="w-full">
+    <button type="button" @click="state.isOpen = !state.isOpen" class="w-full">
       <slot name="button"></slot>
     </button>
     <Teleport to="#modals-container">

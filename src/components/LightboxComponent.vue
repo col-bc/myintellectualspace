@@ -1,35 +1,33 @@
 <script setup>
-import { defineProps, reactive, onMounted, onUpdated } from 'vue'
+import { defineProps, reactive, onMounted, watch } from 'vue'
 
 const state = reactive({
-  show: false,
+  isOpen: false,
   image: null,
   caption: null
 })
 const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
   image: {
     type: String,
-    default: null
-  },
-  caption: {
-    type: String,
-    default: null
+    required: true
   }
 })
 onMounted(() => {
-  state.show = props.show
   state.image = props.image
   state.caption = props.caption
+})
+watch(state, () => {
+  if (state.isOpen) {
+    document.body.classList.add('overflow-hidden')
+  } else {
+    document.body.classList.remove('overflow-hidden')
+  }
 })
 </script>
 
 <template>
   <img
-    @click="state.show = true"
+    @click="state.isOpen = true"
     :src="state.image"
     class="w-full cursor-pointer"
   />
@@ -37,21 +35,21 @@ onMounted(() => {
   <Teleport to="#modals-container">
     <!-- Overlay -->
     <div
-      v-if="state.show"
-      @click="state.show = false"
-      class="cursor-pointer absolute z-40 top-0 right-0 w-full h-full bg-gray-900 bg-opacity-80"
+      v-if="state.isOpen"
+      @click="state.isOpen = false"
+      class="cursor-pointer fixed z-40 top-0 right-0 w-full h-full bg-black bg-opacity-60"
     >
       &nbsp;
     </div>
     <Transition>
       <div
         tabindex="-1"
-        v-show="state.show"
-        class="overflow-y-auto overflow-x-hidden fixed top-0 right-0 z-40 w-full md:inset-0 h-modal md:h-full"
+        v-show="state.isOpen"
+        class="cursor-pointer overflow-y-auto overflow-x-hidden fixed top-0 right-0 z-50 w-full md:inset-0 md:h-full"
       >
         <button
           type="button"
-          @click="state.show = false"
+          @click="state.isOpen = false"
           class="absolute z-50 top-3 right-3 text-white bg-transparent hover:bg-gray-900 hover:bg-opacity-100 rounded-lg text-sm p-1.5 inline-flex items-center"
         >
           <svg
@@ -69,7 +67,9 @@ onMounted(() => {
           </svg>
           <span class="sr-only">Close modal</span>
         </button>
-        <div class="relative p-4 w-full max-w-lg mx-auto h-full md:h-auto">
+        <div
+          class="relative p-4 w-full max-w-screen-md mx-auto h-full md:h-auto"
+        >
           <!-- Modal content -->
           <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
             <img :src="state.image" class="w-full h-full" />

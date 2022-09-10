@@ -53,7 +53,7 @@ import FooterComponent from '../components/FooterComponent.vue'
             Your space to learn, grow, share and connect.
           </h1>
           <p
-            class="max-w-screen-md text-lg md:text-lg drop-shadow text-gray-300 leading-normal md:leading-loose"
+            class="max-w-screen-md text-lg md:text-xl drop-shadow text-gray-300 leading-normal md:leading-loose"
           >
             Intellectual Space is a place for learning, networking, and
             innovation. Our mission is to give access and guidance to all
