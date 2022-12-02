@@ -44,7 +44,9 @@ onUpdated(() => {
 
 <template>
   <div
-    class="flex items-center p-2.5 rounded-lg border-l-8"
+    v-if="alert.show"
+    role="alert"
+    class="flex items-start p-2.5 rounded-lg border-l-8"
     :class="{
       'text-gray-700 bg-gray-200 border-gray-700 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-800':
         alert.type === 'default',
@@ -55,31 +57,25 @@ onUpdated(() => {
       'text-blue-700 bg-blue-200 border-blue-700 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800':
         alert.type === 'primary'
     }"
-    v-if="alert.show"
-    role="alert"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
       v-if="alert.showIcon"
       class="w-5 h-5"
       :class="{
-        'text-gray-700 dark:text-gray-800': alert.type === 'default',
-        'text-red-700 dark:text-red-800': alert.type === 'error',
-        'text-green-700 dark:text-green-800': alert.type === 'success',
-        'text-blue-700 dark:text-blue-800': alert.type === 'primary'
+        'fill-gray-700 dark:fill-gray-800': alert.type === 'default',
+        'fill-red-700 dark:fill-red-800': alert.type === 'error',
+        'fill-green-700 dark:fill-green-800': alert.type === 'success',
+        'fill-blue-700 dark:fill-blue-800': alert.type === 'primary'
       }"
+      viewBox="0 0 24 24"
       width="24"
       height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
     >
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="16" x2="12" y2="12" />
-      <line x1="12" y1="8" x2="12.01" y2="8" />
+      <path fill="none" d="M0 0h24v24H0z" />
+      <path
+        d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
+      />
     </svg>
     <span
       class="flex-1 text-sm font-medium"
@@ -102,21 +98,19 @@ onUpdated(() => {
         'bg-blue-200 text-blue-500 focus:ring-blue-400 hover:bg-blue-200 dark:bg-blue-200 dark:text-blue-600 dark:hover:bg-blue-300':
           alert.type === 'primary'
       }"
-      aria-label="Close"
     >
       <span class="sr-only">Close</span>
       <svg
-        aria-hidden="true"
-        class="w-5 h-5"
-        fill="currentColor"
-        viewBox="0 0 20 20"
         xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        viewBox="0 0 24 24"
+        width="24"
+        height="24"
       >
+        <path fill="none" d="M0 0h24v24H0z" />
         <path
-          fill-rule="evenodd"
-          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-          clip-rule="evenodd"
-        ></path>
+          d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"
+        />
       </svg>
     </button>
   </div>

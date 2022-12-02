@@ -8,6 +8,7 @@ import axios from 'axios'
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LoaderComponent from '../../components/LoaderComponent.vue'
+import UserCardComponent from '../../components/UserCardComponent.vue'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -127,6 +128,9 @@ async function changeAvatar() {
         userStore.user.avatar_uri = response.data.avatar_uri
         profileAlert.message = response.data.success
         profileAlert.type = 'success'
+        setTimeout(() => {
+          router.go(0)
+        }, 1000)
       }
     } catch (error) {
       console.log(error)
@@ -180,7 +184,7 @@ async function addFriend() {
   <main class="bg-white min-h-screen dark:bg-slate-800">
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
-      <LoaderComponent v-if="state.loading" />>
+      <LoaderComponent v-if="state.loading" />
       <div
         v-if="!state.loading"
         class="container mx-auto flex flex-col md:flex-row items-start px-2 gap-6 md:gap:12 lg:gap-16 py-12"
@@ -225,114 +229,97 @@ async function addFriend() {
             >
               <router-link
                 :to="{ name: 'profile' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
                 :class="{
                   'text-blue-700 dark:text-white': $route.name === 'profile'
                 }"
               >
                 <svg
+                  xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  class="h-6 w-6 mr-3"
+                  class="h-6 w-6 fill-current mr-3"
                   width="24"
                   height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
+                  <path fill="none" d="M0 0h24v24H0z" />
                   <path
-                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                  ></path>
-                  <path
-                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                  ></path>
+                    d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
+                  />
                 </svg>
                 Posts
               </router-link>
               <router-link
                 :to="{ name: 'profile-comments' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
                 :class="{
                   'text-blue-700 dark:text-white':
                     $route.name === 'profile-comments'
                 }"
               >
                 <svg
+                  xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  class="h-6 w-6 mr-3"
+                  class="h-6 w-6 fill-current mr-3"
                   width="24"
                   height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
+                  <path fill="none" d="M0 0h24v24H0z" />
                   <path
-                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-                  ></path>
+                    d="M10 3h4a8 8 0 1 1 0 16v3.5c-5-2-12-5-12-11.5a8 8 0 0 1 8-8zm2 14h2a6 6 0 1 0 0-12h-4a6 6 0 0 0-6 6c0 3.61 2.462 5.966 8 8.48V17z"
+                  />
                 </svg>
                 Comments
               </router-link>
               <router-link
                 type="button"
                 :to="{ name: 'profile-likes' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
                 :class="{
                   'text-blue-700 dark:text-white':
                     $route.name === 'profile-likes'
                 }"
               >
                 <svg
+                  xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  class="h-6 w-6 mr-3"
+                  class="h-6 w-6 fill-current mr-3"
                   width="24"
                   height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
+                  <path fill="none" d="M0 0H24V24H0z" />
                   <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                  ></path>
+                    d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
+                  />
                 </svg>
                 Likes
               </router-link>
               <router-link
                 type="button"
                 :to="{ name: 'profile-connections' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
                 :class="{
                   'text-blue-700 dark:text-white':
                     $route.name === 'profile-connections'
                 }"
               >
                 <svg
+                  xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  class="h-6 w-6 mr-3"
+                  class="h-6 w-6 fill-current mr-3"
                   width="24"
                   height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
-                  <circle cx="18" cy="5" r="3"></circle>
-                  <circle cx="6" cy="12" r="3"></circle>
-                  <circle cx="18" cy="19" r="3"></circle>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
+                  />
                 </svg>
                 Connections
               </router-link>
               <router-link
                 type="button"
                 :to="{ name: 'profile-about' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
+                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
                 :class="{
                   'text-blue-700 dark:text-white':
                     $route.name === 'profile-about'
@@ -340,19 +327,15 @@ async function addFriend() {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 mr-3"
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 fill-current mr-3"
                   width="24"
                   height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
+                  />
                 </svg>
                 About
               </router-link>
@@ -362,25 +345,21 @@ async function addFriend() {
             <button
               type="button"
               @click="addFriend()"
-              class="inline-flex items-center justify-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
+              class="inline-flex items-center justify-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="h-6 w-6 fill-current"
                 width="24"
                 height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
               >
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="8.5" cy="7" r="4" />
-                <line x1="20" y1="8" x2="20" y2="14" />
-                <line x1="23" y1="11" x2="17" y2="11" />
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm6 6v-3h2v3h3v2h-3v3h-2v-3h-3v-2h3z"
+                />
               </svg>
-              ADD FRIEND
+              Add Friend
             </button>
           </div>
         </div>
@@ -396,16 +375,19 @@ async function addFriend() {
             :message="profileAlert.message"
             :dismissible="false"
           />
-
           <NewPostComponent
             v-if="user.data.handle === userStore.getUser.handle"
           />
+          <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+            {{ user.data.first_name }}'s Posts
+          </h4>
           <div
             v-if="!!user.data.posts && user.data.posts.length <= 0"
             class="bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
           >
             <p class="text-center text-gray-500">No posts found.</p>
           </div>
+
           <div v-for="post of user.data.posts" :key="post.id">
             <PostComponent :post="post" class="shadow-sm" />
           </div>
@@ -805,6 +787,9 @@ async function addFriend() {
           v-if="$route.name === 'profile-comments'"
           class="flex-1 w-full flex flex-col gap-12 px-2"
         >
+          <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+            {{ user.data.first_name }}'s Comments
+          </h4>
           <AlertComponent
             v-show="profileAlert.message"
             class="my-4"
@@ -828,6 +813,9 @@ async function addFriend() {
           v-if="$route.name === 'profile-likes'"
           class="flex-1 flex flex-col gap-12 px-2"
         >
+          <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+            {{ user.data.first_name }}'s Likes
+          </h4>
           <AlertComponent
             v-show="profileAlert.message"
             class="my-4"
@@ -851,6 +839,9 @@ async function addFriend() {
           v-if="$route.name === 'profile-connections'"
           class="flex-1 flex flex-col gap-12 px-2"
         >
+          <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+            {{ user.data.first_name }}'s Connections
+          </h4>
           <!-- TODO: if own account show suggestions -->
           <AlertComponent
             v-show="profileAlert.message"
@@ -865,115 +856,13 @@ async function addFriend() {
           >
             <p class="text-center text-gray-500">No connections found.</p>
           </div>
-          <div
-            class="cursor-pointer bg-gray-50 border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-700 p-4"
-            v-for="friend of user.connections"
-            @click="
-              $router.push({
-                name: 'profile',
-                params: { handle: friend.handle }
-              })
-            "
-            :key="friend.id"
-          >
-            <div class="flex items-start gap-6">
-              <div class="flex-shrink-0">
-                <img :src="friend.avatar_uri" class="w-16 h-16 rounded-lg" />
-              </div>
-              <div class="flex-1 flex flex-col gap-2">
-                <h3 class="text-xl text-gray-900 font-semibold dark:text-white">
-                  @{{ friend.handle }}
-                </h3>
-                <p class="text-gray-700 text-sm dark:text-gray-300">
-                  {{ friend.bio }}
-                </p>
-                <div class="flex items-center justify-between">
-                  <p
-                    class="text-gray-700 text-sm flex items-center dark:text-gray-300"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      class="w-4 h-4 mr-2"
-                      width="24"
-                      height="24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
-                      ></path>
-                      <circle cx="12" cy="10" r="3"></circle></svg
-                    >{{ !!friend.location ? friend.location : 'No location' }}
-                  </p>
-                  <p
-                    class="text-gray-700 text-sm flex items-center dark:text-gray-300"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      class="w-4 h-4 mr-2"
-                      width="24"
-                      height="24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <rect
-                        x="2"
-                        y="7"
-                        width="20"
-                        height="14"
-                        rx="2"
-                        ry="2"
-                      ></rect>
-                      <path
-                        d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"
-                      ></path>
-                    </svg>
-                    {{
-                      !!friend.occupation ? friend.occupation : 'No occupation'
-                    }}
-                  </p>
-                  <p
-                    class="text-gray-700 text-sm flex items-center dark:text-gray-300"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      class="w-4 h-4 mr-2"
-                      width="24"
-                      height="24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                      <path
-                        d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-                      ></path>
-                    </svg>
-                    {{
-                      !!friend.education_major
-                        ? friend.education_major
-                        : 'No education'
-                    }}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
+            <UserCardComponent
+              v-for="friend of user.connections"
+              :key="friend.id"
+              :user="friend"
+            />
           </div>
-        </div>
-
-        <!-- Other content -->
-        <div
-          class="hidden xl:flex bg-white border shadow-sm w-60 h-80 border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-600"
-        >
-          &nbsp;
         </div>
       </div>
     </div>

@@ -1,5 +1,16 @@
 <script setup>
+import axios from 'axios'
+import { reactive, onMounted } from 'vue'
 import NavbarComponent from '@/components/NavbarComponent.vue'
+
+const state = reactive({
+  courses: null
+})
+
+onMounted(async () => {
+  const { data } = await axios.get('/api/course')
+  state.courses = data
+})
 </script>
 
 <template>
@@ -47,32 +58,101 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
         ></lottie-player>
       </div>
     </div>
-    <div class="py-12 bg- flex flex-col overflow-x-hidden">
+    <div class="min-h-screen max-w-screen-xl mx-auto">
       <h2
         class="text-gray-900 text-center text-4xl font-black drop-shadow-xl leading-snug dark:text-white mb-12"
       >
         Explore Trending Courses
       </h2>
-      <div
-        class="max-w-screen-xl w-full mx-auto px-2 md:px-0 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12 mb-12 sm:px-4"
-      >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12 mb-12 p-4">
         <div
-          @click="$router.push({ name: 'learn-course', params: { id: 1 } })"
-          class="placeholder-course"
+          v-for="course of state.courses"
+          :key="course.id"
+          @click="
+            $router.push({ name: 'learn-course', params: { id: course.id } })
+          "
+          class="bg-white hover:bg-gray-50 shadow-md hover:shadow-xl hover:-translate-y-4 border rounded-lg border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 cursor-pointer transition-transform duration-100"
         >
-          &nbsp;
+          <img
+            :src="course.image_uri"
+            alt=""
+            class="h-64 w-full rounded-t-lg object-cover object-center"
+          />
+          <div class="flex-1 p-6 space-y-4">
+            <h4 class="text-xl font-bold text-gray-800 dark:text-white">
+              {{ course.name }}
+            </h4>
+            <p class="text-gray-700 text-base leading-snug dark:text-gray-300">
+              {{ course.description }}
+            </p>
+            <p class="flex items-center text-gray-700 dark:text-gray-300">
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5 mr-3"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              {{ course.participants.length }} participants
+            </p>
+            <p
+              class="text-sm inline-flex items-center text-gray-700 dark:text-gray-300"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5 mr-1"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline></svg
+              ><span class="font-medium ml-2"
+                >{{ course.duration }} to complete</span
+              >
+            </p>
+            <div class="flex items-center dark:text-gray-300">
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                stroke-width="2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-6 h-6 fill-yellow-500"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                ></polygon>
+              </svg>
+              <p class="ml-3 text-sm font-bold text-gray-900 dark:text-white">
+                4.95
+              </p>
+              <span
+                class="w-1 h-1 mx-1.5 bg-gray-500 rounded-full dark:bg-gray-400"
+              ></span>
+              <a
+                href="#"
+                class="text-sm font-medium text-gray-900 underline hover:no-underline dark:text-white"
+                >73 reviews</a
+              >
+            </div>
+          </div>
         </div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
       </div>
       <div>
         <button
@@ -89,6 +169,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
       >
         Can't find what you're looking for?
       </h2>
+
       <div class="flex justify-center">
         <button
           type="button"
@@ -100,9 +181,3 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
     </div>
   </main>
 </template>
-
-<style scoped>
-.placeholder-course {
-  @apply h-32 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-lg hover:scale-110 transition-transform dark:bg-gray-800 dark:border-gray-700;
-}
-</style>

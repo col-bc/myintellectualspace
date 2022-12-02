@@ -2,13 +2,15 @@
 import axios from 'axios'
 import { computed, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AlertComponent from '../../components/AlertComponent.vue'
-import NavbarComponent from '../../components/NavbarComponent.vue'
-import StarsComponent from '../../components/StarsComponent.vue'
-import ModalComponent from '../../components/ModalComponent.vue'
-import useUserStore from '../../stores/user'
+import AlertComponent from '@/components/AlertComponent.vue'
+import LoaderComponent from '@/components/LoaderComponent.vue'
+import ModalComponent from '@/components/ModalComponent.vue'
+import NavbarComponent from '@/components/NavbarComponent.vue'
+import StarsComponent from '@/components/StarsComponent.vue'
+import useUserStore from '@/stores/user'
 
 import '@/assets/course_content.css'
+import UserCardComponent from '../../components/UserCardComponent.vue'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -26,7 +28,8 @@ const course = reactive({
 
 const isJoined = computed(() => {
   // returns true if user is joined or user is instructor
-  if (course.data.instructor.id === userStore.user.id) {
+  if (!userStore.user) return false
+  else if (course.data.instructor.id === userStore.user.id) {
     return true
   } else {
     for (const user of course.data.participants) {
@@ -45,6 +48,7 @@ onMounted(async () => {
       }
     })
     course.data = data
+
     for (var content of course.data.content) {
       content.collapsed = true
     }
@@ -73,6 +77,10 @@ function scrollToAlert() {
   }
 }
 async function joinCourse() {
+  if (!userStore.user) {
+    router.push({ name: 'login', query: { next: route.fullPath } })
+    return
+  }
   try {
     await axios.post(
       `/api/course/${route.params.id}/join`,
@@ -83,9 +91,13 @@ async function joinCourse() {
         }
       }
     )
+
     course.error = 'You have successfully left the course'
     course.errorType = 'success'
     scrollToAlert()
+    setTimeout(() => {
+      router.go(0)
+    }, 1000)
   } catch (error) {
     console.log(error)
     course.error = error.response.data.error
@@ -107,6 +119,9 @@ async function leaveCourse() {
     course.error = 'You have successfully left the course'
     course.errorType = 'success'
     scrollToAlert()
+    setTimeout(() => {
+      router.go(0)
+    }, 1000)
   } catch (error) {
     console.log(error)
     course.error = error.response.data.error
@@ -151,51 +166,25 @@ function saveRating() {}
 
 <template>
   <main class="bg-white dark:bg-slate-800">
-    <div class="min-h-screen">
-      <div class="container max-w-screen-xl mx-auto">
-        <NavbarComponent />
-      </div>
+    <div class="min-h-screen container max-w-screen-xl mx-auto">
+      <NavbarComponent />
       <!-- Loading State -->
-      <div v-if="state.loading" class="text-center">
-        <div role="status">
-          <svg
-            class="inline mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-            viewBox="0 0 100 101"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-              fill="currentColor"
-            />
-            <path
-              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-              fill="currentFill"
-            />
-          </svg>
-          <span class="sr-only">Loading...</span>
-        </div>
-      </div>
-
-      <img
-        v-if="!state.loading && !!course.data"
-        :src="course.data.image_uri"
-        alt="course image"
-        class="w-full h-96 object-cover mb-12"
-      />
-
+      <LoaderComponent v-if="state.loading" class="py-12" />
       <div
         v-if="!state.loading && !!course.data"
-        class="container max-w-screen-xl mx-auto px-4 my-6"
+        class="container mx-auto px-4"
       >
-        <Transition>
-          <AlertComponent
-            v-if="!!course.error"
-            :message="course.error"
-            :type="course.errorType"
-            class="mb-6"
-          />
-        </Transition>
+        <img
+          :src="course.data.image_uri"
+          alt="course image"
+          class="w-full h-96 rounded-xl shadow-lg object-cover my-12"
+        />
+        <AlertComponent
+          v-if="!!course.error"
+          :message="course.error"
+          :type="course.errorType"
+          class="mb-6"
+        />
 
         <div class="flex flex-col md:flex-row gap-12 mb-12 lg:gap-16">
           <div class="flex-1 flex flex-col gap-6">
@@ -213,22 +202,15 @@ function saveRating() {}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="w-6 h-6"
+                      viewBox="0 0 24 24"
+                      class="w-6 h-6 fill-current"
                       width="24"
                       height="24"
-                      viewBox="0 0 24 24"
-                      stroke-width="2"
-                      stroke="currentColor"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
                     >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                      <circle cx="6" cy="12" r="3"></circle>
-                      <circle cx="18" cy="6" r="3"></circle>
-                      <circle cx="18" cy="18" r="3"></circle>
-                      <line x1="8.7" y1="10.7" x2="15.3" y2="7.3"></line>
-                      <line x1="8.7" y1="13.3" x2="15.3" y2="16.7"></line>
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M13.12 17.023l-4.199-2.29a4 4 0 1 1 0-5.465l4.2-2.29a4 4 0 1 1 .959 1.755l-4.2 2.29a4.008 4.008 0 0 1 0 1.954l4.199 2.29a4 4 0 1 1-.959 1.755zM6 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm11-6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
+                      />
                     </svg>
                     Share
                   </button>
@@ -240,26 +222,15 @@ function saveRating() {}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        class="w-16 h-16"
+                        viewBox="0 0 24 24"
+                        class="w-16 h-16 fill-current"
                         width="24"
                         height="24"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
                       >
+                        <path fill="none" d="M0 0h24v24H0z" />
                         <path
-                          stroke="none"
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        ></path>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="6" r="3"></circle>
-                        <circle cx="18" cy="18" r="3"></circle>
-                        <line x1="8.7" y1="10.7" x2="15.3" y2="7.3"></line>
-                        <line x1="8.7" y1="13.3" x2="15.3" y2="16.7"></line>
+                          d="M13.12 17.023l-4.199-2.29a4 4 0 1 1 0-5.465l4.2-2.29a4 4 0 1 1 .959 1.755l-4.2 2.29a4.008 4.008 0 0 1 0 1.954l4.199 2.29a4 4 0 1 1-.959 1.755zM6 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm11-6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
+                        />
                       </svg>
                     </div>
                     <h3 class="text-2xl text-center font-bold dark:text-white">
@@ -297,26 +268,15 @@ function saveRating() {}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="w-8 h-8"
+                          viewBox="0 0 24 24"
+                          class="w-8 h-6 fill-current"
                           width="24"
                           height="24"
-                          viewBox="0 0 24 24"
-                          stroke-width="2"
-                          stroke="currentColor"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
                         >
+                          <path fill="none" d="M0 0h24v24H0z" />
                           <path
-                            stroke="none"
-                            d="M0 0h24v24H0z"
-                            fill="none"
-                          ></path>
-                          <path
-                            d="M12 20l-3 -3h-2a3 3 0 0 1 -3 -3v-6a3 3 0 0 1 3 -3h10a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-2l-3 3"
-                          ></path>
-                          <line x1="8" y1="9" x2="16" y2="9"></line>
-                          <line x1="8" y1="13" x2="14" y2="13"></line>
+                            d="M6.455 19L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455zm-.692-2H20V5H4v13.385L5.763 17zM8 10h8v2H8v-2z"
+                          />
                         </svg>
                       </button>
                       <button
@@ -325,29 +285,15 @@ function saveRating() {}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="w-8 h-8"
+                          viewBox="0 0 24 24"
+                          class="w-8 h-6 fill-current"
                           width="24"
                           height="24"
-                          viewBox="0 0 24 24"
-                          stroke-width="2"
-                          stroke="currentColor"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
                         >
+                          <path fill="none" d="M0 0h24v24H0z" />
                           <path
-                            stroke="none"
-                            d="M0 0h24v24H0z"
-                            fill="none"
-                          ></path>
-                          <rect
-                            x="3"
-                            y="5"
-                            width="18"
-                            height="14"
-                            rx="2"
-                          ></rect>
-                          <polyline points="3 7 12 13 21 7"></polyline>
+                            d="M3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm17 4.238l-7.928 7.1L4 7.216V19h16V7.238zM4.511 5l7.55 6.662L19.502 5H4.511z"
+                          />
                         </svg>
                       </button>
                       <button
@@ -356,24 +302,15 @@ function saveRating() {}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="w-8 h-8"
+                          viewBox="0 0 24 24"
+                          class="w-8 h-6 fill-current"
                           width="24"
                           height="24"
-                          viewBox="0 0 24 24"
-                          stroke-width="2"
-                          stroke="currentColor"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
                         >
+                          <path fill="none" d="M0 0h24v24H0z" />
                           <path
-                            stroke="none"
-                            d="M0 0h24v24H0z"
-                            fill="none"
-                          ></path>
-                          <path
-                            d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"
-                          ></path>
+                            d="M13 9h4.5l-.5 2h-4v9h-2v-9H7V9h4V7.128c0-1.783.186-2.43.534-3.082a3.635 3.635 0 0 1 1.512-1.512C13.698 2.186 14.345 2 16.128 2c.522 0 .98.05 1.372.15V4h-1.372c-1.324 0-1.727.078-2.138.298-.304.162-.53.388-.692.692-.22.411-.298.814-.298 2.138V9z"
+                          />
                         </svg>
                       </button>
                       <button
@@ -382,24 +319,15 @@ function saveRating() {}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="w-81 h-8"
+                          viewBox="0 0 24 24"
+                          class="w-8 h-6 fill-current"
                           width="24"
                           height="24"
-                          viewBox="0 0 24 24"
-                          stroke-width="2"
-                          stroke="currentColor"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
                         >
+                          <path fill="none" d="M0 0h24v24H0z" />
                           <path
-                            stroke="none"
-                            d="M0 0h24v24H0z"
-                            fill="none"
-                          ></path>
-                          <path
-                            d="M22 4.01c-1 .49 -1.98 .689 -3 .99c-1.121 -1.265 -2.783 -1.335 -4.38 -.737s-2.643 2.06 -2.62 3.737v1c-3.245 .083 -6.135 -1.395 -8 -4c0 0 -4.182 7.433 4 11c-1.872 1.247 -3.739 2.088 -6 2c3.308 1.803 6.913 2.423 10.034 1.517c3.58 -1.04 6.522 -3.723 7.651 -7.742a13.84 13.84 0 0 0 .497 -3.753c-.002 -.249 1.51 -2.772 1.818 -4.013z"
-                          ></path>
+                            d="M15.3 5.55a2.9 2.9 0 0 0-2.9 2.847l-.028 1.575a.6.6 0 0 1-.68.583l-1.561-.212c-2.054-.28-4.022-1.226-5.91-2.799-.598 3.31.57 5.603 3.383 7.372l1.747 1.098a.6.6 0 0 1 .034.993L7.793 18.17c.947.059 1.846.017 2.592-.131 4.718-.942 7.855-4.492 7.855-10.348 0-.478-1.012-2.141-2.94-2.141zm-4.9 2.81a4.9 4.9 0 0 1 8.385-3.355c.711-.005 1.316.175 2.669-.645-.335 1.64-.5 2.352-1.214 3.331 0 7.642-4.697 11.358-9.463 12.309-3.268.652-8.02-.419-9.382-1.841.694-.054 3.514-.357 5.144-1.55C5.16 15.7-.329 12.47 3.278 3.786c1.693 1.977 3.41 3.323 5.15 4.037 1.158.475 1.442.465 1.973.538z"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -428,61 +356,53 @@ function saveRating() {}
                 >{{ course.data.category }}
               </span>
             </p>
-            <p class="flex items-center text-gray-700 dark:text-gray-300">
+            <p
+              class="flex items-center gap-3 font-medium text-gray-700 dark:text-gray-300"
+            >
               <svg
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
                 width="24"
                 height="24"
-                stroke="currentColor"
-                stroke-width="2"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="w-5 h-5 mr-3"
               >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
+                />
               </svg>
               {{ !!course.participants ? course.participants.length : 0 }}
               participants
             </p>
             <p
-              class="text-sm inline-flex items-center text-gray-700 dark:text-gray-300"
+              class="flex items-center gap-3 font-medium text-gray-700 dark:text-gray-300"
             >
               <svg
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
                 width="24"
                 height="24"
-                stroke="currentColor"
-                stroke-width="2"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="w-5 h-5 mr-1"
               >
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z"
+                />
               </svg>
-              <span class="font-medium ml-2">
-                {{ course.data.duration }} to complete</span
-              >
+              {{ course.data.duration }} to complete
             </p>
             <div class="flex items-center dark:text-gray-300">
               <svg
+                xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
                 width="24"
                 height="24"
-                stroke-width="2"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="w-6 h-6 fill-yellow-500"
               >
-                <polygon
-                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-                ></polygon>
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928L12 18.26zm0-2.292l4.247 2.377-.949-4.773 3.573-3.305-4.833-.573L12 5.275l-2.038 4.42-4.833.572 3.573 3.305-.949 4.773L12 15.968z"
+                />
               </svg>
               <p class="ml-3 text-sm font-bold text-gray-900 dark:text-white">
                 4.95
@@ -496,7 +416,7 @@ function saveRating() {}
                 >73 reviews</a
               >
             </div>
-            <div>
+            <div v-if="isJoined">
               <button
                 type="button"
                 @click="state.showRating = true"
@@ -566,129 +486,48 @@ function saveRating() {}
             >
               Meet Your Instructor
             </h4>
-            <div class="flex flex-col items-start">
-              <div class="flex items-start gap-4">
-                <img
-                  :src="course.data.instructor.avatar_uri"
-                  class="w-12 h-12 rounded-full flex-shrink-0"
-                  alt="instructor image"
-                />
-                <div>
-                  <h6 class="text-lg font-bold text-gray-900 dark:text-white">
-                    @{{ course.data.instructor.handle }}
-                  </h6>
-                  <p class="text-gray-700 text-sm mb-4 dark:text-gray-300">
-                    {{ course.data.instructor.name }}
-                  </p>
-                </div>
-              </div>
-
-              <p class="text-gray-800 text-base mb-4 dark:text-gray-200">
-                {{ course.data.instructor.bio }}
-              </p>
-              <p
-                class="text-gray-700 text-sm flex mb-2 items-center gap-2 dark:text-gray-300"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="w-5 h-5"
-                >
-                  <path
-                    d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
-                  ></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                {{ course.data.instructor.location }}
-              </p>
-              <p
-                class="text-gray-700 text-sm flex mb-2 items-center gap-2 dark:text-gray-300"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="w-5 h-5"
-                >
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                  <path
-                    d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-                  ></path>
-                </svg>
-                <span v-if="course.data.instructor.education_level === 'Hs'">
-                  Self-taught
-                </span>
-                <span v-if="course.data.instructor.education_level === 'Aa'">
-                  Associate's</span
-                >
-                <span v-if="course.data.instructor.education_level === 'Ba'">
-                  Bachelor's
-                </span>
-                <span v-if="course.data.instructor.education_level === 'Ma'">
-                  Master's
-                </span>
-                <span v-if="course.data.instructor.education_level === 'Phd'">
-                  Doctorate
-                </span>
-                in
-                {{ course.data.instructor.education_major }}
-              </p>
-              <p
-                class="text-gray-700 text-sm flex mb-6 items-center gap-2 dark:text-gray-300"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="w-5 h-5"
-                >
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                </svg>
-                {{ course.data.instructor.occupation }}
-              </p>
-              <div class="w-full flex justify-start">
-                <button
-                  @click="
-                    $router.push({
-                      name: 'profile-about',
-                      params: { handle: course.data.instructor.handle }
-                    })
-                  "
-                  type="button"
-                  class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                >
-                  View Profile
-                </button>
-              </div>
-            </div>
+            <UserCardComponent :user="course.data.instructor" />
           </div>
         </div>
 
-        <AlertComponent
+        <hr class="my-12 h-px bg-gray-200 border-0 dark:bg-gray-700" />
+
+        <h2 class="mb-12 text-2xl font-bold text-gray-900 dark:text-white">
+          Course Content
+        </h2>
+
+        <div
+          class="flex items-center text-gray-700 dark:text-gray-300 gap-4 mb-24"
           v-if="!isJoined"
-          message="Join this course to view it's content."
-          type="primary"
-          class="mb-12"
-        />
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            class="w-6 h-6 fill-current"
+            width="24"
+            height="24"
+          >
+            <path fill="none" d="M0 0h24v24H0z" />
+            <path
+              d="M19 10h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1h1V9a7 7 0 1 1 14 0v1zM5 12v8h14v-8H5zm6 2h2v4h-2v-4zm6-4V9A5 5 0 0 0 7 9v1h10z"
+            />
+          </svg>
+          <p>
+            You need to join this course
+            <span v-if="!userStore.isLoggedIn">
+              or
+              <router-link
+                to="/login"
+                class="text-blue-700 hover:underline dark:text-blue-400"
+                >login</router-link
+              >
+            </span>
+            to view this content.
+          </p>
+        </div>
 
         <div v-else class="flex flex-col md:flex-row items-start gap-12 mb-24">
+          <!-- Filter -->
           <div
             class="w-full md:w-48 shadow-sm flex-shrink-0 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-700 dark:text-white"
           >
@@ -723,147 +562,127 @@ function saveRating() {}
               Assessments
             </a>
           </div>
-
+          <!-- Empty state -->
           <div
-            v-for="content of course.data.content"
-            :key="content.id"
-            class="w-full flex flex-col gap-4 p-2.5 bg-white shadow-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+            v-if="!course.data.content.length"
+            class="w-full md:w-3/4 flex flex-col items-center justify-center"
           >
-            <div class="flex items-center justify-between px-2.5">
-              <h6
-                class="inline-flex items-center text-lg font-bold text-gray-900 dark:text-gray-300"
-              >
-                <span
-                  v-if="
-                    JSON.parse(content.completed_by).includes(userStore.user.id)
-                  "
-                  class="mr-3 bg-green-500 text-white p-1 rounded-full dark:bg-green-400 dark:text-gray-900"
+            <h5 class="text-lg font-medium text-gray-900 dark:text-white">
+              No content yet
+            </h5>
+          </div>
+          <!-- Content -->
+          <div class="flex flex-col gap-6 w-full">
+            <div
+              v-for="content of course.data.content"
+              :key="content.id"
+              class="w-full flex flex-col gap-4 p-4 bg-white shadow-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+            >
+              <div class="flex items-center justify-between px-4">
+                <h6
+                  class="inline-flex items-center text-lg font-bold text-gray-900 dark:text-gray-300"
                 >
+                  <span
+                    v-if="
+                      JSON.parse(content.completed_by).includes(
+                        userStore.user.id
+                      )
+                    "
+                    class="mr-3 bg-green-500 text-white p-1 rounded-full dark:bg-green-400 dark:text-gray-900"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-4 h-4"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                      <path d="M5 12l5 5l10 -10"></path></svg
+                  ></span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    class="w-6 h-6 mr-3 fill-current"
                     width="24"
                     height="24"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
                   >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M5 12l5 5l10 -10"></path></svg
-                ></span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 mr-3"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                  <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                  <path
-                    d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"
-                  ></path>
-                  <line x1="9" y1="9" x2="10" y2="9"></line>
-                  <line x1="9" y1="13" x2="15" y2="13"></line>
-                  <line x1="9" y1="17" x2="15" y2="17"></line>
-                </svg>
-                {{ content.title }}
-              </h6>
-              <div class="flex items-center gap-4">
-                <p class="text-gray-700 dark:text-gray-400">
-                  {{ new Date(content.created_at).toLocaleDateString() }} @
-                  {{ new Date(content.created_at).toLocaleTimeString() }}
-                </p>
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M21 8v12.993A1 1 0 0 1 20.007 22H3.993A.993.993 0 0 1 3 21.008V2.992C3 2.455 3.449 2 4.002 2h10.995L21 8zm-2 1h-5V4H5v16h14V9zM8 7h3v2H8V7zm0 4h8v2H8v-2zm0 4h8v2H8v-2z"
+                    />
+                  </svg>
+                  {{ content.title }}
+                </h6>
+                <div class="flex items-center gap-4">
+                  <p class="text-gray-700 dark:text-gray-400">
+                    {{ new Date(content.created_at).toLocaleDateString() }} @
+                    {{ new Date(content.created_at).toLocaleTimeString() }}
+                  </p>
+                  <button
+                    type="button"
+                    @click="content.expanded = !content.expanded"
+                    class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-4 h-4 fill-current"
+                      :class="{ 'rotate-180': content.expanded }"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M12 13.172l4.95-4.95 1.414 1.414L12 16 5.636 9.636 7.05 8.222z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                v-if="content.expanded"
+                class="course-content p-4 border-y border-gray-300 dark:border-gray-700"
+                v-html="content.body"
+              ></div>
+              <div
+                v-if="content.expanded"
+                class="flex items-center justify-between gap-4 px-4"
+              >
                 <button
                   type="button"
-                  @click="content.expanded = !content.expanded"
-                  class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  @click="toggleContentComplete(content.id)"
+                  class="inline-flex items-center gap-2.5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="w-4 h-4"
-                    :class="{ 'rotate-180': content.expanded }"
+                    viewBox="0 0 24 24"
+                    class="w-6 h-6 fill-current mr-2"
                     width="24"
                     height="24"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
                   >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <polyline points="6 9 12 15 18 9"></polyline>
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M11.602 13.76l1.412 1.412 8.466-8.466 1.414 1.414-9.88 9.88-6.364-6.364 1.414-1.414 2.125 2.125 1.413 1.412zm.002-2.828l4.952-4.953 1.41 1.41-4.952 4.953-1.41-1.41zm-2.827 5.655L7.364 18 1 11.636l1.414-1.414 1.413 1.413-.001.001 4.951 4.951z"
+                    />
                   </svg>
+                  <span
+                    v-if="
+                      JSON.parse(content.completed_by).includes(
+                        userStore.user.id
+                      )
+                    "
+                  >
+                    Mark as incomplete
+                  </span>
+                  <span v-else> Mark as complete </span>
                 </button>
               </div>
-            </div>
-            <div
-              v-if="content.expanded"
-              class="course-content py-2.5 border-y border-gray-300 dark:border-gray-700"
-              v-html="content.body"
-            ></div>
-            <div
-              v-if="content.expanded"
-              class="flex items-center justify-between gap-4 b px-2.5"
-            >
-              <button
-                type="button"
-                v-if="
-                  !JSON.parse(content.completed_by).includes(userStore.user.id)
-                "
-                @click="toggleContentComplete(content.id)"
-                class="inline-flex items-center gap-3 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                  <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                  <path d="M9 12l2 2l4 -4"></path>
-                </svg>
-                Mark Complete
-              </button>
-              <button
-                type="button"
-                v-else
-                @click="toggleContentComplete(content.id)"
-                class="py-2.5 px-5 flex items-center gap-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                  <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                </svg>
-                Mark Incomplete
-              </button>
             </div>
           </div>
         </div>

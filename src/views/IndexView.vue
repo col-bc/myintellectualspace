@@ -17,10 +17,8 @@ import FooterComponent from '../components/FooterComponent.vue'
         class="px-2 sm:px-4 py-2 text-sm text-blue-700 bg-blue-100 border-y border-blue-700 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800"
         role="alert"
       >
-        <div
-          class="flex items-center justify-between max-w-screen-xl mx-auto px-4"
-        >
-          You have been logged out.
+        <div class="max-w-screen-xl mx-auto flex flex-row items-center px-4">
+          <span>You have been logged out.</span>
           <button
             type="button"
             @click="$refs.logoutAlert.remove()"

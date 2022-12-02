@@ -31,6 +31,11 @@ async function createCourse() {
     window.scroll({ top: 0, left: 0, behavior: 'smooth' })
     return
   }
+  if (formData.get('name').match(/[^a-zA-Z0-9 ]/g)) {
+    error.value = 'Please enter a valid name for the course.'
+    window.scroll({ top: 0, left: 0, behavior: 'smooth' })
+    return
+  }
   if (!formData.get('image')) {
     error.value = 'Please upload an image for the course.'
     window.scroll({ top: 0, left: 0, behavior: 'smooth' })

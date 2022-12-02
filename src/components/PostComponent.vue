@@ -1,9 +1,9 @@
 <script setup>
-import { defineProps, onMounted, onUpdated, reactive, ref } from 'vue'
-import ModalComponent from './ModalComponent.vue'
-import LightboxComponent from './LightboxComponent.vue'
 import useUserStore from '@/stores/user'
 import axios from 'axios'
+import { defineProps, onMounted, onUpdated, reactive, ref } from 'vue'
+import LightboxComponent from './LightboxComponent.vue'
+import ModalComponent from './ModalComponent.vue'
 
 const userStore = useUserStore()
 
@@ -160,7 +160,7 @@ async function reportPost() {
 
 <template>
   <div
-    class="bg-white border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-700"
+    class="bg-white border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-600"
   >
     <!-- Header -->
     <div class="flex items-center p-4 pb-2">
@@ -180,7 +180,7 @@ async function reportPost() {
     </div>
     <!-- Body -->
     <div
-      class="flex flex-col md:flex-row justify-start md:justify-between items-start gap-4 px-4 py-2"
+      class="flex flex-col md:flex-row justify-start md:justify-between items-start gap-4 px-4 py-4"
     >
       <div class="w-1/2">
         <p class="text-gray-800 dark:text-white font-medium">
@@ -195,25 +195,24 @@ async function reportPost() {
       </div>
     </div>
     <!-- Action bar -->
-    <div class="px-4 py-2 flex items-center justify-end">
+    <div
+      class="flex items-center justify-end py-2 px-3 bg-gray-50 border-t rounded-b-lg dark:border-gray-600 dark:bg-gray-700"
+    >
       <p
         v-if="!!state.post.location"
         class="flex items-center gap-2 mr-auto text-xs text-gray-700 dark:text-gray-300"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="w-4 h-4"
+          viewBox="0 0 24 24"
+          class="w-4 h-4 fill-current"
           width="24"
           height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
         >
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-          <circle cx="12" cy="10" r="3" />
+          <path fill="none" d="M0 0h24v24H0z" />
+          <path
+            d="M12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zm4.95-7.778a7 7 0 1 0-9.9 0L12 20.9l4.95-4.95zM12 13a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
+          />
         </svg>
         {{ state.post.location }}
       </p>
@@ -236,42 +235,34 @@ async function reportPost() {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
                 width="24"
                 height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
               >
+                <path fill="none" d="M0 0h24v24H0z" />
                 <path
-                  d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                  d="M5 16v6H3V3h9.382a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5zM5 5v9h8.236l1 2H19V7h-6.236l-1-2H5z"
                 />
-                <line x1="4" y1="22" x2="4" y2="15" />
-              </svg></button
-          ></template>
+              </svg>
+            </button>
+          </template>
           <template #content>
             <div class="flex flex-col gap-4 p-4">
               <div
                 class="text-white mx-auto p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
               >
                 <svg
+                  xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  class="w-16 h-16"
+                  class="w-16 h-16 fill-current"
                   width="24"
                   height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
+                  <path fill="none" d="M0 0h24v24H0z" />
                   <path
-                    d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
-                  ></path>
-                  <line x1="4" y1="22" x2="4" y2="15"></line>
+                    d="M5 16v6H3V3h9.382a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5zM5 5v9h8.236l1 2H19V7h-6.236l-1-2H5z"
+                  />
                 </svg>
               </div>
               <h3 class="text-2xl text-center font-bold dark:text-white">
@@ -336,7 +327,7 @@ async function reportPost() {
               type="submit"
               class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
             >
-              REPORT POST
+              Report
             </button>
           </template>
         </ModalComponent>
@@ -345,7 +336,7 @@ async function reportPost() {
       <button
         type="button"
         @click="state.commentsExpended = !state.commentsExpended"
-        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
       >
         <span
           class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
@@ -356,18 +347,14 @@ async function reportPost() {
         </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="w-5 h-5"
+          viewBox="0 0 24 24"
+          class="w-5 h-5 fill-current"
           width="24"
           height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
         >
+          <path fill="none" d="M0 0h24v24H0z" />
           <path
-            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+            d="M10 3h4a8 8 0 1 1 0 16v3.5c-5-2-12-5-12-11.5a8 8 0 0 1 8-8zm2 14h2a6 6 0 1 0 0-12h-4a6 6 0 0 0-6 6c0 3.61 2.462 5.966 8 8.48V17z"
           />
         </svg>
       </button>
@@ -376,7 +363,7 @@ async function reportPost() {
       <button
         type="button"
         @click="handleLike()"
-        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
       >
         <span
           class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
@@ -384,22 +371,29 @@ async function reportPost() {
           {{ !!state.post.liked_by ? state.post.liked_by.length : '' }}
         </span>
         <svg
+          v-if="!state.liked"
           xmlns="http://www.w3.org/2000/svg"
-          class="w-5 h-5"
-          :class="{
-            'fill-red-500 stroke-red-500': state.liked
-          }"
+          viewBox="0 0 24 24"
+          class="w-5 h-5 fill-current"
           width="24"
           height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
         >
+          <path fill="none" d="M0 0H24V24H0z" />
           <path
-            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+            d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
+          />
+        </svg>
+        <svg
+          v-else
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          class="w-5 h-5 fill-red-500"
+          width="24"
+          height="24"
+        >
+          <path fill="none" d="M0 0H24V24H0z" />
+          <path
+            d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228z"
           />
         </svg>
       </button>

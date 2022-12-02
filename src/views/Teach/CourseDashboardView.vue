@@ -3,13 +3,15 @@ import Editor from '@tinymce/tinymce-vue'
 import axios from 'axios'
 import { onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AlertComponent from '../../components/AlertComponent.vue'
-import ModalComponent from '../../components/ModalComponent.vue'
-import NavbarComponent from '../../components/NavbarComponent.vue'
-import useUserStore from '../../stores/user'
+import AlertComponent from '@/components/AlertComponent.vue'
+import LoaderComponent from '@/components/LoaderComponent.vue'
+import ModalComponent from '@/components/ModalComponent.vue'
+import NavbarComponent from '@/components/NavbarComponent.vue'
+import useUserStore from '@/stores/user'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
 import '@/assets/course_content.css'
-import LoaderComponent from '../../components/LoaderComponent.vue'
+import UserCardComponent from '../../components/UserCardComponent.vue'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -50,7 +52,6 @@ onMounted(async () => {
   } finally {
     state.loading = false
   }
-  hljs.highlightAll()
 })
 watch(course, (value) => {
   // Auto dismiss error message after 5 seconds
@@ -262,7 +263,7 @@ async function updateCourse() {
   <main class="bg-white dark:bg-slate-800">
     <div class="min-h-screen max-w-screen-xl mx-auto">
       <NavbarComponent />
-      <div class="container mx-auto px-4 my-12 mb-24">
+      <div class="container mx-auto my-12 px-4 mb-24">
         <LoaderComponent v-if="state.loading" />
         <div v-if="!state.loading && !!course.data">
           <!-- Jumbotron -->
@@ -371,7 +372,7 @@ async function updateCourse() {
                 >
               </div>
             </div>
-            <div class="space-y-6 w-full ;g:max-w-lg">
+            <div class="space-y-6 w-full lg:max-w-xl">
               <img
                 :src="course.data.image_uri"
                 class="w-full h-full object-cover mb-4 rounded-2xl"
@@ -388,11 +389,14 @@ async function updateCourse() {
           </div>
 
           <!-- Tabs -->
-          <div id="tabs" class="flex flex-col gap-6 mb-6">
+          <div
+            id="tabs"
+            class="sticky top-0 z-20 bg-gray-100 shadow-md rounded-md border border-gray-200 flex flex-col gap-6 mb-6 dark:bg-gray-700 dark:border-gray-600"
+          >
             <div class="flex items-center gap-4">
               <ul
                 id="course-tabs"
-                class="flex-1 flex flex-wrap gap-2.5 py-2.5 text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+                class="flex-1 flex flex-wrap gap-2.5 p-2.5 text-sm font-medium text-center text-gray-500 dark:text-gray-400"
               >
                 <li>
                   <button
@@ -451,139 +455,87 @@ async function updateCourse() {
                   </button>
                 </li>
               </ul>
-              <div class="relative">
-                <button
-                  type="button"
-                  @click="state.showDropdown = !state.showDropdown"
-                  class="shadow-lg inline-flex items-center py-2.5 px-5 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="w-6 h-6 mr-3"
+              <Menu as="div" class="relative">
+                <MenuButton>
+                  <button
+                    type="button"
+                    class="shadow-lg inline-flex items-center py-2.5 px-5 mx-2.5 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                   >
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  Add Content
-                </button>
-                <div
-                  v-if="state.showDropdown"
-                  class="absolute z-10 mt-1.5 w-full bg-white rounded shadow-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      class="w-6 h-6 fill-current mr-3"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z" />
+                    </svg>
+                    Add Content
+                  </button>
+                </MenuButton>
+                <MenuItems
+                  class="absolute right-2 mt-2 py-1 w-auto origin-top-right divide-y divide-gray-100 dark:divide-gray-600 rounded bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                 >
-                  <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-                    <li>
-                      <button
-                        type="button"
-                        @click="newContent()"
-                        class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-5 h-5 mr-2"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          stroke-width="2"
-                          stroke="currentColor"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path
-                            stroke="none"
-                            d="M0 0h24v24H0z"
-                            fill="none"
-                          ></path>
-                          <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                          <path
-                            d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"
-                          ></path>
-                          <line x1="9" y1="9" x2="10" y2="9"></line>
-                          <line x1="9" y1="13" x2="15" y2="13"></line>
-                          <line x1="9" y1="17" x2="15" y2="17"></line>
-                        </svg>
-                        Text Content
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        type="button"
-                        @click="newMeeting()"
-                        class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-5 h-5 mr-2"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          stroke-width="2"
-                          stroke="currentColor"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path
-                            stroke="none"
-                            d="M0 0h24v24H0z"
-                            fill="none"
-                          ></path>
-                          <path
-                            d="M15 10l4.553 -2.276a1 1 0 0 1 1.447 .894v6.764a1 1 0 0 1 -1.447 .894l-4.553 -2.276v-4z"
-                          ></path>
-                          <rect
-                            x="3"
-                            y="6"
-                            width="12"
-                            height="12"
-                            rx="2"
-                          ></rect>
-                        </svg>
-                        Meeting
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        type="button"
-                        @click="newAssessment()"
-                        class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-5 h-5 mr-2"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          stroke-width="2"
-                          stroke="currentColor"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path
-                            stroke="none"
-                            d="M0 0h24v24H0z"
-                            fill="none"
-                          ></path>
-                          <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                          <path
-                            d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"
-                          ></path>
-                          <path d="M9 15l2 2l4 -4"></path>
-                        </svg>
-                        Assessment
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+                  <MenuItem
+                    as="button"
+                    @click="newContent()"
+                    class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      class="w-6 h-6 fill-current mr-3"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M21 8v12.993A1 1 0 0 1 20.007 22H3.993A.993.993 0 0 1 3 21.008V2.992C3 2.455 3.449 2 4.002 2h10.995L21 8zm-2 1h-5V4H5v16h14V9zM8 7h3v2H8V7zm0 4h8v2H8v-2zm0 4h8v2H8v-2z"
+                      />
+                    </svg>
+                    Text Content
+                  </MenuItem>
+                  <MenuItem
+                    as="button"
+                    @click="newMeeting()"
+                    class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      class="w-6 h-6 fill-current mr-3"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M17 9.2l5.213-3.65a.5.5 0 0 1 .787.41v12.08a.5.5 0 0 1-.787.41L17 14.8V19a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v4.2zm0 3.159l4 2.8V8.84l-4 2.8v.718zM3 6v12h12V6H3zm2 2h2v2H5V8z"
+                      />
+                    </svg>
+                    Meeting
+                  </MenuItem>
+                  <MenuItem
+                    as="button"
+                    @click="$router.push({ name: 'teach-create-assessment' })"
+                    class="inline-flex items-center w-full text-start py-2 px-4 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      class="w-6 h-6 fill-current mr-3"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M11 4h10v2H11V4zm0 4h6v2h-6V8zm0 6h10v2H11v-2zm0 4h6v2h-6v-2zM3 4h6v6H3V4zm2 2v2h2V6H5zm-2 8h6v6H3v-6zm2 2v2h2v-2H5z"
+                      />
+                    </svg>
+                    Assessment
+                  </MenuItem>
+                </MenuItems>
+              </Menu>
             </div>
           </div>
 
@@ -1009,6 +961,7 @@ async function updateCourse() {
               </div>
             </div>
           </Transition>
+
           <!-- Reviews -->
           <Transition>
             <div v-if="state.tab === 1" class="flex flex-col gap-6 mb-6">
@@ -1019,6 +972,7 @@ async function updateCourse() {
               </h4>
             </div>
           </Transition>
+
           <!-- Participants -->
           <Transition>
             <div
@@ -1036,113 +990,15 @@ async function updateCourse() {
               >
                 There are no participants.
               </p>
-              <div
+              <UserCardComponent
                 v-else
                 v-for="user of course.data.participants"
                 :key="user.id"
-                @click="
-                  $router.push({
-                    name: 'profile-about',
-                    params: { handle: user.handle }
-                  })
-                "
-                class="cursor-pointer shadow-sm bg-white border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-700 p-4"
-              >
-                <div class="flex items-start gap-6">
-                  <div class="flex-shrink-0">
-                    <img :src="user.avatar_uri" class="w-16 h-16 rounded-lg" />
-                  </div>
-                  <div class="flex-1 flex flex-col gap-2">
-                    <h3
-                      class="text-xl text-gray-900 font-semibold dark:text-white"
-                    >
-                      @{{ user.handle }}
-                    </h3>
-                    <p class="text-gray-700 text-sm dark:text-gray-300">
-                      {{ user.bio }}
-                    </p>
-                    <div class="flex items-center justify-between">
-                      <p
-                        class="text-gray-700 text-sm flex items-center dark:text-gray-300"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          class="w-4 h-4 mr-2"
-                          width="24"
-                          height="24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path
-                            d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
-                          ></path>
-                          <circle cx="12" cy="10" r="3"></circle></svg
-                        >{{ !!user.location ? user.location : 'No location' }}
-                      </p>
-                      <p
-                        class="text-gray-700 text-sm flex items-center dark:text-gray-300"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          class="w-4 h-4 mr-2"
-                          width="24"
-                          height="24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <rect
-                            x="2"
-                            y="7"
-                            width="20"
-                            height="14"
-                            rx="2"
-                            ry="2"
-                          ></rect>
-                          <path
-                            d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"
-                          ></path>
-                        </svg>
-                        {{
-                          !!user.occupation ? user.occupation : 'No occupation'
-                        }}
-                      </p>
-                      <p
-                        class="text-gray-700 text-sm flex items-center dark:text-gray-300"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          class="w-4 h-4 mr-2"
-                          width="24"
-                          height="24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                          <path
-                            d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-                          ></path>
-                        </svg>
-                        {{
-                          !!user.education_major
-                            ? user.education_major
-                            : 'No education'
-                        }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                :user="user"
+              />
             </div>
           </Transition>
+
           <!-- Settings -->
           <Transition>
             <div v-if="state.tab === 3" class="flex flex-col gap-6 mb-6">

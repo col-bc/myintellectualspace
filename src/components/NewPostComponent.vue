@@ -1,9 +1,8 @@
 <script setup>
-import { reactive } from 'vue'
-import axios from 'axios'
-
 import AlertComponent from '@/components/AlertComponent.vue'
 import useUserStore from '@/stores/user'
+import axios from 'axios'
+import { reactive } from 'vue'
 
 const userStore = useUserStore()
 
@@ -102,7 +101,7 @@ async function getPostLocation() {
         type="error"
       />
       <div
-        class="flex justify-between items-center py-2 px-3 border-t dark:border-gray-600"
+        class="flex justify-between items-center py-2 px-3 bg-gray-50 border-t dark:border-gray-600"
       >
         <button
           type="submit"
@@ -110,18 +109,16 @@ async function getPostLocation() {
           class="inline-flex items-center gap-2.5 py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
         >
           <svg
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
-            class="h-4 w-4"
+            class="w-5 h-5 fill-current"
             width="24"
             height="24"
-            stroke="currentColor"
-            stroke-width="2"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
           >
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            <path fill="none" d="M0 0h24v24H0z" />
+            <path
+              d="M3.741 1.408l18.462 10.154a.5.5 0 0 1 0 .876L3.741 22.592A.5.5 0 0 1 3 22.154V1.846a.5.5 0 0 1 .741-.438zM5 13v6.617L18.85 12 5 4.383V11h5v2H5z"
+            />
           </svg>
           Submit Post
         </button>
@@ -134,18 +131,15 @@ async function getPostLocation() {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              class="w-5 h-5 fill-current"
               width="24"
               height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zm4.95-7.778a7 7 0 1 0-9.9 0L12 20.9l4.95-4.95zM12 13a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
+              />
             </svg>
             <span class="sr-only">Set location</span>
           </button>
@@ -156,19 +150,15 @@ async function getPostLocation() {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              class="w-5 h-5 fill-current"
               width="24"
               height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M4.828 21l-.02.02-.021-.02H2.992A.993.993 0 0 1 2 20.007V3.993A1 1 0 0 1 2.992 3h18.016c.548 0 .992.445.992.993v16.014a1 1 0 0 1-.992.993H4.828zM20 15V5H4v14L14 9l6 6zm0 2.828l-6-6L6.828 19H20v-1.172zM8 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
+              />
             </svg>
             <span class="sr-only">Upload image</span>
           </button>

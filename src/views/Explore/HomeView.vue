@@ -59,7 +59,6 @@ watch(
   },
   { immediate: true }
 )
-1
 // fetch data on filters.
 watch(
   filters,
@@ -84,25 +83,18 @@ watch(
             <template #button>
               <button
                 type="button"
-                class="inline-flex w-full mb-12 items-center gap-4 justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-7 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
+                class="inline-flex w-full mb-12 items-center gap-4 justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6"
+                  viewBox="0 0 24 24"
+                  class="w-6 h-6 fill-current"
                   width="24"
                   height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
+                  <path fill="none" d="M0 0h24v24H0z" />
                   <path
-                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                  />
-                  <path
-                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                    d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
                   />
                 </svg>
                 New Post

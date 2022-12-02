@@ -40,10 +40,11 @@ const router = createRouter({
       path: '/logout',
       name: 'logout',
       component: () => import('../views/IndexView.vue'),
-      beforeEnter: async (to, from, next) => {
+      beforeEnter: (to, from, next) => {
+        next('/?logout=true')
         const userStore = useUserStore()
-        await userStore.logout()
-        return next('/?logout=true')
+        userStore.clearUser()
+        return
       }
     },
     // /verify/:token
@@ -222,6 +223,7 @@ const router = createRouter({
     // /teach
     // /teach/new-course
     // /teach/:id/dashboard
+    // /teach/:id/create-assessment
     {
       path: '/teach',
       name: 'teach-home',
@@ -262,6 +264,24 @@ const router = createRouter({
           await userStore.fetchUser()
           return next()
         } else return next('/login?next=/teach/:id/dashboard')
+      }
+    },
+    {
+      path: '/teach/:id/create-assessment',
+      name: 'teach-create-assessment',
+      params: {
+        id: {
+          type: String,
+          required: true
+        }
+      },
+      component: () => import('@/views/Teach/CreateAssessmentView.vue'),
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        if (userStore.isLoggedIn) {
+          await userStore.fetchUser()
+          return next()
+        } else return next('/login?next=/teach/:id/create-assessment')
       }
     },
 

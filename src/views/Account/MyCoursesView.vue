@@ -25,6 +25,7 @@ onMounted(async () => {
       }
     })
     courses.teaching = data.teaching
+    courses.learning = data.learning
   } catch (error) {
     console.log(error)
   } finally {
@@ -80,7 +81,7 @@ onMounted(async () => {
           <!-- Empty State -->
           <div v-if="!state.loading && !courses.learning">
             <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-12">
-              You are not learning any courses.
+              You are not participating in any courses.
             </h2>
             <router-link
               :to="{ name: 'learn-home' }"
@@ -89,8 +90,81 @@ onMounted(async () => {
               Explore Courses
             </router-link>
           </div>
+          <div
+            v-if="!state.loading && !!courses.learning"
+            class="flex flex-col gap-4 mb-12 divide-y divide-gray-300 dark:divide-gray-700"
+          >
+            <div
+              v-for="course of courses.learning"
+              :key="course.id"
+              @click="
+                $router.push({
+                  name: 'learn-course',
+                  params: { id: course.id }
+                })
+              "
+              class="cursor-pointer flex items-center justify-between hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 px-4 py-2 first:rounded-t-lg last:rounded-b-lg"
+            >
+              <div class="flex items-center">
+                <img
+                  :src="course.image_uri"
+                  class="w-24 h-24 rounded-full mr-8"
+                />
+                <span
+                  class="text-lg font-medium text-gray-900 dark:text-white"
+                  >{{ course.name }}</span
+                >
+              </div>
+              <div
+                class="flex md:flex-1 flex-col md:flex-row items-start gap-2 justify-start md:justify-around"
+              >
+                <span class="text-gray-700 text-sm dark:text-gray-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="w-4 h-4 inline-block fill-current mr-3"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M10.9 2.1l9.899 1.415 1.414 9.9-9.192 9.192a1 1 0 0 1-1.414 0l-9.9-9.9a1 1 0 0 1 0-1.414L10.9 2.1zm.707 2.122L3.828 12l8.486 8.485 7.778-7.778-1.06-7.425-7.425-1.06zm2.12 6.364a2 2 0 1 1 2.83-2.829 2 2 0 0 1-2.83 2.829z"
+                    />
+                  </svg>
+                  {{ course.category }}
+                </span>
+                <span class="text-gray-700 text-sm dark:text-gray-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4 inline-block fill-current mr-3"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z"
+                    />
+                  </svg>
+                  {{ course.duration }} to complete
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
         <div v-if="state.tab === 1">
+          <!-- Empty State -->
+          <div v-if="!state.loading && courses.teaching.length === 0">
+            <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-12">
+              You are not teaching in any courses.
+            </h2>
+            <router-link
+              :to="{ name: 'teach-new-course' }"
+              class="mb-12 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            >
+              Create a Courses
+            </router-link>
+          </div>
           <div
             v-if="!state.loading && !!courses.teaching"
             class="flex flex-col gap-4 mb-12 divide-y divide-gray-300 dark:divide-gray-700"
@@ -223,18 +297,6 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
-          </div>
-          <!-- Empty State -->
-          <div v-if="!state.loading && !courses.teaching">
-            <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-12">
-              You are not teaching anu courses.
-            </h2>
-            <router-link
-              :to="{ name: 'teach-new-course' }"
-              class="mb-12 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-            >
-              Create a course
-            </router-link>
           </div>
         </div>
       </div>

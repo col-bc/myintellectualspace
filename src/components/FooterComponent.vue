@@ -33,14 +33,10 @@
             </h2>
             <ul class="text-gray-600 dark:text-gray-400">
               <li class="mb-4">
-                <a href="https://flowbite.com/" class="hover:underline"
-                  >Flowbite</a
-                >
+                <a href="#" class="hover:underline">Community Guide</a>
               </li>
               <li>
-                <a href="https://tailwindcss.com/" class="hover:underline"
-                  >Tailwind CSS</a
-                >
+                <a href="#" class="hover:underline">FAQ</a>
               </li>
             </ul>
           </div>
