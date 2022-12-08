@@ -1,30 +1,30 @@
 <script setup>
 import AlertComponent from '@/components/AlertComponent.vue'
-import axios from 'axios'
-import { onMounted, reactive, ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-
+import LoaderComponent from '@/components/LoaderComponent.vue'
 import {
+  createUserWithEmailAndPassword,
   getAuth,
-  signInWithPopup,
   GoogleAuthProvider,
-  createUserWithEmailAndPassword
+  signInWithPopup
 } from 'firebase/auth'
+import {
+  doc,
+  getDoc,
+  setDoc,
+  getFirestore,
+  serverTimestamp
+} from 'firebase/firestore'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const provider = new GoogleAuthProvider()
 const auth = getAuth()
+const db = getFirestore()
+const router = useRouter()
 
 onMounted(() => {
   auth.languageCode = 'it'
-  // Dark mode
-  if (localStorage.getItem('color-theme') === 'dark') {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
 })
-
-const router = useRouter()
 
 const form = reactive({
   fullName: '',
@@ -53,7 +53,7 @@ function verifyForm() {
     !form.confirmPassword
   ) {
     alert.value = 'Please fill out all fields'
-    return
+    return false
   }
   // check if email is valid
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
@@ -63,7 +63,7 @@ function verifyForm() {
   // check if passwords match
   if (form.password !== form.confirmPassword) {
     alert.value = 'Passwords do not match.'
-    return
+    return false
   }
   // check if password is at least 8 characters long and contains at least one number and one uppercase letter
   if (
@@ -74,46 +74,79 @@ function verifyForm() {
   ) {
     alert.value =
       'Password must be at least 8 characters long and contain at least one number and one uppercase letter.'
-    return
+    return false
   }
   // check if terms are checked
   if (!form.terms) {
     alert.value = 'Please agree to the terms and privacy policy.'
+    return false
+  }
+  return true
+}
+async function registerWithEmail() {
+  loading.value = true
+  if (!verifyForm()) {
+    loading.value = false
     return
   }
-  registerWithEmail()
-}
-function registerWithEmail() {
-  // create a user with email and password in firebase
-  loading.value = true
-  createUserWithEmailAndPassword(auth, form.email, form.password)
-    .then((userCredential) => {
-      // Signed in
-      const user = userCredential.user
 
-      router.push('/login?registered=true')
+  // create a user with email and password in firebase auth
+  createUserWithEmailAndPassword(auth, form.email, form.password)
+    .then(async (userCredential) => {
+      // create user document in firestore
+      const userRef = doc(db, 'users', form.email)
+      const userSnap = await getDoc(userRef)
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: userCredential.user.uid,
+          fullName: form.fullName,
+          email: form.email,
+          avatarUrl:
+            'https://firebasestorage.googleapis.com/v0/b/my-intellectual-space.appspot.com/o/avatars%2Favatar.png?alt=media&token=de2d4a8a-ae3e-48f1-b8c7-3620b1eb3b69',
+          createdAt: serverTimestamp()
+        })
+        router.push('/login?registered=true')
+      } else {
+        alert.value = 'An account with this email already exists.'
+        return
+      }
     })
     .catch((error) => {
+      console.log(error)
       alert.value = error.message
     })
     .finally(() => {
       loading.value = false
     })
 }
-
-function registerWithGoogle() {
-  // send post request to create user
+async function registerWithGoogle() {
+  // create user with google in firebase auth
   loading.value = true
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      // This gives you a Google Access Token. You can use it to access the Google API.
-      const credential = GoogleAuthProvider.credentialFromResult(result)
-      const token = credential.accessToken
-      const user = result.user
 
-      router.push('/login?registered=true')
+  signInWithPopup(auth, provider)
+    .then(async (result) => {
+      const credential = GoogleAuthProvider.credentialFromResult(result)
+      const googleUser = result.user
+
+      // create user document in firestore
+      const userRef = doc(db, 'users', googleUser.email)
+      const userSnap = await getDoc(userRef)
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: googleUser.uid,
+          fullName: googleUser.displayName,
+          email: googleUser.email,
+          avatarUrl: googleUser.photoURL,
+          createdAt: serverTimestamp()
+        })
+        router.push('/login?registered=true')
+      } else {
+        alert.value = 'An account with this email already exists.'
+        return
+      }
     })
     .catch((error) => {
+      console.log(error)
       alert.value = error.error.message
     })
     .finally(() => {
@@ -154,39 +187,35 @@ function registerWithGoogle() {
       <button
         type="button"
         @click="registerWithGoogle()"
-        class="py-2.5 px-5 flex items-center justify-center gap-4 mb-4 font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          class="w-5 h-5 fill-current"
-        >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M3.064 7.51A9.996 9.996 0 0 1 12 2c2.695 0 4.959.99 6.69 2.605l-2.867 2.868C14.786 6.482 13.468 5.977 12 5.977c-2.605 0-4.81 1.76-5.595 4.123-.2.6-.314 1.24-.314 1.9 0 .66.114 1.3.314 1.9.786 2.364 2.99 4.123 5.595 4.123 1.345 0 2.49-.355 3.386-.955a4.6 4.6 0 0 0 1.996-3.018H12v-3.868h9.418c.118.654.182 1.336.182 2.045 0 3.046-1.09 5.61-2.982 7.35C16.964 21.105 14.7 22 12 22A9.996 9.996 0 0 1 2 12c0-1.614.386-3.14 1.064-4.49z"
-          />
-        </svg>
-        Continue with Google
-      </button>
-      <button
-        type="button"
         class="py-2.5 px-5 flex items-center justify-center gap-4 mb-6 font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <svg
-          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           width="24"
           height="24"
-          class="w-5 h-5 fill-current"
+          class="w-5 h-5"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M11.624 7.222c-.876 0-2.232-.996-3.66-.96-1.884.024-3.612 1.092-4.584 2.784-1.956 3.396-.504 8.412 1.404 11.172.936 1.344 2.04 2.856 3.504 2.808 1.404-.06 1.932-.912 3.636-.912 1.692 0 2.172.912 3.66.876 1.512-.024 2.472-1.368 3.396-2.724 1.068-1.56 1.512-3.072 1.536-3.156-.036-.012-2.94-1.128-2.976-4.488-.024-2.808 2.292-4.152 2.4-4.212-1.32-1.932-3.348-2.148-4.056-2.196-1.848-.144-3.396 1.008-4.26 1.008zm3.12-2.832c.78-.936 1.296-2.244 1.152-3.54-1.116.048-2.46.744-3.264 1.68-.72.828-1.344 2.16-1.176 3.432 1.236.096 2.508-.636 3.288-1.572z"
-          />
+          <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+            <path
+              fill="#4285F4"
+              d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"
+            />
+            <path
+              fill="#34A853"
+              d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"
+            />
+            <path
+              fill="#EA4335"
+              d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"
+            />
+          </g>
         </svg>
-        Continue with Apple
+        Continue with Google
       </button>
 
       <div class="flex items-center justify-center mb-6">
@@ -195,174 +224,190 @@ function registerWithGoogle() {
         <div class="w-1/3 border-b dark:border-gray-600"></div>
       </div>
 
-      <form
-        class="w-full flex flex-col gap-6 mb-6"
-        @submit.prevent="verifyForm"
-      >
+      <div class="relative w-full flex flex-col gap-6 mb-6">
         <AlertComponent
           v-if="!!alert"
           :message="alert"
           type="error"
           class="col-span-2"
         />
-        <input
-          type="text"
-          v-model="form.fullName"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Full name"
-        />
-        <input
-          type="email"
-          v-model="form.email"
-          class="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Email"
-        />
-        <div class="relative">
-          <input
-            type="password"
-            v-model="form.password"
-            class="peer col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="Password"
-          />
-          <div
-            class="hidden peer-focus-within:block absolute w-full top-full mt-1 p-4 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
+        <div>
+          <label class="mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Full name</label
           >
-            <h5
-              class="mb-2 text-base font-semibold text-gray-900 dark:text-white"
+          <input
+            type="text"
+            v-model="form.fullName"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label class="mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Email</label
+          >
+          <input
+            type="email"
+            v-model="form.email"
+            class="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label class="mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Password</label
+          >
+          <div class="relative">
+            <input
+              type="password"
+              v-model="form.password"
+              class="peer col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            />
+            <div
+              class="hidden peer-focus-within:block absolute w-full top-full mt-1 p-4 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
             >
-              Password requirements:
-            </h5>
-            <ul
-              class="space-y-1 max-w-md list-inside text-gray-500 dark:text-gray-400"
-            >
-              <li class="flex items-center">
-                <svg
-                  v-if="requirements.length"
-                  class="w-4 h-4 mr-1.5 text-green-500 dark:text-green-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-                <svg
-                  v-else
-                  class="w-4 h-4 mr-1.5 text-gray-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-                At least 8 characters
-              </li>
-              <li class="flex items-center">
-                <svg
-                  v-if="requirements.uppercase"
-                  class="w-4 h-4 mr-1.5 text-green-500 dark:text-green-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-                <svg
-                  v-else
-                  class="w-4 h-4 mr-1.5 text-gray-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-                At least one uppercase letter
-              </li>
-              <li class="flex items-center">
-                <svg
-                  v-if="requirements.digit"
-                  class="w-4 h-4 mr-1.5 text-green-500 dark:text-green-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-                <svg
-                  v-else
-                  class="w-4 h-4 mr-1.5 text-gray-400 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clip-rule="evenodd"
-                  ></path>
-                </svg>
-                At least one number
-              </li>
-            </ul>
+              <h5
+                class="mb-2 text-base font-semibold text-gray-900 dark:text-white"
+              >
+                Password requirements:
+              </h5>
+              <ul
+                class="space-y-1 max-w-md list-inside text-gray-500 dark:text-gray-400"
+              >
+                <li class="flex items-center">
+                  <svg
+                    v-if="requirements.length"
+                    class="w-4 h-4 mr-1.5 text-green-500 dark:text-green-400 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-4 h-4 mr-1.5 text-gray-400 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  At least 8 characters
+                </li>
+                <li class="flex items-center">
+                  <svg
+                    v-if="requirements.uppercase"
+                    class="w-4 h-4 mr-1.5 text-green-500 dark:text-green-400 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-4 h-4 mr-1.5 text-gray-400 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  At least one uppercase letter
+                </li>
+                <li class="flex items-center">
+                  <svg
+                    v-if="requirements.digit"
+                    class="w-4 h-4 mr-1.5 text-green-500 dark:text-green-400 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-4 h-4 mr-1.5 text-gray-400 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  At least one number
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-        <input
-          type="password"
-          v-model="form.confirmPassword"
-          class="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Confirm Password"
-        />
-        <div class="flex items-center">
+        <div>
+          <label class="mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Confirm password</label
+          >
           <input
-            type="checkbox"
-            v-model="form.terms"
-            class="w-4 h-4 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            type="password"
+            v-model="form.confirmPassword"
+            class="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           />
+        </div>
+        <div class="flex items-center py-4">
           <label
-            class="ml-2 w-full text-sm font-medium text-gray-900 dark:text-gray-300"
-            >I have read and agree to the
-            <a href="#" class="text-blue-600 hover:underline dark:text-blue-40"
+            class="w-full text-sm font-medium text-gray-900 dark:text-gray-300"
+          >
+            <input
+              type="checkbox"
+              v-model="form.terms"
+              class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+            I have read and agree to the
+            <a href="#" class="text-blue-600 hover:underline dark:text-blue-400"
               >terms</a
             >
             and
-            <a href="#" class="text-blue-600 hover:underline dark:text-blue-40"
+            <a href="#" class="text-blue-600 hover:underline dark:text-blue-400"
               >privacy policy</a
             >.</label
           >
         </div>
         <button
           type="button"
-          @click="verifyForm"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 uppercase"
+          @click="registerWithEmail"
+          :disabled="loading"
+          class="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 uppercase"
         >
-          Create my account
+          <LoaderComponent v-if="loading" />
+          <template v-else>Create my account</template>
         </button>
-      </form>
+      </div>
 
       <p class="mb-8 dark:text-white">
         Already have an account?
         <router-link
           to="/login"
-          class="text-blue-600 hover:underline dark:text-blue-40"
+          class="text-blue-600 hover:underline dark:text-blue-400"
           >Login here.</router-link
         >
       </p>

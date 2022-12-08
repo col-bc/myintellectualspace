@@ -1,66 +1,47 @@
 <script setup>
-import { reactive, ref, onMounted, watch, onBeforeUnmount } from 'vue'
+import useInterface from '@/stores/interface'
 import useUserStore from '@/stores/user'
+import { onBeforeUnmount, reactive, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { Menu, MenuButton, MenuItems } from '@headlessui/vue'
 
-const userStore = useUserStore()
+const user = useUserStore()
+const router = useRouter()
+const ui = useInterface()
 
-const user = reactive({
-  isLoggedIn: false
-})
-onMounted(() => {
-  user.data = userStore.getUser
-  user.isLoggedIn = userStore.isLoggedIn
+const state = reactive({
+  showUserMenu: false,
+  showDrawer: false,
+  searchQuery: '',
+  searchResults: [],
+  notifications: [
+    {
+      id: 1,
+      message:
+        'Example notification. Something happened that requires your attention.',
+      createdAt: '2021-07-01T12:00:00.000Z',
+      read: false
+    }
+  ]
 })
 
-const showUserMenu = ref(false)
-const searchText = ref('')
-const searchResults = ref([])
-const menuOpen = ref(false)
-const drawerOpen = ref(false)
-const isMobile = ref(false)
-const darkMode = ref(false)
+function logout() {
+  user.logout()
+  state.showDrawer = false
+  router.push('/')
+}
 
-const viewportWidth = ref(window.innerWidth)
-window.addEventListener('resize', () => {
-  viewportWidth.value = window.innerWidth
-  if (window.innerWidth < 768) {
-    isMobile.value = true
-  } else {
-    isMobile.value = false
+watch(
+  () => state.showDrawer,
+  (val) => {
+    if (val) {
+      document.querySelector('body').classList.add('overflow-y-hidden')
+    } else {
+      document.querySelector('body').classList.remove('overflow-y-hidden')
+    }
   }
-})
-onMounted(() => {
-  viewportWidth.value = window.innerWidth
-  if (window.innerWidth < 768) {
-    isMobile.value = true
-  } else {
-    isMobile.value = false
-  }
-  // Dark mode
-  if (localStorage.getItem('color-theme') === 'dark') {
-    document.documentElement.classList.add('dark')
-    darkMode.value = true
-  } else {
-    document.documentElement.classList.remove('dark')
-    darkMode.value = false
-  }
-})
-watch(darkMode, (value) => {
-  if (value) {
-    document.documentElement.classList.add('dark')
-    localStorage.setItem('color-theme', 'dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-    localStorage.removeItem('color-theme')
-  }
-})
-watch(drawerOpen, (value) => {
-  if (value) {
-    document.querySelector('body').classList.add('overflow-y-hidden')
-  } else {
-    document.querySelector('body').classList.remove('overflow-y-hidden')
-  }
-})
+)
+
 onBeforeUnmount(() => {
   document.querySelector('body').classList.remove('overflow-y-hidden')
 })
@@ -68,29 +49,29 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    v-if="drawerOpen"
-    @click="drawerOpen = false"
-    class="cursor-pointer absolute z-40 top-0 right-0 w-full h-full bg-black bg-opacity-60"
+    v-if="user.isAuthenticated && state.showDrawer"
+    @click="state.showDrawer = false"
+    class="cursor-pointer absolute z-40 top-0 right-0 w-full h-full bg-black bg-opacity-60 transition-all duration-200"
   ></div>
   <Transition>
     <div
-      v-if="drawerOpen"
+      v-if="user.isAuthenticated && state.showDrawer"
       class="absolute z-50 right-0 top-0 flex flex-col h-full w-80 shadow-xl p-4 overflow-y-auto bg-white border-l border-gray-300 dark:border-gray-700 dark:bg-gray-800"
       tabindex="-1"
     >
       <div
         class="flex items-center gap-3 py-3 px-4 text-sm bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover: rounded-lg text-white dark:text-gray-900"
       >
-        <img :src="user.data.avatar_uri" class="h-12 w-12 rounded-md" />
+        <img :src="user.user.avatarUrl" class="h-12 w-12 rounded-md'" />
         <div class="flex flex-1 flex-col gap-0.5">
-          <h6 class="font-semibold">@{{ user.data.handle }}</h6>
+          <h6 class="font-semibold">@{{ user.user.handle }}</h6>
           <p class="font-medium truncate">
-            {{ user.data.first_name + ' ' + user.data.last_name }}
+            {{ user.user.fullName }}
           </p>
         </div>
         <button
           type="button"
-          @click="drawerOpen = false"
+          @click="state.showDrawer = false"
           class="text-white bg-gray-900 bg-opacity-0 hover:bg-opacity-30 rounded-lg p-1.5 dark:text-gray-900"
         >
           <svg
@@ -105,13 +86,12 @@ onBeforeUnmount(() => {
               clip-rule="evenodd"
             ></path>
           </svg>
-          <span class="sr-only">Close menu</span>
         </button>
       </div>
       <ul class="py-2.5 text-sm text-gray-700 dark:text-gray-200">
         <li>
           <router-link
-            to="/social/me"
+            :to="{ name: 'profile', params: { handle: user.user.handle } }"
             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <svg
@@ -173,7 +153,7 @@ onBeforeUnmount(() => {
           <router-link
             :to="{
               name: 'profile-connections',
-              params: { handle: userStore.getHandle }
+              params: { handle: 'undefined' }
             }"
             class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
@@ -237,13 +217,9 @@ onBeforeUnmount(() => {
           >
         </li>
         <li>
-          <router-link
-            to="/logout"
-            @click="
-              ;(user.isLoggedIn = !user.isLoggedIn),
-                (showUserMenu = !showUserMenu)
-            "
-            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+          <button
+            @click="logout"
+            class="w-full flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -258,7 +234,7 @@ onBeforeUnmount(() => {
               />
             </svg>
             Logout
-          </router-link>
+          </button>
         </li>
       </ul>
     </div>
@@ -269,7 +245,7 @@ onBeforeUnmount(() => {
   >
     <router-link
       to="/"
-      class="flex items-center mr-auto md:mr-0 text-gray-900 dark:text-white"
+      class="flex items-center mr-auto md:mr-6 text-gray-900 dark:text-white"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -349,14 +325,82 @@ onBeforeUnmount(() => {
           </ul>
         </div>
       </div>
+      <!-- Notifications -->
+      <Menu as="div" class="relative">
+        <div class="relative">
+          <MenuButton
+            type="button"
+            as="button"
+            class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              class="h-6 w-6 fill-current"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M22 20H2v-2h1v-6.969C3 6.043 7.03 2 12 2s9 4.043 9 9.031V18h1v2zM5 18h14v-6.969C19 7.148 15.866 4 12 4s-7 3.148-7 7.031V18zm4.5 3h5a2.5 2.5 0 1 1-5 0z"
+              />
+            </svg>
+          </MenuButton>
+          <div
+            v-if="state.notifications.length"
+            class="inline-flex absolute -top-2 -right-2 justify-center items-center w-6 h-6 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
+          >
+            {{ state.notifications.length }}
+          </div>
+        </div>
+        <MenuItems
+          as="div"
+          class="absolute top-full w-72 right-0 mt-2 p-2 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
+        >
+          <h5 class="font-medium text-gray-900 text-lg mb-2 dark:text-gray-200">
+            Notifications
+          </h5>
+          <template
+            v-for="notification in state.notifications"
+            :key="notification.id"
+          >
+            <div
+              class="flex items-start gap-3 mb-2 text-gray-700 dark:text-gray-300"
+            >
+              {{ notification.message }}
+              <button
+                @click="
+                  state.notifications = state.notifications.filter(
+                    (n) => n.id !== notification.id
+                  )
+                "
+                class="text-gray-700 hover:text-gray-500 focus:outline-none focus:text-gray-500 rounded-full p-2 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 fill-current"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </template>
+        </MenuItems>
+      </Menu>
       <!-- Toggle theme -->
       <button
         type="button"
-        @click="darkMode = !darkMode"
+        @click="ui.toggleTheme"
         class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <svg
-          v-if="!darkMode"
+          v-if="ui.getIsDark"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           class="h-6 w-6 fill-current"
@@ -368,9 +412,8 @@ onBeforeUnmount(() => {
             d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"
           />
         </svg>
-
         <svg
-          v-if="darkMode"
+          v-else
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           class="w-6 h-6 fill-current"
@@ -387,12 +430,14 @@ onBeforeUnmount(() => {
       <button
         type="button"
         @click="
-          user.isLoggedIn ? (drawerOpen = !drawerOpen) : $router.push('/login')
+          user.isAuthenticated
+            ? (state.showDrawer = !state.showDrawer)
+            : $router.push('/login')
         "
         class="p-2.5 flex items-center gap-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <svg
-          v-if="!user.isLoggedIn"
+          v-if="!user.isAuthenticated"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           class="w-6 h-6 fill-current"
@@ -404,10 +449,12 @@ onBeforeUnmount(() => {
             d="M4 15h2v5h12V4H6v5H4V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6zm6-4V8l5 4-5 4v-3H2v-2h8z"
           />
         </svg>
-        <span v-if="!user.isLoggedIn" class="hidden md:inline-flex">Login</span>
+        <span v-if="!user.isAuthenticated" class="hidden md:inline-flex"
+          >Login</span
+        >
 
-        <svg
-          v-if="user.isLoggedIn"
+        <!-- <svg
+          v-if="user.isAuthenticated"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           class="w-6 h-6 fill-current"
@@ -418,8 +465,13 @@ onBeforeUnmount(() => {
           <path
             d="M20 22h-2v-2a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v2H4v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2zm-8-9a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
           />
-        </svg>
-        <span v-if="user.isLoggedIn" class="hidden md:inline-flex"
+        </svg> -->
+        <img
+          v-if="user.isAuthenticated"
+          :src="user.user.avatarUrl"
+          class="w-6 h-6 rounded-full"
+        />
+        <span v-if="user.isAuthenticated" class="hidden md:inline-flex"
           >Profile</span
         >
       </button>
@@ -450,73 +502,10 @@ onBeforeUnmount(() => {
     </div>
     <!-- Links -->
     <Transition name="nav">
-      <div
-        v-show="!isMobile || (isMobile && menuOpen)"
-        class="w-full md:flex-1"
-      >
+      <div v-show="true" class="w-full md:flex-1">
         <ul
           class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:mr-8 md:text-sm md:font-medium"
         >
-          <!-- Search -->
-          <div class="relative block md:hidden mb-2">
-            <input
-              type="text"
-              v-model="searchText"
-              class="bg-gray-50 w-full max-w-xm border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Search"
-            />
-            <div
-              v-if="searchText"
-              class="absolute z-10 w-full bg-white border border-gray-200 rounded divide-y divide-gray-100 shadow-xl dark:bg-gray-700 mt-2"
-            >
-              <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-                <li>
-                  <router-link
-                    :to="{ name: 'profile', params: { handle: searchText } }"
-                    class="inline-flex items-center gap-3 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    {{ searchText }}
-                  </router-link>
-                </li>
-                <li>
-                  <router-link
-                    :to="''"
-                    class="inline-flex items-center gap-3 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      />
-                    </svg>
-                    {{ searchText }}
-                  </router-link>
-                </li>
-              </ul>
-            </div>
-          </div>
           <li>
             <router-link
               :to="{ name: 'index' }"

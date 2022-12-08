@@ -1,24 +1,38 @@
 <script setup>
 import AlertComponent from '@/components/AlertComponent.vue'
+import LoaderComponent from '@/components/LoaderComponent.vue'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import NewPostComponent from '@/components/NewPostComponent.vue'
 import PostComponent from '@/components/PostComponent.vue'
+import UserCardComponent from '@/components/UserCardComponent.vue'
 import useUserStore from '@/stores/user'
-import axios from 'axios'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch, computed, onUpdated } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import LoaderComponent from '../../components/LoaderComponent.vue'
-import UserCardComponent from '../../components/UserCardComponent.vue'
 
-const userStore = useUserStore()
+const user = useUserStore()
 const router = useRouter()
 const route = useRoute()
 
-const newInterest = ref('')
 const profileAlert = reactive({
   type: 'primary',
   message: ''
 })
+const state = reactive({
+  userData: null,
+  posts: [],
+  likes: [],
+  loading: true,
+  isOwnAccount: false,
+  filtersExpanded: true
+})
+
+const EDUCATION_LEVELS = [
+  'High School',
+  'Associate Degree',
+  'Bachelor Degree',
+  'Master Degree',
+  'Doctorate Degree'
+]
 watch(profileAlert, (value) => {
   if (!!value.message) {
     // scroll to alert
@@ -31,152 +45,74 @@ watch(profileAlert, (value) => {
     }, 5000)
   }
 })
-const user = reactive({
-  isOwnAccount: false,
-  data: {},
-  connections: [],
-  comments: [],
-  likes: []
-})
-const state = reactive({
-  loading: true,
-  filtersExpanded: true
-})
 
 onMounted(async () => {
-  user.isOwnAccount = false
-  state.loading = true
-  try {
-    const response = await axios.get(
-      `/api/user/handle/${route.params.handle}`,
-      {
-        headers: {
-          Authorization: userStore.getBearerToken
-        }
-      }
-    )
-
-    user.data = response.data.user
-    user.comments = response.data.comments
-    user.likes = response.data.likes
-    user.data.interests = JSON.parse(user.data.interests)
-    user.connections = response.data.connections
-    user.isOwnAccount = user.data.handle === userStore.getHandle
-
-    user.data.posts.reverse()
-
-    if (user.isOwnAccount) userStore.user = user.data
-  } catch (error) {
-    console.log(error)
-    console.log(error)
-    if (error.response.status === 404) {
-      router.push('/user-not-found')
-    } else {
-      profileAlert.type = 'danger'
-      profileAlert.message = error.response.data.error
-    }
-  } finally {
+  state.isOwnAccount = user.user.handle === route.params.handle
+  if (!state.isOwnAccount) {
+    state.userData = await user.fetchUserByHandle(route.params.handle)
+    state.posts = await user.fetchPostsByHandle(route.params.handle)
+    state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+    state.loading = false
+  } else {
+    state.userData = user.user
+    state.posts = user.posts
+    state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
   }
 })
+onUpdated(async () => {
+  if (state.userData.handle !== route.params.handle) {
+    state.isOwnAccount = user.user.handle === route.params.handle
+    if (!state.isOwnAccount) {
+      state.userData = await user.fetchUserByHandle(route.params.handle)
+      state.posts = await user.fetchPostsByHandle(route.params.handle)
+      state.loading = false
+    } else {
+      state.userData = user.user
+      state.posts = user.posts
+      state.loading = false
+    }
+  }
+})
 
-async function updateUser() {
-  profileAlert.message = ''
-  profileAlert.type = ''
-  try {
-    const response = await axios.put('/api/user/me', user.data, {
-      headers: {
-        Authorization: userStore.getBearerToken
+const sortedPosts = computed(() => {
+  return state.posts.reverse()
+})
+const isFollowing = computed(() => {
+  if (!state.userData.following) {
+    return false
+  } else {
+    return state.userData.following.forEach((u) => {
+      console.log(u)
+      if (u.handle === user.user.handle) {
+        return true
       }
     })
-    if (response.status === 200) {
-      if (user.isOwnAccount) {
-        userStore.user = response.data
-      }
-      user.data = response.data
-      profileAlert.message = response.data.success
-      profileAlert.type = 'success'
-    }
-  } catch (error) {
-    console.log(error)
-    profileAlert.message = error.response.data.error
-    profileAlert.type = 'error'
   }
+})
+
+async function refreshPosts() {
+  state.loading = true
+  await user.fetchPosts()
+  state.loading = false
 }
-async function changeAvatar() {
-  if (!user.isOwnAccount) {
-    return
-  }
-  var input = document.createElement('input')
-  input.type = 'file'
-  input.accept = 'image/png, image/jpg, image/jpeg, image/gif'
-  input.onchange = async () => {
-    const file = input.files[0]
-    const formData = new FormData()
-    formData.append('file', file)
-    // send form data to server
-    try {
-      const response = await axios.post('/api/user/avatar', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: userStore.getBearerToken
-        }
-      })
-      // update user avatar
-      if (response.status === 200) {
-        user.data.avatar_uri = response.data.avatar_uri
-        userStore.user.avatar_uri = response.data.avatar_uri
-        profileAlert.message = response.data.success
-        profileAlert.type = 'success'
-        setTimeout(() => {
-          router.go(0)
-        }, 1000)
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
-  input.click()
-}
-function addInterest() {
-  user.data.interests.push(newInterest.value)
-  newInterest.value = ''
-  console.log(user.data.interests)
-}
-function removeInterest(index) {
-  user.data.interests.splice(index, 1)
-}
-async function addFriend() {
-  if (user.isOwnAccount) {
-    profileAlert.message = 'Cannot add yourself as a friend'
-    profileAlert.type = 'error'
-    return
-  }
+async function saveUser() {
   profileAlert.message = ''
   profileAlert.type = ''
-  try {
-    const response = await axios.put(
-      `/api/user/friend/${user.data.id}`,
-      {},
-      {
-        headers: {
-          Authorization: userStore.getBearerToken
-        }
-      }
-    )
-    if (response.status === 200) {
-      profileAlert.message = response.data.success
-      profileAlert.type = 'success'
-      // update state
-      userStore.user.friends = response.data.friends
-      console.log(response.data.friends)
-      console.log(userStore.user.friends)
-    }
-  } catch (error) {
-    profileAlert.message = error.response.data.error
+  console.log(state.userData)
+  user.updateUser(state.userData)
+  profileAlert.type = 'success'
+  profileAlert.message = 'Profile updated successfully'
+}
+async function followUser() {
+  if (state.isOwnAccount) {
+    profileAlert.message = 'You cannot follow yourself'
     profileAlert.type = 'error'
-    console.log(error)
+    return
   }
+  await user.toggleFollowUser(state.userData)
+  profileAlert.type = 'success'
+  profileAlert.message = 'You are now following @' + state.userData.handle
 }
 </script>
 
@@ -186,7 +122,7 @@ async function addFriend() {
       <NavbarComponent />
       <LoaderComponent v-if="state.loading" />
       <div
-        v-if="!state.loading"
+        v-else
         class="container mx-auto flex flex-col md:flex-row items-start px-2 gap-6 md:gap:12 lg:gap-16 py-12"
       >
         <div class="flex flex-col items-start gap-12 w-full md:w-80">
@@ -195,11 +131,11 @@ async function addFriend() {
             class="sm:flex-1 relative group p-2 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 rounded-lg text-white shadow-lg shadow-purple-400/30 dark:text-gray-900"
           >
             <img
-              :src="user.data.avatar_uri"
+              :src="state.userData.avatarUrl"
               class="rounded-lg w-full h-auto md:w-80 md:h-80"
             />
             <button
-              v-if="user.isOwnAccount"
+              v-if="state.isOwnAccount"
               @click="changeAvatar"
               class="w-full text-center hover:underline mt-1"
             >
@@ -208,31 +144,26 @@ async function addFriend() {
           </div>
           <!-- Menu/About -->
           <div class="sm:flex-1 w-full flex flex-col gap-4">
-            <h3 class="text-3xl font-semibold dark:text-white">
-              @{{ user.data.handle }}
-            </h3>
-            <p class="leading-tight text-gray-700 dark:text-gray-300">
-              <span v-if="user.data.bio">
-                {{ user.data.bio }}
-              </span>
-              <span
-                v-else
-                class="italic text-xm text-gray-700 dark:text-gray-300"
-              >
-                No bio available.
-              </span>
-            </p>
-
+            <div>
+              <h3 class="text-3xl font-semibold mb-2 dark:text-white">
+                @{{ state.userData.handle }}
+              </h3>
+              <p class="text-lg text-gray-700 dark:text-gray-300">
+                {{ state.userData.fullName }}
+              </p>
+            </div>
             <!-- User menu -->
             <div
-              class="flex flex-col text-gray-900 divide-y dark:text-gray-200 divide-gray-300 dark:divide-gray-600"
+              class="w-full font-medium text-gray-900 bg-white rounded-lg border shadow-sm border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               <router-link
                 :to="{ name: 'profile' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-                :class="{
-                  'text-blue-700 dark:text-white': $route.name === 'profile'
-                }"
+                class="flex items-center py-2 px-4 w-full rounded-t-lg border-b border-gray-200 cursor-pointer"
+                :class="[
+                  route.name === 'profile'
+                    ? 'text-white bg-blue-700  dark:bg-gray-800 dark:border-gray-600'
+                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                ]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -249,35 +180,13 @@ async function addFriend() {
                 Posts
               </router-link>
               <router-link
-                :to="{ name: 'profile-comments' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-                :class="{
-                  'text-blue-700 dark:text-white':
-                    $route.name === 'profile-comments'
-                }"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M10 3h4a8 8 0 1 1 0 16v3.5c-5-2-12-5-12-11.5a8 8 0 0 1 8-8zm2 14h2a6 6 0 1 0 0-12h-4a6 6 0 0 0-6 6c0 3.61 2.462 5.966 8 8.48V17z"
-                  />
-                </svg>
-                Comments
-              </router-link>
-              <router-link
-                type="button"
                 :to="{ name: 'profile-likes' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-                :class="{
-                  'text-blue-700 dark:text-white':
-                    $route.name === 'profile-likes'
-                }"
+                class="flex items-center py-2 px-4 w-full border-b border-gray-200 cursor-pointer"
+                :class="[
+                  route.name === 'profile-likes'
+                    ? 'text-white bg-blue-700  dark:bg-gray-800 dark:border-gray-600'
+                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                ]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -294,13 +203,13 @@ async function addFriend() {
                 Likes
               </router-link>
               <router-link
-                type="button"
                 :to="{ name: 'profile-connections' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-                :class="{
-                  'text-blue-700 dark:text-white':
-                    $route.name === 'profile-connections'
-                }"
+                class="flex items-center py-2 px-4 w-full border-b border-gray-200 cursor-pointer"
+                :class="[
+                  route.name === 'profile-connections'
+                    ? 'text-white bg-blue-700  dark:bg-gray-800 dark:border-gray-600'
+                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                ]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -317,13 +226,13 @@ async function addFriend() {
                 Connections
               </router-link>
               <router-link
-                type="button"
                 :to="{ name: 'profile-about' }"
-                class="inline-flex relative items-center p-2 w-ful font-medium hover:bg-gray-100 hover:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-                :class="{
-                  'text-blue-700 dark:text-white':
-                    $route.name === 'profile-about'
-                }"
+                class="flex items-center py-2 px-4 w-full rounded-b-lg border-b border-gray-200 cursor-pointer"
+                :class="[
+                  route.name === 'profile-about'
+                    ? 'text-white bg-blue-700  dark:bg-gray-800 dark:border-gray-600'
+                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                ]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -340,11 +249,41 @@ async function addFriend() {
                 About
               </router-link>
             </div>
-
-            <!-- Add friend -->
+            <!-- Bio -->
+            <h5 class="text-xl font-semibold text-gray-700 dark:text-gray-300">
+              Bio
+            </h5>
+            <p class="leading-tight text-gray-700 dark:text-gray-300">
+              <span v-if="state.userData.bio">
+                {{ state.userData.bio }}
+              </span>
+              <span
+                v-else
+                class="italic text-xm text-gray-700 dark:text-gray-300"
+              >
+                No bio available.
+              </span>
+            </p>
+            <!-- Location -->
+            <h5 class="text-xl font-semibold text-gray-700 dark:text-gray-300">
+              Location
+            </h5>
+            <p class="leading-tight mb-6 text-gray-700 dark:text-gray-300">
+              <span v-if="state.userData.location">
+                {{ state.userData.location }}
+              </span>
+              <span
+                v-else
+                class="italic text-xm text-gray-700 dark:text-gray-300"
+              >
+                No location available.
+              </span>
+            </p>
+            <!-- Follow user -->
             <button
               type="button"
-              @click="addFriend()"
+              @click="followUser"
+              v-if="!isFollowing"
               class="inline-flex items-center justify-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
             >
               <svg
@@ -359,7 +298,27 @@ async function addFriend() {
                   d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm6 6v-3h2v3h3v2h-3v3h-2v-3h-3v-2h3z"
                 />
               </svg>
-              Add Friend
+              Follow @{{ state.userData.handle }}
+            </button>
+            <button
+              type="button"
+              @click="followUser"
+              v-else
+              class="inline-flex items-center justify-center gap-3 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-7 py-3.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-80"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="h-6 w-6 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm7 6.586l2.121-2.122 1.415 1.415L20.414 19l2.122 2.121-1.415 1.415L19 20.414l-2.121 2.122-1.415-1.415L17.586 19l-2.122-2.121 1.415-1.415L19 17.586z"
+                />
+              </svg>
+              Unfollow @{{ state.userData.handle }}
             </button>
           </div>
         </div>
@@ -375,20 +334,45 @@ async function addFriend() {
             :message="profileAlert.message"
             :dismissible="false"
           />
-          <NewPostComponent
-            v-if="user.data.handle === userStore.getUser.handle"
-          />
-          <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
-            {{ user.data.first_name }}'s Posts
-          </h4>
+          <NewPostComponent v-if="state.isOwnAccount" />
+          <div class="flex items-center justify-between">
+            <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+              Posts by @{{ state.userData.handle }}
+            </h4>
+            <div class="relative">
+              <button
+                type="button"
+                @click="user.fetchPosts"
+                class="peer p-2.5 rounded-full text-gray-700 bg-white hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  class="w-6 h-6 fill-current"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M5.463 4.433A9.961 9.961 0 0 1 12 2c5.523 0 10 4.477 10 10 0 2.136-.67 4.116-1.81 5.74L17 12h3A8 8 0 0 0 6.46 6.228l-.997-1.795zm13.074 15.134A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12c0-2.136.67-4.116 1.81-5.74L7 12H4a8 8 0 0 0 13.54 5.772l.997 1.795z"
+                  />
+                </svg>
+              </button>
+              <div
+                class="hidden peer-hover:block absolute z-10 right-0 mt-1 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm tooltip dark:bg-gray-700"
+              >
+                Refresh
+              </div>
+            </div>
+          </div>
           <div
-            v-if="!!user.data.posts && user.data.posts.length <= 0"
+            v-if="!!state.posts && state.posts.length <= 0"
             class="bg-white border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
           >
             <p class="text-center text-gray-500">No posts found.</p>
           </div>
 
-          <div v-for="post of user.data.posts" :key="post.id">
+          <div v-for="post of sortedPosts" :key="post.id">
             <PostComponent :post="post" class="shadow-sm" />
           </div>
         </div>
@@ -398,7 +382,8 @@ async function addFriend() {
           v-if="$route.name === 'profile-about'"
           class="flex-1 flex flex-col gap-12 px-2"
         >
-          <div v-if="user.isOwnAccount">
+          <!-- Edit profile -->
+          <div v-if="state.isOwnAccount" class="flex flex-col gap-6">
             <AlertComponent
               v-show="profileAlert.message"
               class="my-4"
@@ -407,404 +392,289 @@ async function addFriend() {
               :dismissible="false"
             />
 
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between">
               <h2 class="text-2xl font-bold py-3 dark:text-white">
-                About @{{ user.data.handle }}
+                About @{{ state.userData.handle }}
               </h2>
               <button
                 type="button"
-                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                @click="updateUser()"
+                class="flex items-center gap-2.5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                @click="saveUser"
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  class="h-6 w-6 fill-current"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M5 5v14h14V7.828L16.172 5H5zM4 3h13l3.707 3.707a1 1 0 0 1 .293.707V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm8 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 6h9v4H6V6z"
+                  />
+                </svg>
                 Save Changes
               </button>
             </div>
-
-            <!-- Name -->
-            <div class="py-2 flex items-center">
+            <!-- Handle -->
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Handle</span
+              >
+              <input
+                type="text"
+                v-model="state.userData.handle"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder=""
+              />
+            </div>
+            <!-- Name -->
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Name</span
               >
-              <div class="flex items-center gap-2 w-full">
-                <input
-                  v-model="user.data.first_name"
-                  type="text"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder=""
-                  required
-                />
-                <input
-                  v-model="user.data.last_name"
-                  type="text"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder=""
-                  required
-                />
-              </div>
+              <input
+                type="text"
+                v-model="state.userData.fullName"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder=""
+              />
+            </div>
+            <!-- Phone -->
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Phone Number</span
+              >
+              <input
+                type="text"
+                v-model="state.userData.phone"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder=""
+              />
             </div>
             <!-- Location -->
-            <div class="py-2 flex items-center">
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Location</span
               >
               <input
-                v-model="user.data.location"
                 type="text"
+                v-model="state.userData.location"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
-                required
               />
             </div>
             <!-- Bio -->
-            <div class="py-2 flex items-start">
+            <div class="flex items-start">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Bio</span
               >
               <textarea
-                v-model="user.data.bio"
+                v-model="state.userData.bio"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
                 rows="4"
-              />
-            </div>
-            <!-- Join Date -->
-            <div class="py-2 flex items-center">
-              <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
-                >Joined</span
-              >
-              <input
-                type="text"
-                disabled
-                :value="new Date(user.data.created_at).toLocaleDateString()"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder=""
-                required
-              />
+              ></textarea>
             </div>
             <!-- Education Level -->
-            <div class="py-2 flex items-center">
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Education Level</span
               >
               <select
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                v-model="state.userData.educationLevel"
               >
-                <option value="" :selected="!user.data.education_level">
-                  Select
-                </option>
-                <option
-                  value="hs"
-                  :selected="user.data.education_level === 'Hs'"
-                >
-                  High School
-                </option>
-                <option
-                  value="aa"
-                  :selected="user.data.education_level === 'Aa'"
-                >
-                  Associate's of Art/Science
-                </option>
-                <option
-                  value="ba"
-                  :selected="user.data.education_level === 'Ba'"
-                >
-                  Bachelor's of Art/Science
-                </option>
-                <option
-                  value="ma"
-                  :selected="user.data.education_level === 'Ma'"
-                >
-                  Master's of Art/Science
-                </option>
-                <option
-                  value="phd"
-                  :selected="user.data.education_level === 'Phd'"
-                >
-                  Doctorate degree
-                </option>
+                <option value="default" disabled>Select an option</option>
+                <template v-for="level in EDUCATION_LEVELS" :key="level">
+                  <option :value="level">
+                    {{ level }}
+                  </option>
+                </template>
               </select>
             </div>
             <!-- Education institution -->
-            <div class="py-2 flex items-center">
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Education Institution</span
               >
               <input
-                v-model="user.data.education_institution"
                 type="text"
+                v-model="state.userData.educationInstitution"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
             <!-- Education major -->
-            <div class="py-2 flex items-center">
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Education Major</span
               >
               <input
-                v-model="user.data.education_major"
                 type="text"
+                v-model="state.userData.educationMajor"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
             <!-- Occupation -->
-            <div class="py-2 flex items-center">
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Occupation</span
               >
               <input
-                v-model="user.data.occupation"
                 type="text"
+                v-model="state.userData.occupation"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
             <!-- Interests -->
-            <div class="py-2 flex items-start">
+            <div class="flex items-start">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Interests</span
               >
-              <div class="w-full">
-                <div class="relative w-full">
-                  <input
-                    v-model="newInterest"
-                    @keyup.enter="addInterest"
-                    type="text"
-                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="Add a new interest"
-                  />
-                  <button
-                    @click="addInterest"
-                    type="button"
-                    class="absolute right-px top-px bottom-px text-sm bg-blue-500 hover:bg-blue-700 text-white font-medium py-2.5 px-2.5 rounded-lg rounded-l-none"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-5 h-5"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                  </button>
-                </div>
-                <div class="py-2 flex flex-wrap items-center gap-2">
-                  <span
-                    v-for="(interest, index) of user.data.interests"
-                    :key="interest"
-                    class="inline-flex items-center pl-2 text-sm font-medium bg-gray-50 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500"
-                  >
-                    {{ interest }}
-                    <button
-                      @click="removeInterest(index)"
-                      class="py-1 px-2 ml-2 text-sm text-gray-600 hover:text-gray-900 font-medium rounded dark:text-gray-400 dark:hover:text-white"
-                    >
-                      x
-                    </button>
-                  </span>
-                </div>
-              </div>
+              <textarea
+                v-model="state.userData.interests"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder=""
+                rows="4"
+              ></textarea>
             </div>
             <!-- Business Name -->
-            <div class="py-2 flex items-center">
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Business Name</span
               >
               <input
-                v-model="user.data.business_name"
                 type="text"
+                v-model="state.userData.businessName"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
             <!-- In business since -->
-            <div class="py-2 flex items-center">
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 flex-shrink-0 uppercase text-sm w-64 dark:text-gray-300"
-                >In business since</span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >In Business Since</span
               >
               <input
-                v-model="user.data.years_in_business"
                 type="text"
+                v-model="state.userData.inBusinessSince"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
             </div>
           </div>
-
-          <div v-else class="flex flex-col dark:text-gray-200">
+          <!-- Read profile -->
+          <div v-else class="flex flex-col gap-6">
             <div class="flex items-center justify-between">
               <h2 class="text-2xl font-bold py-3 dark:text-white">
-                About @{{ user.data.handle }}
+                About @{{ state.userData.handle }}
               </h2>
             </div>
-            <!-- Name -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
-                >Name</span
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Full name</span
               >
-              <p>{{ user.data.first_name }} {{ user.data.last_name }}</p>
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.fullName }}
+              </span>
             </div>
-            <!-- Location -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Pheon number</span
+              >
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.phoneNumber || 'Not provided' }}
+              </span>
+            </div>
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Location</span
               >
-              <p>{{ user.data.location }}</p>
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.location || 'Not provided' }}
+              </span>
             </div>
-            <!-- Bio -->
-            <div class="py-2 flex items-start">
-              <span class="font-semibold mr-2 uppercase text-sm w-40">Bio</span>
-              <p v-if="user.data.bio" class="flex-shrink">
-                {{ user.data.bio }}
-              </p>
-              <p v-else class="italic text-xm">No bio available.</p>
-            </div>
-            <!-- Join Date -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
-                >Joined</span
+            <div class="flex items-start">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Bio</span
               >
-              <p>{{ new Date(user.data.created_at).toLocaleDateString() }}</p>
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.bio || 'Not provided' }}
+              </span>
             </div>
-            <!-- Education Level -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
-                >Education Level</span
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Education level</span
               >
-              <p>
-                <span v-if="user.data.education_level === 'Hs'">
-                  High School
-                </span>
-                <span v-else-if="user.data.education_level === 'Aa'">
-                  Associate's of Arts / Science
-                </span>
-                <span v-else-if="user.data.education_level === 'Ba'">
-                  Bachelor's of Arts / Science
-                </span>
-                <span v-else-if="user.data.education_level === 'Ma'">
-                  Master's of Arts / Science
-                </span>
-                <span v-else-if="user.data.education_level === 'Phd'">
-                  Doctorate Degree
-                </span>
-              </p>
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.educationLevel || 'Not provided' }}
+              </span>
             </div>
-            <!-- Education institution -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
-                >Education Institution</span
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Education institution</span
               >
-              <p>{{ user.data.education_institution }}</p>
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.educationInstitution || 'Not provided' }}
+              </span>
             </div>
-            <!-- Education major -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
-                >Education Major</span
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Education major</span
               >
-              <p>{{ user.data.education_major }}</p>
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.educationMajor || 'Not provided' }}
+              </span>
             </div>
-            <!-- Occupation -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Occupation</span
               >
-              <p>{{ user.data.occupation }}</p>
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.occupation || 'Not provided' }}
+              </span>
             </div>
-            <!-- Interests -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
-                >Interests</span
-              >
-              <div class="py-2 flex flex-wrap items-center gap-2">
-                <span
-                  v-for="interest of user.data.interests"
-                  :key="interest"
-                  class="inline-flex items-center px-2 text-sm font-medium bg-gray-50 border border-gray-300 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white 0"
-                >
-                  {{ interest }}
-                </span>
-              </div>
-            </div>
-            <!-- Business Name -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
-                >Business Name</span
-              >
-              <p>{{ user.data.business_name }}</p>
-            </div>
-            <!-- In business since -->
-            <div class="py-2 flex items-center">
-              <span class="font-semibold mr-2 uppercase text-sm w-40"
-                >In business since</span
-              >
-              <p>{{ user.data.years_in_business }}</p>
-            </div>
-            <!-- Friends -->
-            <div class="py-2 flex items-start">
+            <div class="flex items-center">
               <span
-                class="font-semibold mr-2 uppercase text-sm w-40 dark:text-gray-300"
-                >Friends</span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Business name</span
               >
-              <div
-                v-for="friend in user.data.friends"
-                :key="friend"
-                @click="
-                  $router.push({
-                    name: 'profile',
-                    params: { handle: friend.handle }
-                  })
-                "
-                class="cursor-pointer flex flex-col items-center just-fiy-center p-2 gap-2 text-sm font-medium text-gray-700 bg-gray-50 border rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-              >
-                <img :src="friend.avatar_uri" class="w-8 h-8 rounded-full" />
-                <span class="ml-2">@{{ friend.handle }}</span>
-              </div>
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.businessName || 'Not provided' }}
+              </span>
             </div>
-          </div>
-        </div>
-
-        <!-- Comments -->
-        <div
-          v-if="$route.name === 'profile-comments'"
-          class="flex-1 w-full flex flex-col gap-12 px-2"
-        >
-          <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
-            {{ user.data.first_name }}'s Comments
-          </h4>
-          <AlertComponent
-            v-show="profileAlert.message"
-            class="my-4"
-            :type="profileAlert.type"
-            :message="profileAlert.message"
-            :dismissible="false"
-          />
-          <div
-            v-if="!!user.comments && user.comments.length <= 0"
-            class="bg-gray-50 border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-          >
-            <p class="text-center text-gray-500">No posts found.</p>
-          </div>
-          <div v-for="post of user.comments" :key="post.id">
-            <PostComponent :post="post" class="shadow-sm" />
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >In Business Since</span
+              >
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.inBusinessSince || 'Not provided' }}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -813,9 +683,37 @@ async function addFriend() {
           v-if="$route.name === 'profile-likes'"
           class="flex-1 flex flex-col gap-12 px-2"
         >
-          <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
-            {{ user.data.first_name }}'s Likes
-          </h4>
+          <div class="flex items-center justify-between">
+            <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+              Liked by @{{ state.userData.handle }}
+            </h4>
+            <div class="relative">
+              <button
+                type="button"
+                @click="user.fetchLikedPostsByHandle($route.params.handle)"
+                class="peer p-2.5 rounded-full text-gray-700 bg-white hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  class="w-6 h-6 fill-current"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M5.463 4.433A9.961 9.961 0 0 1 12 2c5.523 0 10 4.477 10 10 0 2.136-.67 4.116-1.81 5.74L17 12h3A8 8 0 0 0 6.46 6.228l-.997-1.795zm13.074 15.134A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12c0-2.136.67-4.116 1.81-5.74L7 12H4a8 8 0 0 0 13.54 5.772l.997 1.795z"
+                  />
+                </svg>
+              </button>
+
+              <div
+                class="hidden peer-hover:block absolute z-10 right-0 mt-1 py-2 px-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm tooltip dark:bg-gray-700"
+              >
+                Refresh
+              </div>
+            </div>
+          </div>
           <AlertComponent
             v-show="profileAlert.message"
             class="my-4"
@@ -824,12 +722,12 @@ async function addFriend() {
             :dismissible="false"
           />
           <div
-            v-if="!!user.likes && user.likes.length <= 0"
+            v-if="!!state.likes && state.likes.length <= 0"
             class="bg-gray-50 border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
           >
-            <p class="text-center text-gray-500">No posts found.</p>
+            <p class="text-center text-gray-500">No liked posts found.</p>
           </div>
-          <div v-for="post of user.likes" :key="post.id">
+          <div v-for="post of state.likes" :key="post.id">
             <PostComponent :post="post" class="shadow-sm" />
           </div>
         </div>
@@ -840,9 +738,8 @@ async function addFriend() {
           class="flex-1 flex flex-col gap-12 px-2"
         >
           <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
-            {{ user.data.first_name }}'s Connections
+            @{{ state.userData.handle }}'s Connections
           </h4>
-          <!-- TODO: if own account show suggestions -->
           <AlertComponent
             v-show="profileAlert.message"
             class="my-4"
@@ -851,17 +748,44 @@ async function addFriend() {
             :dismissible="false"
           />
           <div
-            v-if="!!user.connections && user.connections.length <= 0"
+            v-if="
+              !state.userData.following || state.userData.following.length <= 0
+            "
             class="bg-gray-50 border border-gray-200 p-2 rounded-lg dark:bg-gray-800 dark:border-gray-700"
           >
             <p class="text-center text-gray-500">No connections found.</p>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
-            <UserCardComponent
-              v-for="friend of user.connections"
-              :key="friend.id"
-              :user="friend"
-            />
+            <div
+              v-for="user of state.userData.following"
+              :key="user.id"
+              class="w-full p-4 text-gray-900 bg-white rounded-lg border shadow-sm border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white flex items-center gap-4"
+            >
+              <div class="flex-shrink-0">
+                <img
+                  :src="user.avatarUrl"
+                  class="w-12 h-12 rounded-full"
+                  alt="User avatar"
+                />
+              </div>
+              <div class="flex-1">
+                <h5 class="text-lg font-semibold text-gray-800 dark:text-white">
+                  @{{ user.handle }}
+                </h5>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ user.fullName }}
+                </p>
+              </div>
+              <div class="flex-shrink-0">
+                <button
+                  type="button"
+                  @click="user.unfollow(user.id)"
+                  class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+                >
+                  Unfollow
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

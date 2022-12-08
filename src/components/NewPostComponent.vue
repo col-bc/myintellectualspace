@@ -1,10 +1,9 @@
 <script setup>
 import AlertComponent from '@/components/AlertComponent.vue'
 import useUserStore from '@/stores/user'
-import axios from 'axios'
 import { reactive } from 'vue'
 
-const userStore = useUserStore()
+const user = useUserStore()
 
 const newPost = reactive({
   error: '',
@@ -38,40 +37,24 @@ async function createPost() {
   if (newPost.error) {
     return
   }
-  const formData = new FormData()
-  formData.append('content', newPost.content)
-  formData.append('location', newPost.location)
-  formData.append('image', newPost.image)
-
-  try {
-    const response = await axios.post('/api/post/', formData, {
-      headers: {
-        Authorization: userStore.getBearerToken,
-        'Content-Type': 'multiple/form-data'
-      }
-    })
-    if (response.status === 201) {
-      newPost.content = ''
-      newPost.location = ''
-      newPost.image = null
-      newPost.imageUrl = null
-      newPost.error = ''
-
-      userStore.addPost(response.data.post)
-    }
-  } catch (error) {
-    console.log(error)
-    newPost.error = error.response.data
-  }
+  await user.addPost({
+    content: newPost.content,
+    location: newPost.location,
+    image: newPost.image,
+    likes: [],
+    comments: []
+  })
+  // reset form
+  newPost.content = ''
+  newPost.location = ''
+  newPost.image = null
+  newPost.imageUrl = null
 }
 async function getPostLocation() {
-  try {
-    const { data } = await axios.get('https://ipinfo.io/json', {
-      headers: { Authorization: 'Bearer c63cde3ca6489b' }
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      newPost.location = `${position.coords.latitude},${position.coords.longitude}`
     })
-    newPost.location = `${data.city}, ${data.region}, ${data.country}`
-  } catch (err) {
-    newPost.error = 'Could not get your location'
   }
 }
 </script>
@@ -84,7 +67,7 @@ async function getPostLocation() {
       <div class="flex py-2 px-4">
         <textarea
           v-model="newPost.content"
-          rows="4"
+          rows="6"
           class="flex-1 px-0 w-full text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400"
           placeholder="Share with your network"
         ></textarea>
@@ -101,7 +84,7 @@ async function getPostLocation() {
         type="error"
       />
       <div
-        class="flex justify-between items-center py-2 px-3 bg-gray-50 border-t dark:border-gray-600"
+        class="flex justify-between items-center py-2 px-3 bg-gray-50 border-t dark:border-gray-600 dark:bg-gray-700"
       >
         <button
           type="submit"

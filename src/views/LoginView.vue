@@ -1,18 +1,23 @@
 <script setup>
 import AlertComponent from '@/components/AlertComponent.vue'
+import LoaderComponent from '@/components/LoaderComponent.vue'
 import useUserStore from '@/stores/user'
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword
+} from 'firebase/auth'
+import { getDoc, doc, getFirestore } from 'firebase/firestore'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider
-} from 'firebase/auth'
-
 const provider = new GoogleAuthProvider()
 const auth = getAuth()
+const db = getFirestore()
+const router = useRouter()
+const route = useRoute()
+const userStore = useUserStore()
 
 onMounted(() => {
   auth.languageCode = 'it'
@@ -24,15 +29,10 @@ onMounted(() => {
   }
 })
 
-const router = useRouter()
-const route = useRoute()
-const userStore = useUserStore()
-
 const form = reactive({
   email: '',
   password: ''
 })
-
 const alert = ref('')
 const loading = ref(false)
 
@@ -41,28 +41,101 @@ function validateForm() {
   if (!form.email || !form.password) {
     alert.value = 'Both email and password are required.'
     form.password = ''
-    return
+    return false
   }
   // verify email is valid
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
     alert.value = 'Please enter a valid email address'
     form.password = ''
+    return false
+  }
+  return true
+}
+async function loginWithEmail() {
+  // login with username and password
+  if (!validateForm()) {
     return
   }
-  login()
-}
-function login() {}
-function loginWithGoogle() {
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user
-      userStore.setUser(user)
+  loading.value = true
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      form.email,
+      form.password
+    )
+    const user = userCredential.user
+    const userDoc = doc(db, 'users', user.email)
+    const docSnap = await getDoc(userDoc)
+    if (docSnap.exists()) {
+      userStore.setUser(docSnap.data())
+      // handle redirect
+      // push to onboarding if handle or fullName if not set
+      if (!userStore.user.handle || !userStore.user.fullName) {
+        router.push('/getting-started')
+        return
+      }
+      // push to router next param if set
       if (route.params.next && route.params.next !== '/login') {
         router.push(route.params.next)
-      } else {
-        router.push('/')
+        return
       }
-      router.push('/')
+      // push to profile home if no next param
+      else {
+        router.push({
+          name: 'profile',
+          params: { handle: userStore.user.handle }
+        })
+        return
+      }
+    } else {
+      alert.value = 'Invalid email or password'
+    }
+  } catch (error) {
+    /*
+    TODO: Remove error logging
+          exposing this error allows for user enumeration
+    */
+    console.log(error)
+    alert.value = 'Invalid email or password'
+  } finally {
+    loading.value = false
+    form.password = ''
+  }
+}
+async function loginWithGoogle() {
+  signInWithPopup(auth, provider)
+    .then(async (result) => {
+      const user = result.user
+      // get user from firestore
+      getDoc(doc(db, 'users', user.email)).then(async (doc) => {
+        if (doc.exists()) {
+          await userStore.setUser(doc.data())
+          console.log('User logged in: ', doc.data())
+          // handle redirect
+          // push to onboarding if handle or fullName if not set
+          if (!userStore.user.handle || !userStore.user.fullName) {
+            router.push('/getting-started')
+            return
+          }
+          // push to router next param if set
+          if (route.params.next && route.params.next !== '/login') {
+            router.push(route.params.next)
+            return
+          }
+          // push to profile home if no next param
+          else {
+            router.push({
+              name: 'profile',
+              params: { handle: userStore.user.handle }
+            })
+            return
+          }
+          router.push('/')
+        } else {
+          router.push('/register')
+          return
+        }
+      })
     })
     .catch((error) => {
       alert.value = error.message
@@ -102,39 +175,35 @@ function loginWithGoogle() {
       <button
         type="button"
         @click="loginWithGoogle()"
-        class="py-2.5 px-5 flex items-center justify-center gap-4 mb-4 font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          class="w-5 h-5 fill-current"
-        >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M3.064 7.51A9.996 9.996 0 0 1 12 2c2.695 0 4.959.99 6.69 2.605l-2.867 2.868C14.786 6.482 13.468 5.977 12 5.977c-2.605 0-4.81 1.76-5.595 4.123-.2.6-.314 1.24-.314 1.9 0 .66.114 1.3.314 1.9.786 2.364 2.99 4.123 5.595 4.123 1.345 0 2.49-.355 3.386-.955a4.6 4.6 0 0 0 1.996-3.018H12v-3.868h9.418c.118.654.182 1.336.182 2.045 0 3.046-1.09 5.61-2.982 7.35C16.964 21.105 14.7 22 12 22A9.996 9.996 0 0 1 2 12c0-1.614.386-3.14 1.064-4.49z"
-          />
-        </svg>
-        Continue with Google
-      </button>
-      <button
-        type="button"
         class="py-2.5 px-5 flex items-center justify-center gap-4 mb-6 font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <svg
-          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           width="24"
           height="24"
-          class="w-5 h-5 fill-current"
+          class="w-5 h-5"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M11.624 7.222c-.876 0-2.232-.996-3.66-.96-1.884.024-3.612 1.092-4.584 2.784-1.956 3.396-.504 8.412 1.404 11.172.936 1.344 2.04 2.856 3.504 2.808 1.404-.06 1.932-.912 3.636-.912 1.692 0 2.172.912 3.66.876 1.512-.024 2.472-1.368 3.396-2.724 1.068-1.56 1.512-3.072 1.536-3.156-.036-.012-2.94-1.128-2.976-4.488-.024-2.808 2.292-4.152 2.4-4.212-1.32-1.932-3.348-2.148-4.056-2.196-1.848-.144-3.396 1.008-4.26 1.008zm3.12-2.832c.78-.936 1.296-2.244 1.152-3.54-1.116.048-2.46.744-3.264 1.68-.72.828-1.344 2.16-1.176 3.432 1.236.096 2.508-.636 3.288-1.572z"
-          />
+          <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+            <path
+              fill="#4285F4"
+              d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"
+            />
+            <path
+              fill="#34A853"
+              d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"
+            />
+            <path
+              fill="#EA4335"
+              d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"
+            />
+          </g>
         </svg>
-        Continue with Apple
+        Continue with Google
       </button>
 
       <div class="flex items-center justify-center mb-6">
@@ -145,34 +214,17 @@ function loginWithGoogle() {
 
       <form
         class="w-full flex flex-col gap-6 mb-6"
-        @submit.prevent="validateForm()"
+        @submit.prevent="loginWithEmail"
       >
         <!-- Alerts -->
         <div
-          v-if="
-            $route.query.registered ||
-            $route.query.verified === 'true' ||
-            $route.query.verified === 'false' ||
-            !!alert
-          "
+          v-if="$route.query.registered === 'true' || !!alert"
           class="flex flex-col gap-y-2"
         >
           <AlertComponent
-            v-if="$route.query.registered"
+            v-if="$route.query.registered === 'true'"
             message="You have successfully registered. Please login to continue."
             type="success"
-            :dismissible="false"
-          />
-          <AlertComponent
-            v-if="$route.query.verified === 'true'"
-            message="You have successfully verified your email address. Please log in."
-            type="success"
-            :dismissible="false"
-          />
-          <AlertComponent
-            v-if="$route.query.verified === 'false'"
-            message="Your email address could not be verified. Please try again."
-            type="error"
             :dismissible="false"
           />
           <AlertComponent
@@ -182,42 +234,34 @@ function loginWithGoogle() {
             type="error"
           />
         </div>
-        <input
-          type="text"
-          v-model="form.email"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Email address"
-        />
-        <input
-          type="password"
-          v-model="form.password"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Password"
-        />
+        <div>
+          <label class="mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Email</label
+          >
+          <input
+            type="text"
+            v-model="form.email"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Email address"
+          />
+        </div>
+        <div>
+          <label class="mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Password</label
+          >
+          <input
+            type="password"
+            v-model="form.password"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Password"
+          />
+        </div>
         <button
           type="submit"
           :disabled="loading"
           class="inline-flex items-center text-base justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 uppercase"
         >
-          <div role="status" v-if="loading">
-            <svg
-              aria-hidden="true"
-              class="mr-2 w-6 h-6 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-              viewBox="0 0 100 101"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                fill="currentColor"
-              />
-              <path
-                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                fill="currentFill"
-              />
-            </svg>
-            <span class="sr-only">Loading...</span>
-          </div>
+          <LoaderComponent v-if="loading" />
           <span v-else> Continue </span>
         </button>
       </form>

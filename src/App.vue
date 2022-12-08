@@ -2,12 +2,15 @@
 import FooterComponent from './components/FooterComponent.vue'
 import { RouterView } from 'vue-router'
 import { onMounted } from 'vue'
+import useInterface from '@/stores/interface'
+
+const ui = useInterface()
 
 onMounted(() => {
   if (localStorage.getItem('color-theme') === 'dark') {
-    document.documentElement.classList.add('dark')
+    ui.setDarkTheme(true)
   } else {
-    document.documentElement.classList.remove('dark')
+    ui.setDarkTheme(false)
   }
 })
 </script>
@@ -33,7 +36,6 @@ onMounted(() => {
 @tailwind utilities;
 
 body {
-  /* font-family: 'Josefin Sans', sans-serif; */
   font-family: 'Montserrat', sans-serif;
   @apply bg-white dark:bg-slate-800;
 }

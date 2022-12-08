@@ -1,180 +1,98 @@
 <script setup>
 import useUserStore from '@/stores/user'
-import axios from 'axios'
-import { defineProps, onMounted, onUpdated, reactive, ref } from 'vue'
-import LightboxComponent from './LightboxComponent.vue'
-import ModalComponent from './ModalComponent.vue'
+import { computed, defineProps, onMounted, reactive } from 'vue'
+import { Timestamp } from '@firebase/firestore'
+import { Menu, MenuButton, MenuItems } from '@headlessui/vue'
 
-const userStore = useUserStore()
-
+const user = useUserStore()
 const props = defineProps({
   post: {
     type: Object,
     required: true
-  },
-  expand: {
-    type: Boolean,
-    default: false
   }
 })
 const state = reactive({
-  post: props.post,
-  liked: false,
-  isPostOwner: false,
-  commentsExpended: false,
-  newComment: '',
-  commentError: '',
-  reportMenuOpen: false
+  showComments: false,
+  showDelete: false,
+  comment: ''
 })
+
 onMounted(() => {
-  state.commentsExpended =
-    JSON.parse(state.post.comments).length > 0 || props.expand
-  state.post = props.post
-  state.liked = state.post.liked_by.includes(userStore.getHandle)
-  state.isPostOwner = state.post.user_id === userStore.user.id
-})
-onUpdated(() => {
-  state.post = props.post
-  state.liked = state.post.liked_by.includes(userStore.getHandle)
-  state.isPostOwner = state.post.user_id === userStore.user.id
-  state.commentsExpended =
-    JSON.parse(state.post.comments).length > 0 || props.expand
+  state.showComments = props.post.comments.length > 0
 })
 
-const reportForm = ref() // <form> ...
+const isOwnPost = computed(() => {
+  return user.user.handle === props.post.author.handle
+})
+const isLiked = computed(() => {
+  return props.post.likes?.includes(user.user.handle)
+})
 
-async function handleLike() {
-  if (state.liked) {
-    try {
-      const response = await axios.post(
-        `/api/post/${state.post.id}/unlike`,
-        {},
-        {
-          headers: {
-            Authorization: userStore.getBearerToken
-          }
-        }
-      )
-      if (response.status === 200) {
-        state.liked = false
-        userStore.updatePost(response.data.post.id, response.data.post)
-        state.post = response.data.post
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  } else {
-    try {
-      const response = await axios.post(
-        `/api/post/${state.post.id}/like`,
-        {},
-        {
-          headers: {
-            Authorization: userStore.getBearerToken
-          }
-        }
-      )
-      if (response.status === 200) {
-        state.liked = true
-        userStore.updatePost(response.data.post.id, response.data.post)
-        state.post = response.data.post
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
-}
-function timeSince(date) {
-  var seconds = Math.floor((new Date() - date) / 1000)
-
-  var interval = seconds / 31536000
-
+function timeSince(timestamp) {
+  // parse firestore timestamp
+  const date = new Timestamp(timestamp.seconds, timestamp.nanoseconds).toDate()
+  // get current time
+  const now = new Date()
+  // get difference in seconds
+  const seconds = Math.floor((now - date) / 1000)
+  // calculate time since
+  let interval = Math.floor(seconds / 31536000)
   if (interval > 1) {
-    return Math.floor(interval) + ' years'
+    return interval + ' years'
   }
-  interval = seconds / 2592000
+  interval = Math.floor(seconds / 2592000)
   if (interval > 1) {
-    return Math.floor(interval) + ' months'
+    return interval + ' months'
   }
-  interval = seconds / 86400
+  interval = Math.floor(seconds / 86400)
   if (interval > 1) {
-    return Math.floor(interval) + ' days'
+    return interval + ' days'
   }
-  interval = seconds / 3600
+  interval = Math.floor(seconds / 3600)
   if (interval > 1) {
-    return Math.floor(interval) + ' hours'
+    return interval + ' hours'
   }
-  interval = seconds / 60
+  interval = Math.floor(seconds / 60)
   if (interval > 1) {
-    return Math.floor(interval) + ' minutes'
+    return interval + ' minutes'
   }
   return Math.floor(seconds) + ' seconds'
 }
+async function toggleLike() {
+  user.toggleLike(props.post)
+}
 async function deletePost() {
-  let id = state.post.id
-  try {
-    const response = await axios.delete(`/api/post/${id}`, {
-      headers: {
-        Authorization: userStore.getBearerToken
-      }
-    })
-    if (response.status === 200) {
-      userStore.removePost(id)
-    }
-  } catch (err) {
-    console.log(err)
-  }
+  user.deletePost(props.post.id)
 }
 async function addComment() {
-  state.commentError = ''
-  if (!state.newComment) {
-    state.commentError = 'Comment cannot be empty'
-    return
-  }
-  try {
-    const response = await axios.post(
-      `/api/post/${state.post.id}/comment`,
-      {
-        content: state.newComment
-      },
-      {
-        headers: {
-          Authorization: userStore.getBearerToken
-        }
-      }
-    )
-    if (response.status === 200) {
-      state.post.comments.push(response.data.comment)
-      state.newComment = ''
-    }
-  } catch (error) {
-    console.log(error)
+  if (state.comment.length > 0) {
+    await user.addComment(props.post.id, state.comment)
+    state.comment = ''
   }
 }
-async function reportPost() {
-  const form = reportForm.value
-  console.log(form)
-  state.reportMenuOpen = false
-}
+async function reportPost() {}
 </script>
 
 <template>
   <div
-    class="bg-white border border-gray-300 rounded-lg w-full dark:bg-gray-800 dark:border-gray-600"
+    class="bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-600"
   >
     <!-- Header -->
     <div class="flex items-center p-4 pb-2">
       <div
         class="flex items-center cursor-pointer mr-auto"
-        @click="$router.push(`/social/@${state.post.owner_handle}`)"
+        @click="$router.push(`/social/@${props.post.author.handle}`)"
       >
-        <img :src="state.post.owner_avatar" class="h-8 w-8 rounded-full mr-4" />
+        <img
+          :src="props.post.author.avatarUrl"
+          class="h-8 w-8 rounded-full mr-4"
+        />
         <h6 class="font-medium text-gray-900 dark:text-white">
-          {{ state.post.owner_handle }}
+          {{ props.post.author.handle }}
         </h6>
       </div>
       <p class="text-xs text-gray-600 dark:text-gray-400">
-        {{ timeSince(new Date(state.post.created_at)) }}
+        {{ timeSince(props.post.createdAt) }}
         ago
       </p>
     </div>
@@ -182,24 +100,21 @@ async function reportPost() {
     <div
       class="flex flex-col md:flex-row justify-start md:justify-between items-start gap-4 px-4 py-4"
     >
-      <div class="w-1/2">
-        <p class="text-gray-800 dark:text-white font-medium">
-          {{ state.post.content }}
-        </p>
-      </div>
-      <div class="w-1/2">
-        <LightboxComponent
-          :image="state.post.image_uri"
-          class="rounded-lg object-cover"
-        />
-      </div>
+      <p class="text-gray-800 dark:text-white font-medium">
+        {{ props.post.content }}
+      </p>
     </div>
     <!-- Action bar -->
     <div
-      class="flex items-center justify-end py-2 px-3 bg-gray-50 border-t rounded-b-lg dark:border-gray-600 dark:bg-gray-700"
+      class="flex items-center justify-end py-2 px-3 bg-gray-50 border-y dark:border-gray-600 dark:bg-gray-700"
+      :class="{
+        'rounded-b-lg':
+          (!props.post.comments || props.post.comments.length === 0) &&
+          !state.showComments
+      }"
     >
       <p
-        v-if="!!state.post.location"
+        v-if="!!props.post.location"
         class="flex items-center gap-2 mr-auto text-xs text-gray-700 dark:text-gray-300"
       >
         <svg
@@ -214,136 +129,64 @@ async function reportPost() {
             d="M12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zm4.95-7.778a7 7 0 1 0-9.9 0L12 20.9l4.95-4.95zM12 13a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
           />
         </svg>
-        {{ state.post.location }}
+        {{ props.post.location }}
       </p>
       <!-- Delete btn -->
-      <button
-        v-if="state.isPostOwner"
-        @click="deletePost()"
-        type="button"
-        class="inline-flex items-center justify-center gap-2 p-2 text-red-500 rounded font-medium text-xs hover:text-red-700 hover:bg-white dark:text-red-400 dark:hover:bg-gray-600"
-      >
-        DELETE
-      </button>
-      <!-- report btn -->
-      <form @submit.prevent="reportPost()" ref="reportForm">
-        <ModalComponent v-if="userStore.user.id !== state.post.user_id">
-          <template #button>
-            <button
-              type="button"
-              class="ml-2 inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+      <Menu as="div" class="relative" v-if="isOwnPost">
+        <MenuButton
+          type="button"
+          class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            class="w-5 h-5 fill-current"
+          >
+            <path fill="none" d="M0 0h24v24H0z" />
+            <path
+              d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
+            />
+          </svg>
+        </MenuButton>
+        <MenuItems
+          class="flex flex-col absolute top-full w-52 mt-1 max-w-sm right-0 p-4 text-gray-800 bg-white border border-gray-200 rounded-lg shadow-md dark:text-white dark:bg-gray-800 dark:border-gray-700"
+        >
+          <p class="text-lg font-medium mb-4">
+            Are you sure you want to delete this post?
+          </p>
+          <button
+            type="button"
+            @click="deletePost"
+            class="flex items-center justify-center gap-2.5 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              class="w-5 h-5 fill-current"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                class="w-5 h-5 fill-current"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M5 16v6H3V3h9.382a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5zM5 5v9h8.236l1 2H19V7h-6.236l-1-2H5z"
-                />
-              </svg>
-            </button>
-          </template>
-          <template #content>
-            <div class="flex flex-col gap-4 p-4">
-              <div
-                class="text-white mx-auto p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="w-16 h-16 fill-current"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M5 16v6H3V3h9.382a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5zM5 5v9h8.236l1 2H19V7h-6.236l-1-2H5z"
-                  />
-                </svg>
-              </div>
-              <h3 class="text-2xl text-center font-bold dark:text-white">
-                Report Post
-              </h3>
-              <div class="flex flex-col gap-4">
-                <label
-                  class="cursor-pointer bg-gray-50 rounded-lg border border-gray-300 dark:border-gray-600 p-4 w-full text-sm font-medium text-gray-900 dark:text-gray-300 dark:bg-gray-800"
-                >
-                  <input
-                    type="checkbox"
-                    value="inappropriate"
-                    name="report_reason"
-                    class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  This post contains inappropriate content
-                </label>
-                <label
-                  class="cursor-pointer bg-gray-50 rounded-lg border border-gray-300 dark:border-gray-600 p-4 w-full text-sm font-medium text-gray-900 dark:text-gray-300 dark:bg-gray-800"
-                >
-                  <input
-                    type="checkbox"
-                    name="report_reason"
-                    value="community_guidelines"
-                    class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  This post violates the Community Guidelines
-                </label>
-                <label
-                  class="cursor-pointer bg-gray-50 rounded-lg border border-gray-300 dark:border-gray-600 p-4 w-full text-sm font-medium text-gray-900 dark:text-gray-300 dark:bg-gray-800"
-                >
-                  <input
-                    type="checkbox"
-                    name="report_reason"
-                    value="spam"
-                    class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  This post is spam or malicious
-                </label>
-                <label
-                  class="cursor-pointer bg-gray-50 rounded-lg border border-gray-300 dark:border-gray-600 p-4 w-full text-sm font-medium text-gray-900 dark:text-gray-300 dark:bg-gray-800"
-                >
-                  <input
-                    type="checkbox"
-                    name="report_reason"
-                    value="other"
-                    class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  Other <small>(please specify)</small>
-                </label>
-              </div>
-              <textarea
-                rows="4"
-                name="report_reason_other"
-                class="block mb-4 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Details (optional)"
-              ></textarea>
-            </div>
-          </template>
-          <template #actions>
-            <button
-              type="submit"
-              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-            >
-              Report
-            </button>
-          </template>
-        </ModalComponent>
-      </form>
-      <!-- comments btn -->
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
+              />
+            </svg>
+            Delete Post
+          </button>
+        </MenuItems>
+      </Menu>
+      <!-- Comment counter -->
       <button
         type="button"
-        @click="state.commentsExpended = !state.commentsExpended"
+        @click="state.showComments = !state.showComments"
         class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
       >
         <span
           class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
         >
-          {{
-            !!state.post.comments ? JSON.parse(state.post.comments).length : ''
-          }}
+          {{ props.post.comments ? props.post.comments.length : '0' }}
         </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -358,20 +201,19 @@ async function reportPost() {
           />
         </svg>
       </button>
-
-      <!-- like btn -->
+      <!-- Like btn -->
       <button
         type="button"
-        @click="handleLike()"
+        @click="toggleLike"
         class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
       >
         <span
           class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
         >
-          {{ !!state.post.liked_by ? state.post.liked_by.length : '' }}
+          {{ props.post.likes ? props.post.likes.length : '0' }}
         </span>
         <svg
-          v-if="!state.liked"
+          v-if="!isLiked"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           class="w-5 h-5 fill-current"
@@ -398,65 +240,64 @@ async function reportPost() {
         </svg>
       </button>
     </div>
+
     <!-- Comments -->
-    <div
-      v-if="state.commentsExpended"
-      class="p-4 pt-2 border-t border-gray-300 dark:border-gray-700"
-    >
-      <div
-        v-for="comment of JSON.parse(state.post.comments)"
-        :key="comment"
-        class="flex items-start w-full mb-4"
-      >
-        <router-link
-          class="flex-shrink-0"
-          :to="{ name: 'profile', params: { handle: comment.handle } }"
-        >
-          <img :src="comment.avatar" class="block w-8 h-8 rounded-full" />
-        </router-link>
-        <div class="flex flex-col ml-2">
-          <p class="text-gray-900 text-sm dark:text-white">
-            {{ comment.comment }}
-          </p>
-          <p class="text-xs text-gray-700 dark:text-gray-400">
-            on {{ new Date(comment.created_at).toLocaleString() }}
-          </p>
-        </div>
-      </div>
-      <!-- New comment -->
-      <div class="w-full relative mt-4">
-        <input
-          type="text"
-          v-model="state.newComment"
-          @keyup.enter="addComment()"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Add a comment"
-        />
+    <form v-if="state.showComments">
+      <div class="flex items-end px-3 py-2 bg-gray-white dark:bg-gray-800">
+        <textarea
+          rows="1"
+          v-model="state.comment"
+          class="block mr-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          placeholder="Add a  comment"
+        ></textarea>
         <button
           type="button"
-          @click="addComment()"
-          class="absolute inset-y-0 right-0 m-px text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg rounded-l-none text-sm p-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          @click="addComment"
+          class="inline-flex justify-center p-2 text-blue-600 rounded-full cursor-pointer hover:bg-blue-100 dark:text-blue-500 dark:hover:bg-gray-600"
         >
           <svg
+            aria-hidden="true"
+            class="w-6 h-6 rotate-90"
+            fill="currentColor"
+            viewBox="0 0 20 20"
             xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
           >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
+            <path
+              d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"
+            ></path>
           </svg>
+          <span class="sr-only">Send message</span>
         </button>
       </div>
-      <span v-if="!!state.commentError" class="-mt-4 text-red-500 text-xs">
-        {{ state.commentError }}
-      </span>
-    </div>
+      <div
+        v-if="props.post.comments?.length !== 0"
+        class="bg-white dark:bg-gray-800"
+      >
+        <template v-for="comment in props.post.comments" :key="comment">
+          <div
+            class="flex items-center px-3 py-2 border-b border-gray-200 dark:border-gray-600 last:rounded-b-lg"
+          >
+            <img
+              @click="
+                $router.push({
+                  name: 'profile',
+                  params: { handle: comment.author.handle }
+                })
+              "
+              :src="comment.author.avatarUrl"
+              class="w-10 h-10 rounded-full cursor-pointer"
+            />
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-900 dark:text-white">
+                @{{ comment.author.handle }}
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ comment.content }}
+              </p>
+            </div>
+          </div>
+        </template>
+      </div>
+    </form>
   </div>
 </template>

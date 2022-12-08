@@ -5,7 +5,7 @@ import FooterComponent from '../components/FooterComponent.vue'
 
 <template>
   <main class="bg-white dark:bg-slate-800">
-    <div class="min-h-screen" id="hero">
+    <div class="min-h-screen flex flex-col" id="hero">
       <div class="bg-white dark:bg-slate-800">
         <div class="max-w-screen-xl mx-auto">
           <NavbarComponent />
@@ -42,11 +42,11 @@ import FooterComponent from '../components/FooterComponent.vue'
         </div>
       </div>
       <div
-        class="max-w-screen-xl mx-auto flex flex-row items-center px-2 py-12 lg:py-16"
+        class="max-w-screen-xl w-full mx-auto flex flex-1 flex-row items-center justify-start px-2"
       >
         <div class="container mx-auto flex-1 flex flex-col gap-8">
           <h1
-            class="max-w-screen-md text-3xl md:text-5xl font-black drop-shadow-xl leading-loose text-white"
+            class="max-w-screen-md text-3xl md:text-5xl font-black drop-shadow-xl md:leading-relaxed text-white"
           >
             Your space to learn, grow, share and connect.
           </h1>
@@ -65,9 +65,9 @@ import FooterComponent from '../components/FooterComponent.vue'
             <button
               type="button"
               @click="$router.push('/register')"
-              class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
+              class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
             >
-              Create Your Own Space
+              Get Started Now
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="w-5 h-5 ml-3"
@@ -95,69 +95,85 @@ import FooterComponent from '../components/FooterComponent.vue'
       <h2
         class="text-gray-900 text-center text-4xl font-black drop-shadow-xl leading-snug dark:text-white mb-12"
       >
-        Explore Trending Courses
+        Catch Up on the Latest Posts
       </h2>
       <div
-        class="max-w-screen-xl w-full mx-auto px-2 md:px-0 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12 mb-12 sm:px-4"
+        class="max-w-screen-xl w-full mx-auto px-2 md:px-0 grid grid-cols-2 gap-4 md:gap-12 mb-12 sm:px-4"
       >
-        <div
-          @click="
-            $router.push({ name: 'learn-course', params: { name: 'test' } })
-          "
-          class="placeholder-course"
-        >
-          &nbsp;
-        </div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
-        <div class="hidden md:block placeholder-course">&nbsp;</div>
+        <div class="placeholder-post">&nbsp;</div>
+        <div class="placeholder-post">&nbsp;</div>
+        <div class="placeholder-post">&nbsp;</div>
+        <div class="placeholder-post">&nbsp;</div>
+        <div class="placeholder-post">&nbsp;</div>
+        <div class="placeholder-post">&nbsp;</div>
       </div>
       <div>
         <button
           type="button"
           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base mx-auto px-6 py-3.5 text-center flex items-center shadow-lg"
         >
-          See all Learning Courses
+          Explore All Content
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 h-5 ml-3"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
         </button>
       </div>
     </div>
 
     <div class="min-h-screen flex items-center" id="hero-1">
       <div
-        class="container max-w-screen-md mx-auto flex-1 flex flex-col gap-8 px-2"
+        class="max-w-screen-xl w-full mx-auto flex flex-1 flex-row items-center justify-start px-2"
       >
-        <h1
-          class="text-3xl md:text-5xl font-black drop-shadow-xl leading-loose text-white"
-        >
-          Build your network and grow your career.
-        </h1>
-        <p
-          class="text-lg md:text-lg drop-shadow text-gray-300 leading-normal md:leading-loose"
-        >
-          Intellectual Space is a place for learning, networking, and
-          innovation. Our mission is to give access and guidance to all
-          communities, regardless of fiscal or social capital. We present the
-          tools and resources to allow our users to connect with other members
-          with a variety of skills, knowledge, trades, and interests, so that
-          they may develop a strong network and community, presenting job
-          opportunities, networking opportunities, and much more!
-        </p>
-        <div>
-          <button
-            type="button"
-            @click="$router.push('/explore')"
-            class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
+        <div class="container mx-auto flex-1 flex flex-col gap-8">
+          <h1
+            class="text-3xl md:text-5xl font-black drop-shadow-xl leading-loose text-white"
           >
-            Explore Network
-          </button>
+            Build your network and grow your career.
+          </h1>
+          <p
+            class="text-lg md:text-lg drop-shadow text-gray-300 leading-normal md:leading-loose"
+          >
+            Intellectual Space is a place for learning, networking, and
+            innovation. Our mission is to give access and guidance to all
+            communities, regardless of fiscal or social capital. We present the
+            tools and resources to allow our users to connect with other members
+            with a variety of skills, knowledge, trades, and interests, so that
+            they may develop a strong network and community, presenting job
+            opportunities, networking opportunities, and much more!
+          </p>
+          <div>
+            <button
+              type="button"
+              @click="$router.push('/explore')"
+              class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 mr-3 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M5 18h14v-6.969C19 7.148 15.866 4 12 4s-7 3.148-7 7.031V18zm7-16c4.97 0 9 4.043 9 9.031V20H3v-8.969C3 6.043 7.03 2 12 2zM9.5 21h5a2.5 2.5 0 1 1-5 0z"
+                />
+              </svg>
+              Get Notified
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -182,7 +198,7 @@ import FooterComponent from '../components/FooterComponent.vue'
   background-attachment: fixed;
 }
 
-.placeholder-course {
-  @apply h-32 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-lg hover:scale-110 transition-transform dark:bg-gray-800 dark:border-gray-700;
+.placeholder-post {
+  @apply h-64 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-lg transition-all dark:bg-gray-800 dark:border-gray-700;
 }
 </style>

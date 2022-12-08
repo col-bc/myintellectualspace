@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import useUserStore from '@/stores/user'
-import axios from 'axios'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,14 +11,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'index',
-      component: () => import('../views/IndexView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-        }
-        return next()
-      }
+      component: () => import('../views/IndexView.vue')
     },
 
     // # Authorization routes
@@ -41,35 +33,10 @@ const router = createRouter({
       name: 'logout',
       component: () => import('../views/IndexView.vue'),
       beforeEnter: (to, from, next) => {
+        const auth = getAuth()
+        auth.signOut()
         next('/?logout=true')
-        const userStore = useUserStore()
-        userStore.clearUser()
-        return
       }
-    },
-    // /verify/:token
-    {
-      path: '/verify/:token',
-      name: 'verify',
-      beforeEnter: async (to, from, next) => {
-        // Verify the token
-        try {
-          const response = await axios.get(
-            '/api/auth/verify/' + to.params.token
-          )
-          if (response.data.success) {
-            return next('/login?verified=true')
-          }
-        } catch (error) {
-          return next('/login?verified=false')
-        }
-      }
-    },
-    // /verify-email
-    {
-      path: '/verify-email',
-      name: 'verify-email',
-      component: () => import('@/views/Account/VerifyEmailView.vue')
     },
 
     // # Social Routes
@@ -83,15 +50,10 @@ const router = createRouter({
     {
       path: '/social/me',
       name: 'my-profile',
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        await userStore.fetchUser()
-        if (userStore.isLoggedIn) {
-          next({
-            name: 'profile',
-            params: { handle: userStore.getHandle }
-          })
-        } else return next('/login')
+      meta: { requiresAuth: true },
+      beforeEnter: (to, from, next) => {
+        const user = useUserStore()
+        next(`/social/@${user.handle}`)
       }
     },
     {
@@ -126,13 +88,7 @@ const router = createRouter({
           component: () => import('@/views/Account/ProfileView.vue')
         }
       ],
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/social/@:handle')
-      }
+      meta: { requiresAuth: true }
     },
     {
       path: '/not-found',
@@ -171,18 +127,7 @@ const router = createRouter({
           component: () => import('@/views/Explore/HomeView.vue')
         }
       ],
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          if (to.name === 'explore')
-            return next({
-              name: 'explore-all'
-            })
-
-          return next()
-        } else return next('/login?next=/explore')
-      }
+      meta: { requiresAuth: true }
     },
 
     // # Learn Routes
@@ -191,14 +136,7 @@ const router = createRouter({
     {
       path: '/learn',
       name: 'learn-home',
-      component: () => import('@/views/Learn/HomeView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-        }
-        return next()
-      }
+      component: () => import('@/views/Learn/HomeView.vue')
     },
     {
       path: '/learn/:id',
@@ -209,14 +147,7 @@ const router = createRouter({
           required: true
         }
       },
-      component: () => import('@/views/Learn/CourseView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-        }
-        return next()
-      }
+      component: () => import('@/views/Learn/CourseView.vue')
     },
 
     // # Teach Routes
@@ -227,26 +158,13 @@ const router = createRouter({
     {
       path: '/teach',
       name: 'teach-home',
-      component: () => import('@/views/Teach/HomeView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-        }
-        return next()
-      }
+      component: () => import('@/views/Teach/HomeView.vue')
     },
     {
       path: '/teach/new-course',
       name: 'teach-new-course',
       component: () => import('@/views/Teach/NewCourseView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/teach/create-course')
-      }
+      meta: { requiresAuth: true }
     },
     {
       path: '/teach/:id/dashboard',
@@ -258,13 +176,7 @@ const router = createRouter({
         }
       },
       component: () => import('@/views/Teach/CourseDashboardView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/teach/:id/dashboard')
-      }
+      meta: { requiresAuth: true }
     },
     {
       path: '/teach/:id/create-assessment',
@@ -275,14 +187,7 @@ const router = createRouter({
           required: true
         }
       },
-      component: () => import('@/views/Teach/CreateAssessmentView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/teach/:id/create-assessment')
-      }
+      component: () => import('@/views/Teach/CreateAssessmentView.vue')
     },
 
     // # Meeting Routes
@@ -313,65 +218,28 @@ const router = createRouter({
       path: '/my-courses',
       name: 'my-courses',
       component: () => import('@/views/Account/MyCoursesView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/my-courses')
-      }
+      meta: { requiresAuth: true }
     },
     // /getting-started
     {
       path: '/getting-started',
       name: 'getting-started',
       component: () => import('@/views/Account/GettingStartedView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/getting-started')
-      }
+      meta: { requiresAuth: true }
     },
     // /messages
     {
       path: '/messages',
       name: 'messages',
       component: () => import('@/views/Account/MessagesView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/messages')
-      }
+      meta: { requiresAuth: true }
     },
     // /settings
     {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/Account/SettingsView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/settings')
-      }
-    },
-    // /settings/2fa
-    {
-      path: '/settings/2fa',
-      name: 'settings-2fa',
-      component: () => import('@/views/Account/Settings2FAView.vue'),
-      beforeEnter: async (to, from, next) => {
-        const userStore = useUserStore()
-        if (userStore.isLoggedIn) {
-          await userStore.fetchUser()
-          return next()
-        } else return next('/login?next=/settings/2fa')
-      }
+      meta: { requiresAuth: true }
     },
 
     // # 404 Route
@@ -381,6 +249,19 @@ const router = createRouter({
       component: () => import('../views/404View.vue')
     }
   ]
+})
+
+// requires auth guard
+router.beforeEach((to, from, next) => {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    const user = useUserStore()
+    if (user.isAuthenticated) {
+      next()
+      return
+    }
+    next(`/login?next=${to.path}`)
+  }
+  next()
 })
 
 export default router
