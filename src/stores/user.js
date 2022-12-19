@@ -11,6 +11,13 @@ import {
   setDoc,
   where
 } from '@firebase/firestore'
+import {
+  getStorage,
+  ref,
+  deleteObject,
+  uploadBytes,
+  getDownloadURL
+} from '@firebase/storage'
 import { defineStore } from 'pinia'
 
 export const useUserStore = defineStore({
@@ -31,6 +38,10 @@ export const useUserStore = defineStore({
       this.user = user
       // fetch posts
       await this.fetchPosts()
+      // update lastActive field in user
+      const db = getFirestore()
+      const userRef = doc(db, 'users', this.user.uid)
+      await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
     },
     async fetchUserByHandle(handle) {
       // query firestore for user by handle
@@ -54,8 +65,7 @@ export const useUserStore = defineStore({
       }, {})
       // update user in firestore
       const db = getFirestore()
-      const docRef = doc(db, 'users', this.user.email)
-      console.log('Updating doc', this.user.email, filteredData)
+      const docRef = doc(db, 'users', this.user.uid)
       await setDoc(docRef, filteredData, { merge: true })
       this.setUser({ ...this.user, ...filteredData })
     },
@@ -66,7 +76,7 @@ export const useUserStore = defineStore({
     async toggleFollowUser(user) {
       // append or remove object from user's following array
       const db = getFirestore()
-      const docRef = doc(db, 'users', this.user.email)
+      const docRef = doc(db, 'users', this.user.uid)
       const following = this.user.following || []
       // check if user's handle is in following array
       const userIndex = following.findIndex((handle) => handle === user.handle)
@@ -84,26 +94,31 @@ export const useUserStore = defineStore({
       await setDoc(docRef, { following: following }, { merge: true })
       this.setUser({ ...this.user, following })
     },
-    async changeAvatar(avatarUrl) {
+    async uploadAvatar(file) {
+      const storage = getStorage()
+      const storageRef = ref(storage, `avatars/${this.user.uid}`)
+      if (!this.user.avatarUrl.includes('avatar.png'))
+        await deleteObject(storageRef)
+      const uploadTask = await uploadBytes(storageRef, file)
+      const downloadUrl = await getDownloadURL(uploadTask.ref)
+      this.user.avatarUrl = downloadUrl
       // update user in firestore
       const db = getFirestore()
-      const docRef = doc(db, 'users', this.user.email)
-      await setDoc(docRef, { avatarUrl }, { merge: true })
-      this.setUser({ ...this.user, avatarUrl })
-      // update posts in firestore
+      const docRef = doc(db, 'users', this.user.uid)
+      await setDoc(docRef, { avatarUrl: downloadUrl }, { merge: true })
+      // update user in state
+      // change avatar in posts
       const postsRef = collection(db, 'posts')
       const q = query(postsRef, where('author.handle', '==', this.user.handle))
       const posts = await getDocs(q)
       posts.forEach(async (post) => {
         const postRef = doc(db, 'posts', post.id)
-        await setDoc(postRef, { author: { avatarUrl } }, { merge: true })
-      })
-      // update posts in state
-      this.posts = this.posts.map((post) => {
-        return {
-          ...post,
-          id: post.id
-        }
+        console.log(postRef.data().author)
+        await setDoc(
+          postRef,
+          { 'author.avatarUrl': downloadUrl },
+          { merge: true }
+        )
       })
     },
     async getSuggestedUsers() {
@@ -120,9 +135,24 @@ export const useUserStore = defineStore({
         // remove current user
         .filter((user) => user.handle !== this.user.handle)
         // remove users already followed
-        .filter((user) => !following.includes(user.handle))
-
+        .filter((user) => {
+          return !following.some((followingUser) => {
+            return followingUser.handle === user.handle
+          })
+        })
       return suggestedUsers
+    },
+    async getLastActive(handle) {
+      const db = getFirestore()
+      const usersRef = collection(db, 'users')
+      const q = query(usersRef, where('handle', '==', handle))
+      const querySnapshot = await getDocs(q)
+      if (querySnapshot.empty) return null
+      var lastActive = null
+      querySnapshot.forEach((doc) => {
+        lastActive = doc.data().lastActive
+      })
+      return lastActive
     },
 
     // POST ACTIONS
@@ -140,6 +170,14 @@ export const useUserStore = defineStore({
         return { ...doc.data(), id: doc.id }
       })
       return this.posts
+    },
+    async fetchAllPosts() {
+      const db = getFirestore()
+      const postsRef = collection(db, 'posts')
+      const posts = await getDocs(postsRef)
+      return posts.docs.map((doc) => {
+        return { ...doc.data(), id: doc.id }
+      })
     },
     async fetchPostsByHandle(handle) {
       const db = getFirestore()
@@ -171,19 +209,40 @@ export const useUserStore = defineStore({
       const db = getFirestore()
       const postsRef = collection(db, 'posts')
       await setDoc(doc(postsRef), newPost)
+      const post = await getDoc(doc(postsRef))
       // update state with new post
       this.posts.push({
         ...newPost,
-        id: newPost.id
+        id: post.id
       })
+      // update lastActive field in user
+      const userRef = doc(db, 'users', this.user.uid)
+      await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
+      return this.posts[this.posts.length - 1]
     },
-    async deletePost(id) {
+    async deletePost(data) {
       // delete post from posts collection
       const db = getFirestore()
-      const postsRef = collection(db, 'posts')
-      await deleteDoc(doc(postsRef, id))
+      const postRef = collection(db, 'posts')
+      // remove image from storage
+      // check if post has an image
+      console.log(data)
+      if (!!data.image) {
+        const storage = getStorage()
+        const storageRef = ref(
+          storage,
+          this.posts.find((post) => post.id === data.id).image
+        )
+        await deleteObject(storageRef)
+      } else {
+        // remove post from firestore
+        await deleteDoc(doc(postRef, data.id))
+      }
+      // update lastActive field in user
+      const userRef = doc(db, 'users', this.user.uid)
+      await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
       // update state
-      this.posts = this.posts.filter((post) => post.id !== id)
+      this.posts = this.posts.filter((post) => post.id !== data.id)
     },
     async toggleLike(post) {
       // toggle like in firestore
@@ -207,6 +266,10 @@ export const useUserStore = defineStore({
         const postIndex = this.posts.findIndex((p) => p.id === post.id)
         this.posts[postIndex].likes = likes
       }
+      // update lastActive field in user
+      const userRef = doc(db, 'users', this.user.uid)
+      await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
+      return likes
     },
     async addComment(postId, comment) {
       // add comment to post in firestore
@@ -225,10 +288,27 @@ export const useUserStore = defineStore({
       })
       // save changes to firestore
       await setDoc(docRef, { comments }, { merge: true })
-      if (this.user.handle !== docData.data().author.handle) {
+      if (this.user.handle === docData.data().author.handle) {
         // update post in state
         const postIndex = this.posts.findIndex((p) => p.id === postId)
         this.posts[postIndex].comments = comments
+        // update lastActive field in user
+        const userRef = doc(db, 'users', this.user.uid)
+        await setDoc(
+          userRef,
+          { lastActive: serverTimestamp() },
+          { merge: true }
+        )
+        return comments
+      } else {
+        // update lastActive field in user
+        const userRef = doc(db, 'users', this.user.uid)
+        await setDoc(
+          userRef,
+          { lastActive: serverTimestamp() },
+          { merge: true }
+        )
+        return comments
       }
     },
     async deleteComment(postId, comment) {

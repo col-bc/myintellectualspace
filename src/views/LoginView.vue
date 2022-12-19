@@ -64,7 +64,7 @@ async function loginWithEmail() {
       form.password
     )
     const user = userCredential.user
-    const userDoc = doc(db, 'users', user.email)
+    const userDoc = doc(db, 'users', user.uid)
     const docSnap = await getDoc(userDoc)
     if (docSnap.exists()) {
       userStore.setUser(docSnap.data())
@@ -107,7 +107,7 @@ async function loginWithGoogle() {
     .then(async (result) => {
       const user = result.user
       // get user from firestore
-      getDoc(doc(db, 'users', user.email)).then(async (doc) => {
+      getDoc(doc(db, 'users', user.uid)).then(async (doc) => {
         if (doc.exists()) {
           await userStore.setUser(doc.data())
           console.log('User logged in: ', doc.data())
@@ -118,7 +118,7 @@ async function loginWithGoogle() {
             return
           }
           // push to router next param if set
-          if (route.params.next && route.params.next !== '/login') {
+          if (!!route.params.next) {
             router.push(route.params.next)
             return
           }

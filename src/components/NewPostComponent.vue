@@ -1,10 +1,18 @@
 <script setup>
 import AlertComponent from '@/components/AlertComponent.vue'
+import { MAPS_API_KEY } from '@/secrets'
 import useUserStore from '@/stores/user'
+import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 import { reactive } from 'vue'
+import LoaderComponent from './LoaderComponent.vue'
 
 const user = useUserStore()
+const storage = getStorage()
 
+const state = reactive({
+  loading: false,
+  locationLoading: false
+})
 const newPost = reactive({
   error: '',
   content: '',
@@ -12,6 +20,7 @@ const newPost = reactive({
   image: null,
   imageUrl: null
 })
+
 async function selectPostImage() {
   var input = document.createElement('input')
   input.type = 'file'
@@ -37,24 +46,68 @@ async function createPost() {
   if (newPost.error) {
     return
   }
-  await user.addPost({
-    content: newPost.content,
-    location: newPost.location,
-    image: newPost.image,
-    likes: [],
-    comments: []
-  })
+  state.loading = true
+  if (newPost.image) {
+    // upload image to firebase storage
+    const storageRef = ref(
+      storage,
+      `posts/${user.user.uid}/${newPost.image.name}`
+    )
+    await uploadBytes(storageRef, newPost.image)
+    newPost.imageUrl = await getDownloadURL(storageRef)
+    // create post
+    await user.addPost({
+      content: newPost.content,
+      location: newPost.location,
+      likes: [],
+      comments: [],
+      image: newPost.imageUrl
+    })
+  } else {
+    await user.addPost({
+      content: newPost.content,
+      location: newPost.location,
+      likes: [],
+      comments: []
+    })
+  }
+
   // reset form
   newPost.content = ''
   newPost.location = ''
   newPost.image = null
   newPost.imageUrl = null
+  state.loading = false
 }
-async function getPostLocation() {
+async function getGeolocation() {
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      newPost.location = `${position.coords.latitude},${position.coords.longitude}`
-    })
+    state.locationLoading = true
+    try {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        // resolve position with google maps api
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.coords.latitude},${position.coords.longitude}&key=${MAPS_API_KEY}`,
+          {
+            method: 'GET'
+          }
+        )
+        const data = await response.json()
+        // extract city and country from address components
+        const city = data.results[0].address_components.find(
+          (component) => component.types[0] === 'locality'
+        )
+        const country = data.results[0].address_components.find(
+          (component) => component.types[0] === 'country'
+        )
+        newPost.location = `${city.long_name}, ${country.long_name}`
+        state.locationLoading = false
+      })
+    } catch (err) {
+      state.locationLoading = false
+      newPost.error = err
+    } finally {
+      state.locationLoading = false
+    }
   }
 }
 </script>
@@ -89,29 +142,11 @@ async function getPostLocation() {
         <button
           type="submit"
           @click="createPost()"
+          :disabled="state.loading"
           class="inline-flex items-center gap-2.5 py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            class="w-5 h-5 fill-current"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path
-              d="M3.741 1.408l18.462 10.154a.5.5 0 0 1 0 .876L3.741 22.592A.5.5 0 0 1 3 22.154V1.846a.5.5 0 0 1 .741-.438zM5 13v6.617L18.85 12 5 4.383V11h5v2H5z"
-            />
-          </svg>
-          Submit Post
-        </button>
-        <div class="flex pl-0 space-x-1 sm:pl-2 items-center">
-          <p class="text-xs dark:text-gray-400">{{ newPost.location }}</p>
-          <button
-            type="button"
-            @click="getPostLocation()"
-            class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
-          >
+          <LoaderComponent v-if="state.loading" />
+          <template v-else>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -121,14 +156,38 @@ async function getPostLocation() {
             >
               <path fill="none" d="M0 0h24v24H0z" />
               <path
+                d="M3.741 1.408l18.462 10.154a.5.5 0 0 1 0 .876L3.741 22.592A.5.5 0 0 1 3 22.154V1.846a.5.5 0 0 1 .741-.438zM5 13v6.617L18.85 12 5 4.383V11h5v2H5z"
+              />
+            </svg>
+            Submit Post
+          </template>
+        </button>
+        <div class="flex pl-0 space-x-1 sm:pl-2 items-center">
+          <p class="text-xs dark:text-gray-400">{{ newPost.location }}</p>
+          <button
+            type="button"
+            @click="getGeolocation"
+            class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              v-if="!state.locationLoading"
+              class="w-5 h-5 fill-current"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
                 d="M12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zm4.95-7.778a7 7 0 1 0-9.9 0L12 20.9l4.95-4.95zM12 13a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
               />
             </svg>
+            <LoaderComponent v-else size="sm" />
             <span class="sr-only">Set location</span>
           </button>
           <button
             type="button"
-            @click="selectPostImage()"
+            @click="selectPostImage"
             class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
           >
             <svg

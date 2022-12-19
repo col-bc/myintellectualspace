@@ -94,7 +94,7 @@ async function registerWithEmail() {
   createUserWithEmailAndPassword(auth, form.email, form.password)
     .then(async (userCredential) => {
       // create user document in firestore
-      const userRef = doc(db, 'users', form.email)
+      const userRef = doc(db, 'users', userCredential.user.uid)
       const userSnap = await getDoc(userRef)
       if (!userSnap.exists()) {
         await setDoc(userRef, {
@@ -129,9 +129,10 @@ async function registerWithGoogle() {
       const googleUser = result.user
 
       // create user document in firestore
-      const userRef = doc(db, 'users', googleUser.email)
+      const userRef = doc(db, 'users', googleUser.uid)
       const userSnap = await getDoc(userRef)
       if (!userSnap.exists()) {
+        console.log('creating document ' + googleUser.uid)
         await setDoc(userRef, {
           uid: googleUser.uid,
           fullName: googleUser.displayName,
@@ -147,7 +148,7 @@ async function registerWithGoogle() {
     })
     .catch((error) => {
       console.log(error)
-      alert.value = error.error.message
+      alert.value = error.message
     })
     .finally(() => {
       loading.value = false
@@ -383,8 +384,10 @@ async function registerWithGoogle() {
               class="w-4 h-4 mr-2 text-blue-600 bg-white rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             I have read and agree to the
-            <a href="#" class="text-blue-600 hover:underline dark:text-blue-400"
-              >terms</a
+            <router-link
+              to="/terms"
+              class="text-blue-600 hover:underline dark:text-blue-400"
+              >terms of service</router-link
             >
             and
             <a href="#" class="text-blue-600 hover:underline dark:text-blue-400"

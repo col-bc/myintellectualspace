@@ -4,10 +4,10 @@ import LoaderComponent from '@/components/LoaderComponent.vue'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import NewPostComponent from '@/components/NewPostComponent.vue'
 import PostComponent from '@/components/PostComponent.vue'
-import UserCardComponent from '@/components/UserCardComponent.vue'
 import useUserStore from '@/stores/user'
-import { onMounted, reactive, ref, watch, computed, onUpdated } from 'vue'
+import { computed, onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Timestamp } from 'firebase/firestore'
 
 const user = useUserStore()
 const router = useRouter()
@@ -23,7 +23,7 @@ const state = reactive({
   likes: [],
   loading: true,
   isOwnAccount: false,
-  filtersExpanded: true
+  isRecentlyActive: false
 })
 
 const EDUCATION_LEVELS = [
@@ -33,6 +33,7 @@ const EDUCATION_LEVELS = [
   'Master Degree',
   'Doctorate Degree'
 ]
+
 watch(profileAlert, (value) => {
   if (!!value.message) {
     // scroll to alert
@@ -50,6 +51,10 @@ onMounted(async () => {
   state.isOwnAccount = user.user.handle === route.params.handle
   if (!state.isOwnAccount) {
     state.userData = await user.fetchUserByHandle(route.params.handle)
+    if (!state.userData.uid) {
+      router.push('/social/not-found')
+      return
+    }
     state.posts = await user.fetchPostsByHandle(route.params.handle)
     state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
@@ -59,9 +64,22 @@ onMounted(async () => {
     state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
   }
+  // check if user is recently active
+  const lastActiveTimestamp = await user.getLastActive(route.params.handle)
+  if (!lastActiveTimestamp) {
+    return
+  }
+  const lastActive = lastActiveTimestamp.toDate()
+  const now = new Date()
+  const diff = now.getTime() - lastActive.getTime()
+  const diffMinutes = Math.round(diff / 60000)
+  if (diffMinutes < 15) {
+    state.isRecentlyActive = true
+  }
 })
 onUpdated(async () => {
   if (state.userData.handle !== route.params.handle) {
+    state.loading = true
     state.isOwnAccount = user.user.handle === route.params.handle
     if (!state.isOwnAccount) {
       state.userData = await user.fetchUserByHandle(route.params.handle)
@@ -76,14 +94,16 @@ onUpdated(async () => {
 })
 
 const sortedPosts = computed(() => {
-  return state.posts.reverse()
+  // sort posts by date
+  return state.posts.sort((a, b) => {
+    return b.createdAt.seconds - a.createdAt.seconds
+  })
 })
 const isFollowing = computed(() => {
   if (!state.userData.following) {
     return false
   } else {
     return state.userData.following.forEach((u) => {
-      console.log(u)
       if (u.handle === user.user.handle) {
         return true
       }
@@ -114,21 +134,56 @@ async function followUser() {
   profileAlert.type = 'success'
   profileAlert.message = 'You are now following @' + state.userData.handle
 }
+async function changeAvatar() {
+  // show file picker
+  const fileInput = document.createElement('input')
+  fileInput.type = 'file'
+  fileInput.accept = 'image/*'
+  fileInput.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) {
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      const result = e.target.result
+      const blob = await fetch(result).then((r) => r.blob())
+      const file = new File([blob], 'avatar.png', {
+        type: 'image/png'
+      })
+      // upload file
+      await user.uploadAvatar(file)
+      // refresh user data
+      state.userData = await user.fetchUserByHandle(route.params.handle)
+      state.profileAlert = {
+        type: 'success',
+        message: 'Avatar updated successfully'
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+  fileInput.click()
+}
 </script>
 
 <template>
   <main class="bg-white min-h-screen dark:bg-slate-800">
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
-      <LoaderComponent v-if="state.loading" />
+      <div
+        v-if="state.loading"
+        class="h-screen flex items-center justify-center"
+      >
+        <LoaderComponent size="lg" class="text-gray-900 dark:text-white" />
+      </div>
       <div
         v-else
-        class="container mx-auto flex flex-col md:flex-row items-start px-2 gap-6 md:gap:12 lg:gap-16 py-12"
+        class="container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
       >
         <div class="flex flex-col items-start gap-12 w-full md:w-80">
           <!-- Avatar -->
           <div
-            class="sm:flex-1 relative group p-2 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 rounded-lg text-white shadow-lg shadow-purple-400/30 dark:text-gray-900"
+            class="sm:flex-1 w-full max-w-sm mx-auto relative group p-2 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 rounded-lg text-white shadow-lg shadow-purple-400/30 dark:text-gray-900"
           >
             <img
               :src="state.userData.avatarUrl"
@@ -145,140 +200,20 @@ async function followUser() {
           <!-- Menu/About -->
           <div class="sm:flex-1 w-full flex flex-col gap-4">
             <div>
-              <h3 class="text-3xl font-semibold mb-2 dark:text-white">
-                @{{ state.userData.handle }}
-              </h3>
-              <p class="text-lg text-gray-700 dark:text-gray-300">
+              <div class="flex items-center justify-between">
+                <h3 class="text-3xl font-semibold mb-2 dark:text-white">
+                  @{{ state.userData.handle }}
+                </h3>
+
+                <div
+                  v-if="!state.isOwnAccount && state.isRecentlyActive"
+                  class="block w-5 h-5 rounded-full bg-green-600 dark:bg-green-400 animate-pulse"
+                ></div>
+              </div>
+              <h5 class="text-xl text-gray-700 dark:text-gray-300">
                 {{ state.userData.fullName }}
-              </p>
+              </h5>
             </div>
-            <!-- User menu -->
-            <div
-              class="w-full font-medium text-gray-900 bg-white rounded-lg border shadow-sm border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <router-link
-                :to="{ name: 'profile' }"
-                class="flex items-center py-2 px-4 w-full rounded-t-lg border-b border-gray-200 cursor-pointer"
-                :class="[
-                  route.name === 'profile'
-                    ? 'text-white bg-blue-700  dark:bg-gray-800 dark:border-gray-600'
-                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
-                ]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
-                  />
-                </svg>
-                Posts
-              </router-link>
-              <router-link
-                :to="{ name: 'profile-likes' }"
-                class="flex items-center py-2 px-4 w-full border-b border-gray-200 cursor-pointer"
-                :class="[
-                  route.name === 'profile-likes'
-                    ? 'text-white bg-blue-700  dark:bg-gray-800 dark:border-gray-600'
-                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
-                ]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0H24V24H0z" />
-                  <path
-                    d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
-                  />
-                </svg>
-                Likes
-              </router-link>
-              <router-link
-                :to="{ name: 'profile-connections' }"
-                class="flex items-center py-2 px-4 w-full border-b border-gray-200 cursor-pointer"
-                :class="[
-                  route.name === 'profile-connections'
-                    ? 'text-white bg-blue-700  dark:bg-gray-800 dark:border-gray-600'
-                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
-                ]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
-                  />
-                </svg>
-                Connections
-              </router-link>
-              <router-link
-                :to="{ name: 'profile-about' }"
-                class="flex items-center py-2 px-4 w-full rounded-b-lg border-b border-gray-200 cursor-pointer"
-                :class="[
-                  route.name === 'profile-about'
-                    ? 'text-white bg-blue-700  dark:bg-gray-800 dark:border-gray-600'
-                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
-                ]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
-                  />
-                </svg>
-                About
-              </router-link>
-            </div>
-            <!-- Bio -->
-            <h5 class="text-xl font-semibold text-gray-700 dark:text-gray-300">
-              Bio
-            </h5>
-            <p class="leading-tight text-gray-700 dark:text-gray-300">
-              <span v-if="state.userData.bio">
-                {{ state.userData.bio }}
-              </span>
-              <span
-                v-else
-                class="italic text-xm text-gray-700 dark:text-gray-300"
-              >
-                No bio available.
-              </span>
-            </p>
-            <!-- Location -->
-            <h5 class="text-xl font-semibold text-gray-700 dark:text-gray-300">
-              Location
-            </h5>
-            <p class="leading-tight mb-6 text-gray-700 dark:text-gray-300">
-              <span v-if="state.userData.location">
-                {{ state.userData.location }}
-              </span>
-              <span
-                v-else
-                class="italic text-xm text-gray-700 dark:text-gray-300"
-              >
-                No location available.
-              </span>
-            </p>
             <!-- Follow user -->
             <button
               type="button"
@@ -320,6 +255,133 @@ async function followUser() {
               </svg>
               Unfollow @{{ state.userData.handle }}
             </button>
+            <!-- User menu -->
+            <div
+              class="w-full font-medium text-gray-900 bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            >
+              <router-link
+                :to="{ name: 'profile' }"
+                class="flex items-center py-2 px-4 w-full rounded-t-lg border-b border-gray-200 cursor-pointer"
+                :class="[
+                  route.name === 'profile'
+                    ? 'text-blue-700  dark:text-blue-400 dark:border-gray-600'
+                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                ]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 fill-current mr-3"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
+                  />
+                </svg>
+                Posts
+              </router-link>
+              <router-link
+                :to="{ name: 'profile-likes' }"
+                class="flex items-center py-2 px-4 w-full border-b border-gray-200 cursor-pointer"
+                :class="[
+                  route.name === 'profile-likes'
+                    ? 'text-blue-700  dark:text-blue-400 dark:border-gray-600'
+                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                ]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 fill-current mr-3"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0H24V24H0z" />
+                  <path
+                    d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
+                  />
+                </svg>
+                Likes
+              </router-link>
+              <router-link
+                :to="{ name: 'profile-connections' }"
+                class="flex items-center py-2 px-4 w-full border-b border-gray-200 cursor-pointer"
+                :class="[
+                  route.name === 'profile-connections'
+                    ? 'text-blue-700  dark:text-blue-400 dark:border-gray-600'
+                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                ]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 fill-current mr-3"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
+                  />
+                </svg>
+                Connections
+              </router-link>
+              <router-link
+                :to="{ name: 'profile-about' }"
+                class="flex items-center py-2 px-4 w-full rounded-b-lg cursor-pointer"
+                :class="[
+                  route.name === 'profile-about'
+                    ? 'text-blue-700  dark:text-blue-400 dark:border-gray-600'
+                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                ]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  class="h-6 w-6 fill-current mr-3"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
+                  />
+                </svg>
+                About
+              </router-link>
+            </div>
+            <!-- Bio -->
+            <h5 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+              Bio
+            </h5>
+            <p class="leading-tight text-gray-700 dark:text-gray-300">
+              <span v-if="state.userData.bio">
+                {{ state.userData.bio }}
+              </span>
+              <span
+                v-else
+                class="italic text-xm text-gray-700 dark:text-gray-300"
+              >
+                No bio available.
+              </span>
+            </p>
+            <!-- Location -->
+            <h5 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+              Location
+            </h5>
+            <p class="leading-tight mb-6 text-gray-700 dark:text-gray-300">
+              <span v-if="state.userData.location">
+                {{ state.userData.location }}
+              </span>
+              <span
+                v-else
+                class="italic text-xm text-gray-700 dark:text-gray-300"
+              >
+                No location available.
+              </span>
+            </p>
           </div>
         </div>
 
@@ -334,7 +396,10 @@ async function followUser() {
             :message="profileAlert.message"
             :dismissible="false"
           />
-          <NewPostComponent v-if="state.isOwnAccount" />
+          <NewPostComponent
+            v-if="state.isOwnAccount"
+            @post-created="(post) => state.posts.push(post)"
+          />
           <div class="flex items-center justify-between">
             <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
               Posts by @{{ state.userData.handle }}
@@ -461,12 +526,17 @@ async function followUser() {
                 class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
                 >Location</span
               >
-              <input
-                type="text"
-                v-model="state.userData.location"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder=""
-              />
+              <div class="w-full">
+                <input
+                  type="text"
+                  v-model="state.userData.location"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  placeholder=""
+                />
+                <span class="text-gray-500 text-sm mt-2 dark:text-gray-400"
+                  >Eg. Atlanta, Georgia. Never share your full address</span
+                >
+              </div>
             </div>
             <!-- Bio -->
             <div class="flex items-start">
@@ -755,8 +825,9 @@ async function followUser() {
           >
             <p class="text-center text-gray-500">No connections found.</p>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
-            <div
+          <div class="flex flex-col gap-6 md:gap-12">
+            <router-link
+              :to="'/social/@' + user.handle"
               v-for="user of state.userData.following"
               :key="user.id"
               class="w-full p-4 text-gray-900 bg-white rounded-lg border shadow-sm border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white flex items-center gap-4"
@@ -779,13 +850,13 @@ async function followUser() {
               <div class="flex-shrink-0">
                 <button
                   type="button"
-                  @click="user.unfollow(user.id)"
+                  @click.stop="user.unfollow(user.id)"
                   class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
                 >
                   Unfollow
                 </button>
               </div>
-            </div>
+            </router-link>
           </div>
         </div>
       </div>

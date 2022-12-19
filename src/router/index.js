@@ -5,7 +5,15 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior(to, from, savedPosition) {
     // always scroll to top
-    return { top: 0 }
+    if (to.name !== from.name) {
+      return { top: 0 }
+    } else {
+      if (to.hash) {
+        return { el: to.hash }
+      } else {
+        return { top: 0 }
+      }
+    }
   },
   routes: [
     {
@@ -45,7 +53,7 @@ const router = createRouter({
     //  - /about
     //  - /comments
     //  - /likes
-    //  - D/connections
+    //  - /connections
     // /social/not-found
     {
       path: '/social/me',
@@ -98,45 +106,43 @@ const router = createRouter({
 
     // # Explore Routes
     // /explore
-    //  - /network
-    //  - /interest
-    //  - /education
     // - /all
     {
       path: '/explore',
       name: 'explore',
       children: [
         {
+          path: 'all',
+          name: 'explore-all',
+          component: () => import('@/views/Explore/HomeView.vue')
+        },
+        {
           path: 'network',
           name: 'explore-network',
           component: () => import('@/views/Explore/HomeView.vue')
         },
         {
-          path: 'interests',
-          name: 'explore-interests',
-          component: () => import('@/views/Explore/HomeView.vue')
-        },
-        {
           path: 'education',
           name: 'explore-education',
-          component: () => import('@/views/Explore/HomeView.vue')
+          redirect: '/unavailable'
         },
         {
-          path: 'all',
-          name: 'explore-all',
-          component: () => import('@/views/Explore/HomeView.vue')
+          path: 'interests',
+          name: 'explore-interests',
+          redirect: '/unavailable'
         }
       ],
       meta: { requiresAuth: true }
     },
 
-    // # Learn Routes
+    // # Learn Routes - TODO
     // /learn
     //  - /learn/:id
     {
       path: '/learn',
       name: 'learn-home',
-      component: () => import('@/views/Learn/HomeView.vue')
+      redirect: '/unavailable'
+      // component: () => import('@/views/Learn/HomeView.vue')
     },
     {
       path: '/learn/:id',
@@ -147,10 +153,11 @@ const router = createRouter({
           required: true
         }
       },
-      component: () => import('@/views/Learn/CourseView.vue')
+      redirect: '/unavailable'
+      // component: () => import('@/views/Learn/CourseView.vue')
     },
 
-    // # Teach Routes
+    // # Teach Routes - TODO
     // /teach
     // /teach/new-course
     // /teach/:id/dashboard
@@ -158,12 +165,14 @@ const router = createRouter({
     {
       path: '/teach',
       name: 'teach-home',
-      component: () => import('@/views/Teach/HomeView.vue')
+      redirect: '/unavailable'
+      // component: () => import('@/views/Teach/HomeView.vue')
     },
     {
       path: '/teach/new-course',
       name: 'teach-new-course',
-      component: () => import('@/views/Teach/NewCourseView.vue'),
+      redirect: '/unavailable',
+      // component: () => import('@/views/Teach/NewCourseView.vue'),
       meta: { requiresAuth: true }
     },
     {
@@ -175,7 +184,8 @@ const router = createRouter({
           required: true
         }
       },
-      component: () => import('@/views/Teach/CourseDashboardView.vue'),
+      redirect: '/unavailable',
+      // component: () => import('@/views/Teach/CourseDashboardView.vue'),
       meta: { requiresAuth: true }
     },
     {
@@ -187,20 +197,22 @@ const router = createRouter({
           required: true
         }
       },
-      component: () => import('@/views/Teach/CreateAssessmentView.vue')
+      redirect: '/unavailable'
+      // component: () => import('@/views/Teach/CreateAssessmentView.vue')
     },
 
-    // # Meeting Routes
-    // /meetings
+    // # Meeting Routes - TODO
     {
       path: '/meetings',
       name: 'meetings',
-      component: () => import('@/views/Account/MeetingsView.vue')
+      redirect: '/unavailable'
+      // component: () => import('@/views/Account/MeetingsView.vue')
     },
     {
       path: '/meetings/new',
       name: 'new-meeting',
-      component: () => import('@/views/Account/NewMeetingView.vue')
+      redirect: '/unavailable'
+      // component: () => import('@/views/Account/NewMeetingView.vue')
     },
     {
       path: '/meetings/:id',
@@ -210,15 +222,18 @@ const router = createRouter({
           type: String,
           required: true
         }
-      }
+      },
+      redirect: '/unavailable'
     },
 
     // # Other Routes
+    // /my-courses
     {
       path: '/my-courses',
       name: 'my-courses',
-      component: () => import('@/views/Account/MyCoursesView.vue'),
-      meta: { requiresAuth: true }
+      // component: () => import('@/views/Account/MyCoursesView.vue'),
+      meta: { requiresAuth: true },
+      redirect: '/unavailable'
     },
     // /getting-started
     {
@@ -226,6 +241,29 @@ const router = createRouter({
       name: 'getting-started',
       component: () => import('@/views/Account/GettingStartedView.vue'),
       meta: { requiresAuth: true }
+    },
+    // /community-guidelines
+    {
+      path: '/community-guidelines',
+      name: 'community-guidelines',
+      component: () => import('@/views/GuidelinesView.vue')
+    },
+    // /terms
+    {
+      path: '/terms',
+      name: 'terms',
+      component: () => import('@/views/TermsView.vue')
+    },
+    // /privacy
+    {
+      path: '/privacy',
+      name: 'privacy'
+    },
+    // /support
+    {
+      path: '/support',
+      name: 'support',
+      component: () => import('@/views/Support/GetHelpView.vue')
     },
     // /messages
     {
@@ -240,6 +278,13 @@ const router = createRouter({
       name: 'settings',
       component: () => import('@/views/Account/SettingsView.vue'),
       meta: { requiresAuth: true }
+    },
+
+    // /unavailable
+    {
+      path: '/unavailable',
+      name: 'unavailable',
+      component: () => import('@/views/UnavailableView.vue')
     },
 
     // # 404 Route

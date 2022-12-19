@@ -33,7 +33,9 @@
             </h2>
             <ul class="text-gray-600 dark:text-gray-400">
               <li class="mb-4">
-                <a href="#" class="hover:underline">Community Guide</a>
+                <router-link to="/community-guidelines" class="hover:underline"
+                  >Community Guide</router-link
+                >
               </li>
               <li>
                 <a href="#" class="hover:underline">FAQ</a>
@@ -72,7 +74,9 @@
                 <a href="#" class="hover:underline">Privacy Policy</a>
               </li>
               <li>
-                <a href="#" class="hover:underline">Terms &amp; Conditions</a>
+                <router-link to="/terms" class="hover:underline"
+                  >Terms of Service</router-link
+                >
               </li>
             </ul>
           </div>

@@ -1,18 +1,151 @@
 <script setup>
-import { reactive, onMounted, ref } from 'vue'
-import NavbarComponent from '../../components/NavbarComponent.vue'
-import useUserStore from '../../stores/user'
+import { reactive, onMounted, watch } from 'vue'
+import AlertComponent from '@/components/AlertComponent.vue'
+import NavbarComponent from '@/components/NavbarComponent.vue'
+import LoaderComponent from '@/components/LoaderComponent.vue'
+import useUserStore from '@/stores/user'
+import {
+  getAuth,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  updatePassword
+} from 'firebase/auth'
 
-const userStore = useUserStore()
+const user = useUserStore()
+const auth = getAuth()
 
-const user = reactive({
-  data: {},
-  isLoggedIn: false
+const state = reactive({
+  loading: true,
+  error: null,
+  user: null,
+  isGoogle: false,
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+  showDeactivateDialog: false,
+  deactivationReason: 'default',
+  deactivateDetails: '',
+  deactivatePassword: ''
 })
+
 onMounted(async () => {
-  await userStore.fetchUser()
-  user.data = userStore.getUser
+  state.user = await user.fetchUserByHandle(user.user.handle)
+  state.isGoogle = auth.currentUser.providerData[0].providerId === 'google.com'
+  state.loading = false
 })
+
+watch(
+  () => state.showDeactivateDialog,
+  (val) => {
+    if (val) {
+      document.body.classList.add('overflow-hidden')
+    } else {
+      document.body.classList.remove('overflow-hidden')
+    }
+  }
+)
+
+async function updateUser() {
+  await user.updateUser(state.user)
+}
+
+async function changePassword() {
+  state.error = null
+  if (state.isGoogle) {
+    return
+  }
+
+  // check if password is strong enough
+  if (!state.newPassword || !state.confirmPassword) {
+    state.error = {
+      message: 'Please fill out all fields',
+      type: 'error'
+    }
+    return
+  }
+  if (state.newPassword !== state.confirmPassword) {
+    state.error = {
+      message: 'Passwords do not match',
+      type: 'error'
+    }
+    return
+  }
+  if (state.newPassword.length < 8) {
+    state.error = {
+      message: 'Password must be at least 8 characters',
+      type: 'error'
+    }
+    return
+  }
+  if (!/\d/.test(state.newPassword)) {
+    state.error = {
+      message: 'Password must contain at least one number',
+      type: 'error'
+    }
+    return
+  }
+  if (!/[A-Z]/.test(state.newPassword)) {
+    state.error = {
+      message: 'Password must contain at least one uppercase letter',
+      type: 'error'
+    }
+    return
+  }
+
+  // reauthenticate user
+  try {
+    const user = auth.currentUser
+
+    const credential = EmailAuthProvider.credential(
+      user.email,
+      state.oldPassword
+    )
+    reauthenticateWithCredential(user, credential)
+      .then(() => {
+        // change password
+        updatePassword(user, state.newPassword)
+          .then(() => {
+            state.oldPassword = ''
+            state.newPassword = ''
+            state.confirmPassword = ''
+            state.error = {
+              message: 'Password successfully changed',
+              type: 'success'
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+            state.error = {
+              message: error.message,
+              type: 'error'
+            }
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+        state.error = {
+          message: error.message,
+          type: 'error'
+        }
+      })
+  } catch (error) {
+    console.log(error)
+    if (error.code === 'auth/wrong-password') {
+      state.error = {
+        message: 'Current password is incorrect',
+        type: 'error'
+      }
+    } else {
+      state.error = {
+        message: error.message,
+        type: 'error'
+      }
+    }
+    return
+  }
+}
+
+async function deactivateAccount() {}
 </script>
 
 <template>
@@ -44,40 +177,35 @@ onMounted(async () => {
                 Password
               </a>
               <a
-                href="#2fa"
-                class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-              >
-                2-Factor Authentication
-              </a>
-              <a
                 href="#privacy"
                 class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
               >
                 Privacy
               </a>
               <a
-                href="#"
-                class="block py-2 px-4 w-full border-b border-gray-200 cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-              >
-                Messages
-              </a>
-              <a
-                href="#"
+                href="#deactivate"
                 class="block py-2 px-4 w-full rounded-b-lg cursor-pointer hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
               >
-                Download
+                Deactivate Account
               </a>
             </div>
           </div>
+          <div
+            v-if="state.loading"
+            class="w-full flex items-center justify-center my-12 text-gray-900 dark:text-white"
+          >
+            <LoaderComponent size="lg" />
+          </div>
           <!-- Content -->
           <div
+            v-else
             class="flex-1 w-full max-w-xl mx-auto flex flex-col divide-y divide-gray-400 dark:divide-gray-600"
           >
             <!-- Account -->
             <form
-              ref="accountForm"
               id="account"
               class="flex flex-col gap-5 py-12"
+              @submit.prevent="updateUser"
             >
               <h3
                 class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
@@ -91,7 +219,7 @@ onMounted(async () => {
                 >
                 <input
                   type="email"
-                  v-model="user.data.email"
+                  v-model="user.user.email"
                   class="bg-white cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   disabled
                 />
@@ -106,7 +234,7 @@ onMounted(async () => {
                 >
                 <input
                   type="tel"
-                  v-model="user.data.phone"
+                  v-model="user.user.phone"
                   class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 />
               </div>
@@ -116,69 +244,44 @@ onMounted(async () => {
                   >Account type</label
                 >
                 <select
-                  v-model="user.data.account_type"
+                  v-model="state.user.accountType"
                   class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 >
-                  <option value="initial" :selected="!user.data.account_type">
-                    Choose account type
-                  </option>
                   <option
-                    value="Learner"
-                    :selected="user.data.account_type === 'Learner'"
+                    value="learner"
+                    :selected="
+                      (state.user.accountType === 'learner' || !state,
+                      user.accountType)
+                    "
                   >
                     Learner
                   </option>
                   <option
-                    value="Educator"
-                    :selected="user.data.account_type === 'Educator'"
+                    value="instructor"
+                    :selected="state.user.accountType === 'instructor'"
                   >
-                    Educator
+                    Instructor
                   </option>
                   <option
-                    value="Employer"
-                    :selected="user.data.account_type === 'Employer'"
+                    value="employer"
+                    :selected="state.user.accountType === 'employer'"
                   >
                     Employer
                   </option>
                 </select>
-              </div>
-              <div v-if="user.data.account_type === 'Employer'">
-                <label
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                  >Employer name</label
-                >
-                <input
-                  type="email"
-                  v-model="user.data.business_name"
-                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                />
-              </div>
-              <div v-if="user.data.account_type === 'Employer'">
-                <label
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                  >In business since</label
-                >
-                <input
-                  type="number"
-                  v-model="user.data.years_in_business"
-                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                />
               </div>
               <div>
                 <button
                   type="submit"
                   class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                 >
-                  Save
+                  Save changes
                 </button>
               </div>
             </form>
+
             <!-- Password -->
-            <form
-              ref="passwordForm"
-              id="security"
-              class="flex flex-col gap-6 py-12"
-            >
+            <div id="security" class="flex flex-col gap-6 py-12">
               <!-- Password -->
               <h3
                 class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
@@ -186,253 +289,324 @@ onMounted(async () => {
                 Security
               </h3>
               <div
-                class="inline-flex ite,s-center p-4 text-blue-700 bg-blue-200 rounded-lg dark:bg-transparent dark:border dark:rounded-lg dark:border-blue-300 dark:text-blue-300"
-                role="alert"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  class="w-6 h-6 mr-3"
-                  width="24"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
-                  ></path>
-                </svg>
-                <span class="font-medium mr-2">Password changed on</span>
-                {{
-                  new Date(user.data.password_changed_on).toLocaleDateString()
-                }}
-              </div>
-              <div>
-                <label
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                  >Current password</label
-                >
-                <input
-                  type="password"
-                  name="current_password"
-                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                  >New password</label
-                >
-                <input
-                  type="password"
-                  name="new_password"
-                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label
-                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                  >Repeat new password</label
-                >
-                <input
-                  type="password"
-                  name="new_password_repeat"
-                  class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <button
-                  type="submit"
-                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                >
-                  Change Password
-                </button>
-              </div>
-            </form>
-            <!-- 2FA -->
-            <div id="2fa" class="flex flex-col gap-6 py-12">
-              <h3
-                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
-              >
-                2-Factor Authentication
-              </h3>
-              <div
-                class="flex items-center text-sm p-4"
-                :class="[
-                  user.data.two_fa_enabled
-                    ? 'text-blue-700 bg-blue-200 rounded-lg dark:bg-transparent dark:border dark:rounded-lg dark:border-blue-300 dark:text-blue-300'
-                    : ' text-red-700 bg-red-200 rounded-lg dark:bg-transparent dark:border dark:rounded-lg dark:border-red-300 dark:text-red-300'
-                ]"
+                class="p-4 flex items-center gap-2.5 text-sm text-blue-700 bg-blue-100 rounded-lg dark:bg-blue-200 dark:text-blue-800"
                 role="alert"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 mr-3"
+                  viewBox="0 0 24 24"
+                  class="w-5 h-5 fill-current"
                   width="24"
                   height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                  <path fill="none" d="M0 0h24v24H0z" />
                   <path
-                    d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"
-                  ></path>
-                  <circle cx="12" cy="11" r="1"></circle>
-                  <line x1="12" y1="12" x2="12" y2="14.5"></line>
+                    d="M4 15h2v5h12V4H6v5H4V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6zm6-4V8l5 4-5 4v-3H2v-2h8z"
+                  />
                 </svg>
-                <span class="font-medium mr-2"
-                  >2FA is
-
-                  {{ user.data.two_fa_enabled ? 'ENABLED' : 'DISABLED' }}
-                </span>
+                <div>
+                  <span class="font-medium">Last login: </span>
+                  {{
+                    new Date(
+                      auth.currentUser?.metadata.lastSignInTime
+                    ).toLocaleDateString('en-us')
+                  }}
+                  @
+                  {{
+                    new Date(
+                      auth.currentUser?.metadata.lastSignInTime
+                    ).toLocaleTimeString('en-us')
+                  }}
+                </div>
               </div>
-              <div>
-                <router-link
-                  to="/settings/2fa"
-                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+              <AlertComponent
+                v-if="state.error"
+                :message="state.error.message"
+                :type="state.error.type"
+              />
+              <template v-if="!state.isGoogle">
+                <form
+                  @submit.prevent="changePassword"
+                  class="flex flex-col gap-6"
                 >
-                  Manage 2FA
-                </router-link>
-              </div>
+                  <div>
+                    <label
+                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                      >Current password</label
+                    >
+                    <input
+                      type="password"
+                      v-model="state.oldPassword"
+                      class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                      >New password</label
+                    >
+                    <input
+                      type="password"
+                      v-model="state.newPassword"
+                      class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                      >Repeat new password</label
+                    >
+                    <input
+                      type="password"
+                      v-model="state.confirmPassword"
+                      class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <button
+                      type="submit"
+                      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                    >
+                      Change Password
+                    </button>
+                  </div>
+                </form>
+              </template>
+              <template v-else>
+                <a
+                  href="https://myaccount.google.com/security"
+                  target="_blank"
+                  class="flex items-center gap-2.5 text-blue-700 hover:underline dark:text-blue-400"
+                >
+                  Change your password on Google
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="w-5 h-5 fill-current"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M10 6v2H5v11h11v-5h2v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6zm11-3v8h-2V6.413l-7.793 7.794-1.414-1.414L17.585 5H13V3h8z"
+                    />
+                  </svg>
+                </a>
+              </template>
             </div>
+
             <!-- Privacy -->
             <form
-              ref="privacyForm"
               id="privacy"
               class="flex flex-col gap-6 py-12"
+              @submit.prevent="updateUser"
             >
               <h3
                 class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
               >
                 Privacy
               </h3>
+
               <div
-                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800"
+                class="flex items-center pl-4 rounded border border-gray-200 dark:border-gray-700"
               >
                 <input
+                  id="privacy-private"
+                  type="radio"
+                  v-model="user.user.privacy"
+                  name="privacy"
+                  value="private"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <div class="flex flex-col ml-4 py-4">
+                  <label
+                    for="privacy-private"
+                    class="w-full mb-2 font-medium text-gray-900 dark:text-gray-300"
+                    >Private
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Only you users who follow you can see your profile, posts
+                      and send you messages.
+                    </p>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="flex items-center pl-4 rounded border border-gray-200 dark:border-gray-700"
+              >
+                <input
+                  checked
+                  id="privacy-public"
                   type="radio"
                   value="public"
-                  :checked="user.data.privacy === 'public'"
-                  name="privacy_mode"
-                  class="w-4 h-4 text-blue-600 bg-white0 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  name="privacy"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
-                <label class="flex items-center py-4 ml-4 w-full">
-                  <svg
-                    viewBox="0 0 24 24"
-                    class="w-8 h-8 mr-3"
-                    width="24"
-                    height="24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  <div>
-                    <span class="font-medium text-gray-900 dark:text-gray-300"
-                      >Public</span
-                    >
-                    <p class="text-xs text-gray-700 dark:text-gray-300">
-                      All of your profile details can be viewed by all other
-                      registered users.
+                <div class="flex flex-col ml-4 py-4">
+                  <label
+                    for="privacy-public"
+                    class="w-full mb-2 font-medium text-gray-900 dark:text-gray-300"
+                    >Public
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Anyone can see your profile, posts and send you messages.
                     </p>
-                  </div>
-                </label>
+                  </label>
+                </div>
               </div>
-              <div
-                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800"
-              >
-                <input
-                  type="radio"
-                  value="friends"
-                  :checked="user.data.privacy === 'friends'"
-                  name="privacy_mode"
-                  class="w-4 h-4 text-blue-600 bg-white0 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                />
-                <label class="flex items-center py-4 ml-4 w-full">
-                  <svg
-                    viewBox="0 0 24 24"
-                    class="w-8 h-8 mr-3"
-                    width="24"
-                    height="24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  <div>
-                    <span class="font-medium text-gray-900 dark:text-gray-300"
-                      >Friends</span
-                    >
-                    <p class="text-xs text-gray-700 dark:text-gray-300">
-                      All of your profile details can be viewed by all the
-                      user's you've connected with.
-                    </p>
-                  </div>
-                </label>
-              </div>
-              <div
-                class="flex items-center bg-white pl-4 rounded-lg border border-gray-300 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800"
-              >
-                <input
-                  type="radio"
-                  value="private"
-                  :checked="user.data.privacy === 'private'"
-                  name="privacy_mode"
-                  class="w-4 h-4 text-blue-600 bg-white0 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                />
-                <label class="flex items-center py-4 ml-4 w-full">
-                  <svg
-                    viewBox="0 0 24 24"
-                    class="w-8 h-8 mr-3"
-                    width="24"
-                    height="24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                    ></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                  </svg>
-                  <div>
-                    <span class="font-medium text-gray-900 dark:text-gray-300"
-                      >Private</span
-                    >
-                    <p class="text-xs text-gray-700 dark:text-gray-300">
-                      All of your profile details can be hidden from all other
-                      users.
-                    </p>
-                  </div>
-                </label>
-              </div>
+
               <div>
                 <button
                   type="submit"
-                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                 >
-                  Save
+                  Save changes
                 </button>
               </div>
             </form>
+
+            <!-- Deactivate -->
+            <form
+              id="deactivate"
+              class="space-y-6 py-12"
+              @submit.prevent="deactivateUser"
+            >
+              <h3
+                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              >
+                Deactivate account
+              </h3>
+              <button
+                type="button"
+                @click="state.showDeactivateDialog = true"
+                class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+              >
+                Begin deactivation
+              </button>
+            </form>
+
+            <Dialog
+              :open="state.showDeactivateDialog"
+              @close="state.showDeactivateDialog = false"
+              class="relative z-10"
+            >
+              <div class="fixed inset-0 bg-black bg-opacity-60" />
+              <div class="fixed inset-0 overflow-y-auto">
+                <div class="flex min-h-full items-center justify-center p-4">
+                  <div
+                    class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+                  >
+                    <div
+                      class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        class="w-24 h-24 fill-current"
+                        width="24"
+                        height="24"
+                      >
+                        <path fill="none" d="M0 0h24v24H0z" />
+                        <path
+                          d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
+                        />
+                      </svg>
+                    </div>
+                    <h2
+                      class="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white"
+                    >
+                      Deactivate your account
+                    </h2>
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">
+                      Are you sure you want to deactivate your account? All of
+                      your data will be permanently removed. This includes all
+                      you posts, images, likes, course data, etc. This action
+                      cannot be undone. Please enter your password to start the
+                      deactivation process.
+                    </p>
+                    <form
+                      class="flex flex-col gap-6 justify-start"
+                      @submit.prevent="deactivateAccount"
+                    >
+                      <div>
+                        <label
+                          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                          >Your user ID</label
+                        >
+                        <input
+                          type="text"
+                          disabled
+                          v-model="state.user.uid"
+                          class="bg-gray-50 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                          >Reason</label
+                        >
+                        <select
+                          v-model="state.deactivationReason"
+                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        >
+                          <option value="default" selected>
+                            Select a reason
+                          </option>
+                          <option value="not_used">
+                            I don't use this account anymore
+                          </option>
+                          <option value="privacy">
+                            I'm concerned about my privacy
+                          </option>
+                          <option value="not_working">
+                            Something's not working
+                          </option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                          >Details</label
+                        >
+                        <textarea
+                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          v-model="state.deactivateDetails"
+                          rows="4"
+                        ></textarea>
+                      </div>
+                      <div>
+                        <label
+                          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                          >Password</label
+                        >
+                        <input
+                          type="password"
+                          v-model="state.deactivatePassword"
+                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </div>
+                      <div class="flex items-center justify-center gap-4">
+                        <button
+                          type="reset"
+                          @click="state.showDeactivateDialog = false"
+                          class="w-full text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
+                        >
+                          Deactivate account
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </Dialog>
           </div>
         </div>
       </div>

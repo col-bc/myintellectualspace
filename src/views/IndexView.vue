@@ -1,6 +1,26 @@
 <script setup>
-import NavbarComponent from '../components/NavbarComponent.vue'
-import FooterComponent from '../components/FooterComponent.vue'
+import NavbarComponent from '@/components/NavbarComponent.vue'
+import FooterComponent from '@/components/FooterComponent.vue'
+import PostComponent from '@/components/PostComponent.vue'
+
+import { onMounted, reactive } from 'vue'
+import useUserStore from '@/stores/user'
+
+const user = useUserStore()
+const state = reactive({
+  posts: []
+})
+
+onMounted(async () => {
+  const allPosts = await user.fetchAllPosts()
+  const length = allPosts.length > 10 ? 10 : allPosts.length
+  for (let i = 0; i < length; i++) {
+    state.posts.push(allPosts[i])
+  }
+  state.posts.sort((a, b) => {
+    return b.createdAt.seconds - a.createdAt.seconds
+  })
+})
 </script>
 
 <template>
@@ -44,9 +64,9 @@ import FooterComponent from '../components/FooterComponent.vue'
       <div
         class="max-w-screen-xl w-full mx-auto flex flex-1 flex-row items-center justify-start px-2"
       >
-        <div class="container mx-auto flex-1 flex flex-col gap-8">
+        <div class="container mx-auto flex-1 flex flex-col gap-8 py-12">
           <h1
-            class="max-w-screen-md text-3xl md:text-5xl font-black drop-shadow-xl md:leading-relaxed text-white"
+            class="max-w-screen-xl text-3xl md:text-5xl font-black drop-shadow-xl md:leading-relaxed text-white"
           >
             Your space to learn, grow, share and connect.
           </h1>
@@ -95,21 +115,17 @@ import FooterComponent from '../components/FooterComponent.vue'
       <h2
         class="text-gray-900 text-center text-4xl font-black drop-shadow-xl leading-snug dark:text-white mb-12"
       >
-        Catch Up on the Latest Posts
+        Catch up on the latest posts
       </h2>
-      <div
-        class="max-w-screen-xl w-full mx-auto px-2 md:px-0 grid grid-cols-2 gap-4 md:gap-12 mb-12 sm:px-4"
-      >
-        <div class="placeholder-post">&nbsp;</div>
-        <div class="placeholder-post">&nbsp;</div>
-        <div class="placeholder-post">&nbsp;</div>
-        <div class="placeholder-post">&nbsp;</div>
-        <div class="placeholder-post">&nbsp;</div>
-        <div class="placeholder-post">&nbsp;</div>
+      <div class="max-w-screen-xl w-full mx-auto px-2 md:px-0 mb-12 sm:px-4">
+        <div class="w-full max-w-2xl mx-auto flex flex-col gap-4 md:gap-12">
+          <PostComponent v-for="post of state.posts" :key="post" :post="post" />
+        </div>
       </div>
       <div>
         <button
           type="button"
+          @click="$router.push('/explore/all')"
           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base mx-auto px-6 py-3.5 text-center flex items-center shadow-lg"
         >
           Explore All Content
@@ -156,7 +172,7 @@ import FooterComponent from '../components/FooterComponent.vue'
           <div>
             <button
               type="button"
-              @click="$router.push('/explore')"
+              @click="$router.push('/learn')"
               class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
             >
               <svg
