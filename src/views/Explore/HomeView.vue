@@ -79,7 +79,7 @@ async function followUser(userData) {
       <div
         class="flex flex-col md:flex-row container mx-auto gap-12 lg:gap-16 py-12 px-4"
       >
-        <div class="flex-none lg:w-full lg:max-w-xs">
+        <div class="flex-none lg:w-full lg:max-w-sm">
           <!-- New post modal -->
           <button
             type="button"
@@ -166,17 +166,23 @@ async function followUser(userData) {
               </template>
               <template v-for="user in state.suggestedUsers" :key="user.id">
                 <div class="flex items-center">
-                  <img :src="user.avatarUrl" class="w-10 h-10 rounded-full" />
-                  <div class="ml-4">
-                    <h6
-                      class="text-gray-800 dark:text-white text-lg font-medum"
-                    >
-                      @{{ user.handle }}
-                    </h6>
-                    <p class="text-gray-500 dark:text-gray-400 text-sm">
-                      {{ user.fullName }}
-                    </p>
-                  </div>
+                  <router-link
+                    :to="`/social/@${user.handle}`"
+                    class="flex items-center"
+                  >
+                    <img :src="user.avatarUrl" class="w-10 h-10 rounded-full" />
+
+                    <div class="ml-4">
+                      <h6
+                        class="text-gray-800 dark:text-white text-lg font-medum"
+                      >
+                        @{{ user.handle }}
+                      </h6>
+                      <p class="text-gray-500 dark:text-gray-400 text-sm">
+                        {{ user.fullName }}
+                      </p>
+                    </div>
+                  </router-link>
                   <button
                     type="button"
                     @click="followUser(user)"

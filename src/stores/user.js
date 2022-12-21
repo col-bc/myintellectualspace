@@ -20,12 +20,21 @@ import {
 } from '@firebase/storage'
 import { defineStore } from 'pinia'
 
+/*
+  Functions and state for user data existing in 
+  user & post documents in firestore
+
+  TODO:
+    - move post state/actions to separate store
+*/
+
 export const useUserStore = defineStore({
   id: 'user',
   persist: true,
   state: () => ({
     user: undefined,
-    posts: []
+    posts: [],
+    notifications: []
   }),
   getters: {
     isAuthenticated: (state) => !!state.user,
@@ -54,6 +63,18 @@ export const useUserStore = defineStore({
         userData = { ...doc.data(), id: doc.id }
       })
       return userData
+    },
+    async fetchUidByHandle(handle) {
+      // query firestore for user uid1 by handle
+      const db = getFirestore()
+      const userRef = collection(db, 'users')
+      const q = query(userRef, where('handle', '==', handle))
+      const querySnapshot = await getDocs(q)
+      var uid = ''
+      querySnapshot.forEach((doc) => {
+        if (doc.data().handle === handle) uid = doc.id
+      })
+      return uid
     },
     async updateUser(data) {
       // strip empty or unfilled fields
@@ -153,6 +174,29 @@ export const useUserStore = defineStore({
         lastActive = doc.data().lastActive
       })
       return lastActive
+    },
+    async fetchNotifications() {
+      const db = getFirestore()
+      const docRef = doc(db, 'notifications', this.user.uid)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        this.notifications = docSnap.data().notifications
+      } else {
+        this.notifications = []
+      }
+      return this.notifications
+    },
+    async createNotification(notification, userUid) {
+      const db = getFirestore()
+      const docRef = doc(db, 'notifications', userUid)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        const notifications = docSnap.data().notifications
+        notifications.push(notification)
+        await setDoc(docRef, { notifications }, { merge: true })
+      } else {
+        await setDoc(docRef, { notifications: [notification] })
+      }
     },
 
     // POST ACTIONS

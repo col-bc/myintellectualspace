@@ -1,95 +1,70 @@
 <script setup>
-import { defineProps, reactive, onMounted, watch } from 'vue'
+import { reactive, defineProps, onMounted, onUpdated } from 'vue'
+import { Dialog } from '@headlessui/vue'
 
-const state = reactive({
-  isOpen: false,
-  image: null,
-  caption: null
-})
 const props = defineProps({
   image: {
     type: String,
     required: true
   }
 })
+
+const state = reactive({
+  image: props.image,
+  show: false
+})
+
 onMounted(() => {
   state.image = props.image
-  state.caption = props.caption
 })
-watch(state, () => {
-  if (state.isOpen) {
-    document.body.classList.add('overflow-hidden')
-  } else {
-    document.body.classList.remove('overflow-hidden')
+onUpdated(() => {
+  if (state.image !== props.image) {
+    state.image = props.image
   }
 })
 </script>
 
 <template>
-  <img
-    @click="state.isOpen = true"
-    :src="state.image"
-    class="w-full cursor-pointer"
-  />
-
-  <Teleport to="#modals-container">
-    <!-- Overlay -->
+  <img :src="state.image" @click="state.show = true" class="cursor-pointer" />
+  <Teleport to="#modals-root">
     <div
-      v-if="state.isOpen"
-      @click="state.isOpen = false"
-      class="cursor-pointer fixed z-40 top-0 right-0 w-full h-full bg-black bg-opacity-60"
+      v-if="state.show"
+      @click="state.show = false"
+      class="cursor-pointer fixed z-30 top-0 right-0 w-screen h-screen bg-black bg-opacity-60"
+    ></div>
+    <Dialog
+      as="div"
+      class="fixed inset-0 z-30 p-12 overflow-y-auto"
+      :open="state.show"
+      @close="state.show = false"
     >
-      &nbsp;
-    </div>
-    <Transition>
-      <div
-        tabindex="-1"
-        v-show="state.isOpen"
-        class="cursor-pointer overflow-y-auto overflow-x-hidden fixed top-0 right-0 z-50 w-full md:inset-0 md:h-full"
-      >
+      <div class="relative w-full h-full">
         <button
           type="button"
-          @click="state.isOpen = false"
-          class="absolute z-50 top-3 right-3 text-white bg-transparent hover:bg-gray-900 hover:bg-opacity-100 rounded-lg text-sm p-1.5 inline-flex items-center"
+          @click="state.show = false"
+          class="absolute z-50 top-0 right-0 p-3 rounded-full bg-black text-white bg-opacity-60 hover:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
         >
           <svg
-            aria-hidden="true"
-            class="w-5 h-5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
             xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
             <path
-              fill-rule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clip-rule="evenodd"
-            ></path>
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
-          <span class="sr-only">Close modal</span>
         </button>
-        <div
-          class="relative p-4 w-full max-w-screen-md mx-auto h-full md:h-auto"
-        >
-          <!-- Modal content -->
-          <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
-            <img :src="state.image" class="w-full h-full" />
-            <!-- Modal Actions -->
-          </div>
-        </div>
+
+        <img
+          :src="state.image"
+          class="absolute z-40 top-0 left-0 w-full h-full object-contain"
+        />
       </div>
-    </Transition>
+    </Dialog>
   </Teleport>
 </template>
-
-<style scoped>
-.v-enter-active,
-.v-leave-active {
-  transition: all 0.25s ease-in-out;
-  top: 0px;
-}
-
-.v-enter-from,
-.v-leave-to {
-  top: -100%;
-}
-</style>

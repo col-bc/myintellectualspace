@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { computed, defineProps, onMounted, reactive } from 'vue'
 import { Timestamp } from '@firebase/firestore'
 import { Menu, MenuButton, MenuItems, Dialog } from '@headlessui/vue'
+import LightboxComponent from './LightboxComponent.vue'
 
 const user = useUserStore()
 const router = useRouter()
@@ -176,11 +177,12 @@ async function reportPost() {
       <p class="text-gray-800 dark:text-white font-medium">
         {{ props.post.content }}
       </p>
-      <img
-        v-if="!!props.post.image"
-        :src="props.post.image"
-        class="w-full max-w-md"
-      />
+      <div class="w-full max-w-md">
+        <LightboxComponent
+          v-if="!!props.post.image"
+          :image="props.post.image"
+        />
+      </div>
     </div>
     <!-- Action bar -->
     <div
