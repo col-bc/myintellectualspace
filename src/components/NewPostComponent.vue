@@ -9,6 +9,7 @@ import LoaderComponent from './LoaderComponent.vue'
 const user = useUserStore()
 const storage = getStorage()
 
+const emit = defineEmits(['postCreated'])
 const state = reactive({
   loading: false,
   locationLoading: false
@@ -64,12 +65,17 @@ async function createPost() {
       image: newPost.imageUrl
     })
   } else {
-    await user.addPost({
-      content: newPost.content,
-      location: newPost.location,
-      likes: [],
-      comments: []
-    })
+    try {
+      await user.addPost({
+        content: newPost.content,
+        location: newPost.location,
+        likes: [],
+        comments: []
+      })
+      emit('postCreated')
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   // reset form

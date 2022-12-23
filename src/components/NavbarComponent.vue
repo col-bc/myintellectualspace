@@ -22,8 +22,9 @@ const state = reactive({
 })
 
 onMounted(async () => {
-  // fetch notifications
-  state.notifications = await user.fetchNotifications()
+  if (user.isAuthenticated) {
+    state.notifications = await user.fetchNotifications()
+  }
 })
 
 function logout() {
@@ -38,15 +39,9 @@ function closeDrawer() {
     state.showNotifications = false
   }
 }
-function parseTimestamp(timestamp) {
-  const date = new Date(timestamp.seconds * 1000)
-  const day = date.getDate()
-  const month = date.getMonth() + 1
-  const year = date.getFullYear()
-  const hours = date.getHours() > 12 ? date.getHours() - 12 : date.getHours()
-  const minutes = date.getMinutes()
-  const isAm = date.getHours() < 12
-  return `${day}/${month}/${year} ${hours}:${minutes} ${isAm ? 'AM' : 'PM'}`
+function dismissAllNotifications() {
+  user.dismissAllNotifications()
+  state.notifications = []
 }
 
 watch(route.path, () => {
@@ -302,12 +297,17 @@ onBeforeUnmount(() => {
           </svg>
         </button>
       </div>
+      <div v-if="state.notifications.length === 0" class="py-4 text-center">
+        <p class="text-gray-700 dark:text-gray-300">
+          No notifications. You're all caught up.
+        </p>
+      </div>
       <ul
         class="py-2.5 text-sm text-gray-700 dark:text-gray-200 divide-y divide-gray-200 dark:divide-gray-700"
       >
         <li
-          v-for="notification of state.notifications"
-          :key="notification.id"
+          v-for="(notification, idx) of state.notifications"
+          :key="idx"
           class="py-4"
         >
           <div class="flex items-start justify-between">
@@ -317,11 +317,14 @@ onBeforeUnmount(() => {
                 <br />
               </p>
               <span class="text-xs text-gray-700 dark:text-gray-300">
-                {{ parseTimestamp(notification.created) }}
+                {{ new Date(notification.created).toLocaleDateString('en-us') }}
+                @
+                {{ new Date(notification.created).toLocaleTimeString('en-us') }}
               </span>
             </div>
             <button
               type="button"
+              @click="user.dismissNotification(idx)"
               class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
             >
               <svg
@@ -340,6 +343,26 @@ onBeforeUnmount(() => {
           </div>
         </li>
       </ul>
+      <button
+        type="button"
+        v-if="state.notifications.length > 0"
+        @click="dismissAllNotifications"
+        class="py-2.5 px-5 text-sm w-full flex items-center justify-center gap-2.5 font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="fill-current w-6 h-6"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+        >
+          <path fill="none" d="M0 0h24v24H0z" />
+          <path
+            d="M11.602 13.76l1.412 1.412 8.466-8.466 1.414 1.414-9.88 9.88-6.364-6.364 1.414-1.414 2.125 2.125 1.413 1.412zm.002-2.828l4.952-4.953 1.41 1.41-4.952 4.953-1.41-1.41zm-2.827 5.655L7.364 18 1 11.636l1.414-1.414 1.413 1.413-.001.001 4.951 4.951z"
+          />
+        </svg>
+        Clear all notifications
+      </button>
     </div>
   </Transition>
   <!-- Navbar -->
@@ -437,7 +460,7 @@ onBeforeUnmount(() => {
       <button
         type="button"
         @click="ui.toggleTheme"
-        class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+        class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <svg
           v-if="ui.getIsDark"
@@ -471,7 +494,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           @click="state.showNotifications = !state.showNotifications"
-          class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+          class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -501,7 +524,7 @@ onBeforeUnmount(() => {
             ? (state.showDrawer = !state.showDrawer)
             : $router.push('/login')
         "
-        class="p-2.5 flex items-center gap-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+        class="p-2.5 flex items-center gap-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <template v-if="!user.isAuthenticated">
           <svg
@@ -527,7 +550,7 @@ onBeforeUnmount(() => {
       <button
         type="button"
         @click="state.showLinks = !state.showLinks"
-        class="block md:hidden p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+        class="block md:hidden p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <span class="sr-only">Open main menu</span>
         <svg

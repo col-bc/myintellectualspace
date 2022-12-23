@@ -50,15 +50,19 @@ watch(profileAlert, (value) => {
 onMounted(async () => {
   state.isOwnAccount = user.user.handle === route.params.handle
   if (!state.isOwnAccount) {
+    // fetch account data
     state.userData = await user.fetchUserByHandle(route.params.handle)
     if (!state.userData.uid) {
+      // user not found - redirect to social 404 page
       router.push('/social/not-found')
       return
     }
+    // fetch posts and likes
     state.posts = await user.fetchPostsByHandle(route.params.handle)
     state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
   } else {
+    // populate state with data from store
     state.userData = user.user
     state.posts = user.posts
     state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
@@ -76,29 +80,39 @@ onMounted(async () => {
   if (diffMinutes < 15) {
     state.isRecentlyActive = true
   }
+
+  // sort posts by date
+  state.posts.sort((a, b) => {
+    return b.createdAt.seconds - a.createdAt.seconds
+  })
 })
 onUpdated(async () => {
+  state.isOwnAccount = user.user.handle === route.params.handle
   if (state.userData.handle !== route.params.handle) {
     state.loading = true
     state.isOwnAccount = user.user.handle === route.params.handle
     if (!state.isOwnAccount) {
       state.userData = await user.fetchUserByHandle(route.params.handle)
       state.posts = await user.fetchPostsByHandle(route.params.handle)
+      state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
       state.loading = false
     } else {
       state.userData = user.user
       state.posts = user.posts
+      state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
       state.loading = false
     }
   }
-})
-
-const sortedPosts = computed(() => {
   // sort posts by date
-  return state.posts.sort((a, b) => {
+  state.posts.sort((a, b) => {
+    return b.createdAt.seconds - a.createdAt.seconds
+  })
+  // sort likes by date
+  state.likes.sort((a, b) => {
     return b.createdAt.seconds - a.createdAt.seconds
   })
 })
+
 const isFollowing = computed(() => {
   if (!state.userData.following) {
     return false
@@ -178,9 +192,11 @@ async function changeAvatar() {
       </div>
       <div
         v-else
-        class="container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
+        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
       >
-        <div class="flex flex-col items-start gap-12 w-full md:w-80">
+        <div
+          class="sticky top-6 flex flex-col items-start gap-12 w-full md:w-80"
+        >
           <!-- Avatar -->
           <div
             class="sm:flex-1 w-full max-w-sm mx-auto relative group p-2 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 rounded-lg text-white shadow-lg shadow-purple-400/30 dark:text-gray-900"
@@ -197,30 +213,19 @@ async function changeAvatar() {
               Change Avatar
             </button>
           </div>
-          <!-- Menu/About -->
-          <div class="sm:flex-1 w-full flex flex-col gap-4">
-            <div>
-              <div class="flex items-center justify-between">
-                <h3 class="text-3xl font-semibold mb-2 dark:text-white">
-                  @{{ state.userData.handle }}
-                </h3>
 
-                <div
-                  v-if="!state.isOwnAccount && state.isRecentlyActive"
-                  class="block w-5 h-5 rounded-full bg-green-600 dark:bg-green-400 animate-pulse"
-                ></div>
-              </div>
-              <h5 class="text-xl text-gray-700 dark:text-gray-300">
-                {{ state.userData.fullName }}
-              </h5>
-            </div>
-            <!-- Follow user -->
-            <button
-              type="button"
-              @click="followUser"
-              v-if="!isFollowing"
-              class="inline-flex items-center justify-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
-            >
+          <!-- Follow/unfollow -->
+          <button
+            type="button"
+            @click="followUser"
+            v-if="!state.isOwnAccount"
+            :class="[
+              !isFollowing
+                ? 'inline-flex items-center justify-center w-full gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 focus:shadow-sm focus:translate-y-0.5 transition duration-200 ease-in-out'
+                : 'inline-flex items-center justify-center gap-3 w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-7 py-3.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800 shadow-lg shadow-red-500/50 dark:shadow-lg dark:shadow-red-800/80 focus:shadow-sm focus:translate-y-0.5 transition duration-200 ease-in-out'
+            ]"
+          >
+            <template v-if="!isFollowing">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -234,13 +239,8 @@ async function changeAvatar() {
                 />
               </svg>
               Follow @{{ state.userData.handle }}
-            </button>
-            <button
-              type="button"
-              @click="followUser"
-              v-else
-              class="inline-flex items-center justify-center gap-3 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-7 py-3.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-80"
-            >
+            </template>
+            <template v-else>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -254,134 +254,215 @@ async function changeAvatar() {
                 />
               </svg>
               Unfollow @{{ state.userData.handle }}
-            </button>
+            </template>
+          </button>
+
+          <!-- Menu/About -->
+          <div class="sm:flex-1 w-full flex flex-col gap-6 lg:gap-12 mb-6">
             <!-- User menu -->
             <div
-              class="w-full font-medium text-gray-900 bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              class="w-full font-medium text-gray-900 bg-white shadow-md rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
             >
-              <router-link
-                :to="{ name: 'profile' }"
-                class="flex items-center py-2 px-4 w-full rounded-t-lg border-b border-gray-200 cursor-pointer"
-                :class="[
-                  route.name === 'profile'
-                    ? 'text-blue-700  dark:text-blue-400 dark:border-gray-600'
-                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
-                ]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
+              <div class="p-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-3xl font-semibold mb-2 dark:text-white">
+                    {{ state.userData.fullName }}
+                  </h3>
+                  <div
+                    v-if="!state.isOwnAccount && state.isRecentlyActive"
+                    class="block w-5 h-5 rounded-full bg-green-600 dark:bg-green-400 animate-pulse"
+                  ></div>
+                </div>
+                <h5
+                  class="flex items-center gap-2text-xl text-gray-700 dark:text-gray-300 mb-2"
                 >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
-                  />
-                </svg>
-                Posts
-              </router-link>
-              <router-link
-                :to="{ name: 'profile-likes' }"
-                class="flex items-center py-2 px-4 w-full border-b border-gray-200 cursor-pointer"
-                :class="[
-                  route.name === 'profile-likes'
-                    ? 'text-blue-700  dark:text-blue-400 dark:border-gray-600'
-                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
-                ]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M20 12a8 8 0 1 0-3.562 6.657l1.11 1.664A9.953 9.953 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10v1.5a3.5 3.5 0 0 1-6.396 1.966A5 5 0 1 1 15 8H17v5.5a1.5 1.5 0 0 0 3 0V12zm-8-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+                    />
+                  </svg>
+                  {{ state.userData.handle }}
+                </h5>
+                <!-- Location -->
+                <p
+                  class="flex items-center gap-2 mb-2 text-gray-700 dark:text-gray-300"
                 >
-                  <path fill="none" d="M0 0H24V24H0z" />
-                  <path
-                    d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
-                  />
-                </svg>
-                Likes
-              </router-link>
-              <router-link
-                :to="{ name: 'profile-connections' }"
-                class="flex items-center py-2 px-4 w-full border-b border-gray-200 cursor-pointer"
-                :class="[
-                  route.name === 'profile-connections'
-                    ? 'text-blue-700  dark:text-blue-400 dark:border-gray-600'
-                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
-                ]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M11 19.945A9.001 9.001 0 0 1 12 2a9 9 0 0 1 1 17.945V24h-2v-4.055zM12 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
+                    />
+                  </svg>
+                  <span v-if="state.userData.location">
+                    {{ state.userData.location }}
+                  </span>
+                  <span
+                    v-else
+                    class="italic text-xm text-gray-700 dark:text-gray-300"
+                  >
+                    No location available.
+                  </span>
+                </p>
+                <!-- Bio -->
+                <p class="leading-tight text-gray-700 dark:text-gray-300">
+                  <span v-if="state.userData.bio">
+                    {{ state.userData.bio }}
+                  </span>
+                  <span
+                    v-else
+                    class="italic text-xm text-gray-700 dark:text-gray-300"
+                  >
+                    No bio available.
+                  </span>
+                </p>
+              </div>
+
+              <div class="inline-flex w-full" role="group">
+                <button
+                  type="button"
+                  class="flex flex-1 justify-center gap-2 py-2 px-4 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
                 >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
-                  />
-                </svg>
-                Connections
-              </router-link>
-              <router-link
-                :to="{ name: 'profile-about' }"
-                class="flex items-center py-2 px-4 w-full rounded-b-lg cursor-pointer"
-                :class="[
-                  route.name === 'profile-about'
-                    ? 'text-blue-700  dark:text-blue-400 dark:border-gray-600'
-                    : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
-                ]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  class="h-6 w-6 fill-current mr-3"
-                  width="24"
-                  height="24"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M5.763 17H20V5H4v13.385L5.763 17zm.692 2L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455z"
+                    />
+                  </svg>
+                  Message
+                </button>
+                <button
+                  type="button"
+                  class="flex flex-1 justify-center gap-2 py-2 px-4 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white"
                 >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
-                  />
-                </svg>
-                About
-              </router-link>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M17 9.2l5.213-3.65a.5.5 0 0 1 .787.41v12.08a.5.5 0 0 1-.787.41L17 14.8V19a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v4.2zm0 3.159l4 2.8V8.84l-4 2.8v.718zM3 6v12h12V6H3zm2 2h2v2H5V8z"
+                    />
+                  </svg>
+                  Video Call
+                </button>
+              </div>
+              <div class="flex flex-col">
+                <router-link
+                  :to="{ name: 'profile' }"
+                  class="flex items-center py-2 px-4 w-full border-b border-gray-200 dark:border-gray-600 cursor-pointer"
+                  :class="[
+                    route.name === 'profile'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-blue-700  dark:text-blue-400 '
+                      : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="h-6 w-6 fill-current mr-3"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
+                    />
+                  </svg>
+                  Posts
+                </router-link>
+                <router-link
+                  :to="{ name: 'profile-likes' }"
+                  class="flex items-center py-2 px-4 w-full border-b border-gray-200 dark:border-gray-600 cursor-pointer"
+                  :class="[
+                    route.name === 'profile-likes'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-blue-700  dark:text-blue-400 '
+                      : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="h-6 w-6 fill-current mr-3"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0H24V24H0z" />
+                    <path
+                      d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
+                    />
+                  </svg>
+                  Likes
+                </router-link>
+                <router-link
+                  :to="{ name: 'profile-connections' }"
+                  class="flex items-center py-2 px-4 w-full border-b border-gray-200 dark:border-gray-600 cursor-pointer"
+                  :class="[
+                    route.name === 'profile-connections'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-blue-700  dark:text-blue-400 '
+                      : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="h-6 w-6 fill-current mr-3"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
+                    />
+                  </svg>
+                  Connections
+                </router-link>
+                <router-link
+                  :to="{ name: 'profile-about' }"
+                  class="flex items-center py-2 px-4 w-full rounded-b-lg cursor-pointer"
+                  :class="[
+                    route.name === 'profile-about'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-blue-700  dark:text-blue-400 '
+                      : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                  ]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="h-6 w-6 fill-current mr-3"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
+                    />
+                  </svg>
+                  About
+                </router-link>
+              </div>
             </div>
-            <!-- Bio -->
-            <h5 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
-              Bio
-            </h5>
-            <p class="leading-tight text-gray-700 dark:text-gray-300">
-              <span v-if="state.userData.bio">
-                {{ state.userData.bio }}
-              </span>
-              <span
-                v-else
-                class="italic text-xm text-gray-700 dark:text-gray-300"
-              >
-                No bio available.
-              </span>
-            </p>
-            <!-- Location -->
-            <h5 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
-              Location
-            </h5>
-            <p class="leading-tight mb-6 text-gray-700 dark:text-gray-300">
-              <span v-if="state.userData.location">
-                {{ state.userData.location }}
-              </span>
-              <span
-                v-else
-                class="italic text-xm text-gray-700 dark:text-gray-300"
-              >
-                No location available.
-              </span>
-            </p>
           </div>
         </div>
 
@@ -398,12 +479,12 @@ async function changeAvatar() {
           />
           <NewPostComponent
             v-if="state.isOwnAccount"
-            @post-created="(post) => state.posts.push(post)"
+            @post-created="refreshPosts"
           />
           <div class="flex items-center justify-between">
-            <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+            <h2 class="text-4xl font-bold text-gray-800 dark:text-white">
               Posts by @{{ state.userData.handle }}
-            </h4>
+            </h2>
             <div class="relative">
               <button
                 type="button"
@@ -437,15 +518,19 @@ async function changeAvatar() {
             <p class="text-center text-gray-500">No posts found.</p>
           </div>
 
-          <div v-for="post of sortedPosts" :key="post.id">
-            <PostComponent :post="post" class="shadow-sm" />
+          <div v-for="post of state.posts" :key="post.id">
+            <PostComponent
+              :post="post"
+              class="shadow-sm"
+              @delete="refreshPosts"
+            />
           </div>
         </div>
 
         <!-- About -->
         <div
           v-if="$route.name === 'profile-about'"
-          class="flex-1 flex flex-col gap-12 px-2"
+          class="flex-1 flex flex-col gap-12 px-2 w-full max-w-xl md:mx-auto"
         >
           <!-- Edit profile -->
           <div v-if="state.isOwnAccount" class="flex flex-col gap-6">
@@ -458,8 +543,8 @@ async function changeAvatar() {
             />
 
             <div class="flex items-center justify-between">
-              <h2 class="text-2xl font-bold py-3 dark:text-white">
-                About @{{ state.userData.handle }}
+              <h2 class="text-4xl font-bold py-3 dark:text-white">
+                Edit profile
               </h2>
               <button
                 type="button"
@@ -482,9 +567,9 @@ async function changeAvatar() {
               </button>
             </div>
             <!-- Handle -->
-            <div class="flex items-center">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Handle</span
               >
               <input
@@ -495,9 +580,9 @@ async function changeAvatar() {
               />
             </div>
             <!-- Name -->
-            <div class="flex items-center">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Name</span
               >
               <input
@@ -508,9 +593,9 @@ async function changeAvatar() {
               />
             </div>
             <!-- Phone -->
-            <div class="flex items-center">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Phone Number</span
               >
               <input
@@ -521,9 +606,9 @@ async function changeAvatar() {
               />
             </div>
             <!-- Location -->
-            <div class="flex items-center">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Location</span
               >
               <div class="w-full">
@@ -539,9 +624,9 @@ async function changeAvatar() {
               </div>
             </div>
             <!-- Bio -->
-            <div class="flex items-start">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Bio</span
               >
               <textarea
@@ -552,9 +637,9 @@ async function changeAvatar() {
               ></textarea>
             </div>
             <!-- Education Level -->
-            <div class="flex items-center">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Education Level</span
               >
               <select
@@ -570,9 +655,9 @@ async function changeAvatar() {
               </select>
             </div>
             <!-- Education institution -->
-            <div class="flex items-center">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Education Institution</span
               >
               <input
@@ -583,9 +668,9 @@ async function changeAvatar() {
               />
             </div>
             <!-- Education major -->
-            <div class="flex items-center">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Education Major</span
               >
               <input
@@ -596,9 +681,9 @@ async function changeAvatar() {
               />
             </div>
             <!-- Occupation -->
-            <div class="flex items-center">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Occupation</span
               >
               <input
@@ -609,9 +694,9 @@ async function changeAvatar() {
               />
             </div>
             <!-- Interests -->
-            <div class="flex items-start">
+            <div>
               <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >Interests</span
               >
               <textarea
@@ -621,37 +706,11 @@ async function changeAvatar() {
                 rows="4"
               ></textarea>
             </div>
-            <!-- Business Name -->
-            <div class="flex items-center">
-              <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
-                >Business Name</span
-              >
-              <input
-                type="text"
-                v-model="state.userData.businessName"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder=""
-              />
-            </div>
-            <!-- In business since -->
-            <div class="flex items-center">
-              <span
-                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
-                >In Business Since</span
-              >
-              <input
-                type="text"
-                v-model="state.userData.inBusinessSince"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder=""
-              />
-            </div>
           </div>
           <!-- Read profile -->
           <div v-else class="flex flex-col gap-6">
             <div class="flex items-center justify-between">
-              <h2 class="text-2xl font-bold py-3 dark:text-white">
+              <h2 class="text-4xl font-bold py-3 dark:text-white">
                 About @{{ state.userData.handle }}
               </h2>
             </div>
@@ -754,9 +813,9 @@ async function changeAvatar() {
           class="flex-1 flex flex-col gap-12 px-2"
         >
           <div class="flex items-center justify-between">
-            <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+            <h2 class="text-4xl font-bold text-gray-800 dark:text-white">
               Liked by @{{ state.userData.handle }}
-            </h4>
+            </h2>
             <div class="relative">
               <button
                 type="button"
@@ -807,9 +866,9 @@ async function changeAvatar() {
           v-if="$route.name === 'profile-connections'"
           class="flex-1 flex flex-col gap-12 px-2"
         >
-          <h4 class="text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 class="text-4xl font-bold text-gray-800 dark:text-white">
             @{{ state.userData.handle }}'s Connections
-          </h4>
+          </h2>
           <AlertComponent
             v-show="profileAlert.message"
             class="my-4"
@@ -849,11 +908,20 @@ async function changeAvatar() {
               </div>
               <div class="flex-shrink-0">
                 <button
+                  v-if="state.isOwnAccount"
                   type="button"
-                  @click.stop="user.unfollow(user.id)"
+                  @click.stop="followUser(user.handle)"
                   class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
                 >
                   Unfollow
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  @click.stop="followUser(user.handle)"
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-60"
+                >
+                  Follow
                 </button>
               </div>
             </router-link>

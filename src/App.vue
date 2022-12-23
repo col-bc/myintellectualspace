@@ -3,8 +3,12 @@ import FooterComponent from './components/FooterComponent.vue'
 import { RouterView } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import useInterface from '@/stores/interface'
+import useUserStore from '@/stores/user'
+import { getAuth, onAuthStateChanged } from '@firebase/auth'
 
 const ui = useInterface()
+const user = useUserStore()
+const auth = getAuth()
 const vpWidth = ref(window.innerWidth)
 
 onMounted(() => {
@@ -14,6 +18,12 @@ onMounted(() => {
     ui.setDarkTheme(false)
   }
   ui.setViewportWidth(vpWidth.value)
+
+  onAuthStateChanged(auth, (credential) => {
+    if (!credential?.auth) {
+      user.logout()
+    }
+  })
 })
 
 window.addEventListener('resize', () => {

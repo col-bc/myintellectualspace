@@ -92,12 +92,12 @@ async function saveUser() {
         information to your profile. You can update or remove these details at
         any time by visiting your profile page.
       </p>
-      <form @submit.prevent="saveUser" class="flex flex-col gap-6">
+      <form @submit.prevent="saveUser" class="grid grid-cols-1 gap-6">
         <AlertComponent v-if="!!error" :message="error" type="error" />
         <!-- Handle -->
-        <div class="flex items-center">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Handle</span
           >
           <input
@@ -108,9 +108,9 @@ async function saveUser() {
           />
         </div>
         <!-- Name -->
-        <div class="flex items-center">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Name</span
           >
           <input
@@ -121,9 +121,9 @@ async function saveUser() {
           />
         </div>
         <!-- Phone -->
-        <div class="flex items-center">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Phone Number</span
           >
           <input
@@ -134,9 +134,9 @@ async function saveUser() {
           />
         </div>
         <!-- Location -->
-        <div class="flex items-center">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Location</span
           >
           <div class="w-full">
@@ -152,9 +152,9 @@ async function saveUser() {
           </div>
         </div>
         <!-- Bio -->
-        <div class="flex items-start">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Bio</span
           >
           <textarea
@@ -165,9 +165,9 @@ async function saveUser() {
           ></textarea>
         </div>
         <!-- Education Level -->
-        <div class="flex items-center">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Education Level</span
           >
           <select
@@ -183,9 +183,9 @@ async function saveUser() {
           </select>
         </div>
         <!-- Education institution -->
-        <div class="flex items-center">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Education Institution</span
           >
           <input
@@ -196,9 +196,9 @@ async function saveUser() {
           />
         </div>
         <!-- Education major -->
-        <div class="flex items-center">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Education Major</span
           >
           <input
@@ -209,9 +209,9 @@ async function saveUser() {
           />
         </div>
         <!-- Occupation -->
-        <div class="flex items-center">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Occupation</span
           >
           <input
@@ -222,9 +222,9 @@ async function saveUser() {
           />
         </div>
         <!-- Interests -->
-        <div class="flex items-start">
+        <div>
           <span
-            class="font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >Interests</span
           >
           <textarea

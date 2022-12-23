@@ -6,6 +6,10 @@ const props = defineProps({
   image: {
     type: String,
     required: true
+  },
+  classes: {
+    type: String,
+    default: ''
   }
 })
 
@@ -25,7 +29,12 @@ onUpdated(() => {
 </script>
 
 <template>
-  <img :src="state.image" @click="state.show = true" class="cursor-pointer" />
+  <img
+    :src="state.image"
+    @click="state.show = true"
+    class="cursor-pointer"
+    :class="props.classes"
+  />
   <Teleport to="#modals-root">
     <div
       v-if="state.show"
@@ -34,15 +43,17 @@ onUpdated(() => {
     ></div>
     <Dialog
       as="div"
-      class="fixed inset-0 z-30 p-12 overflow-y-auto"
+      class="fixed inset-0 z-30 overflow-y-auto"
       :open="state.show"
       @close="state.show = false"
+      @keydown.escape="state.show = false"
     >
       <div class="relative w-full h-full">
         <button
+          tabindex="-1"
           type="button"
           @click="state.show = false"
-          class="absolute z-50 top-0 right-0 p-3 rounded-full bg-black text-white bg-opacity-60 hover:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+          class="absolute z-50 top-6 right-6 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-full text-sm p-5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

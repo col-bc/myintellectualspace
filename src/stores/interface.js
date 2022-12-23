@@ -13,7 +13,8 @@ const useInterface = defineStore('interface', {
       if (state.viewportWidth < 1024) return 'lg'
       if (state.viewportWidth < 1280) return 'xl'
       return '2xl'
-    }
+    },
+    isMobile: (state) => state.viewportWidth < 640
   },
   actions: {
     toggleTheme() {
