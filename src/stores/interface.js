@@ -2,10 +2,19 @@ import { defineStore } from 'pinia'
 
 const useInterface = defineStore('interface', {
   state: () => ({
-    isDark: false
+    isDark: false,
+    viewportWidth: undefined
   }),
   getters: {
-    getIsDark: (state) => state.isDark
+    getIsDark: (state) => state.isDark,
+    getViewportPrefix: (state) => {
+      if (state.viewportWidth < 640) return 'sm'
+      if (state.viewportWidth < 768) return 'md'
+      if (state.viewportWidth < 1024) return 'lg'
+      if (state.viewportWidth < 1280) return 'xl'
+      return '2xl'
+    },
+    isMobile: (state) => state.viewportWidth < 640
   },
   actions: {
     toggleTheme() {
@@ -17,6 +26,9 @@ const useInterface = defineStore('interface', {
       this.isDark = state
       document.documentElement.classList.toggle('dark', state)
       localStorage.setItem('color-theme', state ? 'dark' : 'light')
+    },
+    setViewportWidth(width) {
+      this.viewportWidth = width
     }
   }
 })

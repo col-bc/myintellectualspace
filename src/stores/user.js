@@ -19,13 +19,23 @@ import {
   getDownloadURL
 } from '@firebase/storage'
 import { defineStore } from 'pinia'
+import { vModelCheckbox } from 'vue'
+
+/*
+  Functions and state for user data existing in 
+  user & post documents in firestore
+
+  TODO:
+    - move post state/actions to separate store
+*/
 
 export const useUserStore = defineStore({
   id: 'user',
   persist: true,
   state: () => ({
     user: undefined,
-    posts: []
+    posts: [],
+    notifications: []
   }),
   getters: {
     isAuthenticated: (state) => !!state.user,
@@ -54,6 +64,30 @@ export const useUserStore = defineStore({
         userData = { ...doc.data(), id: doc.id }
       })
       return userData
+    },
+    async fetchUidByHandle(handle) {
+      // query firestore for user uid1 by handle
+      const db = getFirestore()
+      const userRef = collection(db, 'users')
+      const q = query(userRef, where('handle', '==', handle))
+      const querySnapshot = await getDocs(q)
+      var uid = ''
+      querySnapshot.forEach((doc) => {
+        if (doc.data().handle === handle) uid = doc.id
+      })
+      return uid
+    },
+    async getUserUidByHandle(handle) {
+      // query firestore for user uid by handle
+      const db = getFirestore()
+      const userRef = collection(db, 'users')
+      const q = query(userRef, where('handle', '==', handle))
+      const documents = await getDocs(q)
+      var uid = ''
+      documents.forEach((doc) => {
+        if (doc.data().handle === handle) uid = doc.id
+      })
+      return uid
     },
     async updateUser(data) {
       // strip empty or unfilled fields
@@ -87,6 +121,15 @@ export const useUserStore = defineStore({
           avatarUrl: user.avatarUrl,
           fullName: user.fullName
         })
+        const uid = await this.getUserUidByHandle(user.handle)
+        this.createNotification(
+          {
+            message: `@${this.user.handle} started following you`,
+            created: new Date().toISOString('en-US'),
+            read: false
+          },
+          uid
+        )
       } else {
         // user is in following array, remove them
         following.splice(userIndex, 1)
@@ -153,6 +196,45 @@ export const useUserStore = defineStore({
         lastActive = doc.data().lastActive
       })
       return lastActive
+    },
+    async fetchNotifications() {
+      const db = getFirestore()
+      const docRef = doc(db, 'notifications', this.user.uid)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        this.notifications = docSnap.data().notifications
+      } else {
+        this.notifications = []
+      }
+      return this.notifications
+    },
+    async createNotification(notification, uid) {
+      const db = getFirestore()
+      console.log(uid)
+      const docRef = doc(db, 'notifications', uid)
+
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        const notifications = docSnap.data().notifications
+        notifications.push(notification)
+        await setDoc(docRef, { notifications }, { merge: true })
+      } else {
+        await setDoc(docRef, { notifications: [notification] })
+      }
+    },
+    async dismissNotification(idx) {
+      const db = getFirestore()
+      const docRef = doc(db, 'notifications', this.user.uid)
+      const notifications = this.notifications
+      notifications.splice(idx, 1)
+      await setDoc(docRef, { notifications }, { merge: true })
+      this.notifications = notifications
+    },
+    async dismissAllNotifications() {
+      const db = getFirestore()
+      const docRef = doc(db, 'notifications', this.user.uid)
+      await setDoc(docRef, { notifications: [] }, { merge: true })
+      this.notifications = []
     },
 
     // POST ACTIONS
@@ -224,10 +306,9 @@ export const useUserStore = defineStore({
       // delete post from posts collection
       const db = getFirestore()
       const postRef = collection(db, 'posts')
-      // remove image from storage
-      // check if post has an image
-      console.log(data)
       if (!!data.image) {
+        // remove image from storage
+        console.log(data.image)
         const storage = getStorage()
         const storageRef = ref(
           storage,
@@ -238,11 +319,16 @@ export const useUserStore = defineStore({
         // remove post from firestore
         await deleteDoc(doc(postRef, data.id))
       }
+      v
+      // update state
+      console.log(
+        'removing post: ',
+        this.posts.filter((posts) => posts.id !== data.id)
+      )
+      this.posts = this.posts.filter((post) => post.id !== data.id)
       // update lastActive field in user
       const userRef = doc(db, 'users', this.user.uid)
       await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
-      // update state
-      this.posts = this.posts.filter((post) => post.id !== data.id)
     },
     async toggleLike(post) {
       // toggle like in firestore
@@ -255,6 +341,15 @@ export const useUserStore = defineStore({
       if (userIndex === -1) {
         // user has not liked post, append handle
         likes.push(this.user.handle)
+        const uid = await this.getUserUidByHandle(post.author.handle)
+        this.createNotification(
+          {
+            message: `@${this.user.handle} liked your post`,
+            created: new Date().toISOString('en-US'),
+            read: false
+          },
+          uid
+        )
       } else {
         // user has liked post, remove index of user's handle
         likes.splice(userIndex, 1)
@@ -288,11 +383,22 @@ export const useUserStore = defineStore({
       })
       // save changes to firestore
       await setDoc(docRef, { comments }, { merge: true })
+      // create notification
+      const uid = await this.getUserUidByHandle(docData.data().author.handle)
+      this.createNotification(
+        {
+          message: `@${this.user.handle} commented on one of your post`,
+          created: new Date().toISOString('en-US'),
+          read: false
+        },
+        uid
+      )
+      // update state if user is author of post
       if (this.user.handle === docData.data().author.handle) {
         // update post in state
         const postIndex = this.posts.findIndex((p) => p.id === postId)
         this.posts[postIndex].comments = comments
-        // update lastActive field in user
+        // update lastActive field for user
         const userRef = doc(db, 'users', this.user.uid)
         await setDoc(
           userRef,
@@ -301,7 +407,7 @@ export const useUserStore = defineStore({
         )
         return comments
       } else {
-        // update lastActive field in user
+        // update lastActive field of user
         const userRef = doc(db, 'users', this.user.uid)
         await setDoc(
           userRef,

@@ -1,10 +1,15 @@
 <script setup>
 import FooterComponent from './components/FooterComponent.vue'
 import { RouterView } from 'vue-router'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import useInterface from '@/stores/interface'
+import useUserStore from '@/stores/user'
+import { getAuth, onAuthStateChanged } from '@firebase/auth'
 
 const ui = useInterface()
+const user = useUserStore()
+const auth = getAuth()
+const vpWidth = ref(window.innerWidth)
 
 onMounted(() => {
   if (localStorage.getItem('color-theme') === 'dark') {
@@ -12,6 +17,18 @@ onMounted(() => {
   } else {
     ui.setDarkTheme(false)
   }
+  ui.setViewportWidth(vpWidth.value)
+
+  onAuthStateChanged(auth, (credential) => {
+    if (!credential?.auth) {
+      user.logout()
+    }
+  })
+})
+
+window.addEventListener('resize', () => {
+  vpWidth.value = window.innerWidth
+  ui.setViewportWidth(vpWidth.value)
 })
 </script>
 
@@ -23,6 +40,7 @@ onMounted(() => {
       </transition>
     </router-view>
     <FooterComponent />
+    <div id="modals-root"></div>
   </div>
 </template>
 

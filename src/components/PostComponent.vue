@@ -5,7 +5,9 @@ import { useRouter } from 'vue-router'
 import { computed, defineProps, onMounted, reactive } from 'vue'
 import { Timestamp } from '@firebase/firestore'
 import { Menu, MenuButton, MenuItems, Dialog } from '@headlessui/vue'
+import LightboxComponent from './LightboxComponent.vue'
 
+const emit = defineEmits(['delete'])
 const user = useUserStore()
 const router = useRouter()
 const props = defineProps({
@@ -34,7 +36,7 @@ const reportForm = reactive({
 })
 
 onMounted(async () => {
-  state.showComments = props.post.comments.length > 0 || props.expand
+  state.showComments = props.post.comments?.length > 0 || props.expand
   const lastActiveTimestamp = await user.getLastActive(props.post.author.handle)
   if (!lastActiveTimestamp) {
     return
@@ -102,6 +104,7 @@ async function deletePost() {
     return
   }
   user.deletePost(props.post)
+  emit('delete', props.post.id)
 }
 async function addComment() {
   if (!user.isAuthenticated) {
@@ -135,7 +138,7 @@ async function reportPost() {
     class="bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-600"
   >
     <!-- Header -->
-    <div class="flex items-center p-4 pb-2">
+    <div class="flex items-start p-4 pb-2">
       <div
         class="flex items-center mr-auto"
         @click="$router.push(`/social/@${props.post.author.handle}`)"
@@ -146,11 +149,16 @@ async function reportPost() {
         >
           <img
             :src="props.post.author.avatarUrl"
-            class="h-8 w-8 rounded-full mr-4"
+            class="h-10 w-10 rounded-full mr-4"
           />
-          <h6 class="font-medium text-gray-900 dark:text-white">
-            {{ props.post.author.handle }}
-          </h6>
+          <div>
+            <h6 class="font-medium text-gray-900 dark:text-white">
+              @{{ props.post.author.handle }}
+            </h6>
+            <p class="text-xs text-gray-600 dark:text-gray-400 ml-1">
+              {{ props.post.author.fullName }}
+            </p>
+          </div>
         </router-link>
         <div
           v-if="state.isRecentlyActive && !isOwnPost"
@@ -170,17 +178,16 @@ async function reportPost() {
       </p>
     </div>
     <!-- Body -->
-    <div
-      class="flex flex-col md:flex-row justify-start md:justify-between items-start gap-4 px-4 py-4"
-    >
-      <p class="text-gray-800 dark:text-white font-medium">
+    <div class="flex flex-col gap-4 px-4 py-4">
+      <p class="flex-1 mb-4 text-gray-800 dark:text-white">
         {{ props.post.content }}
       </p>
-      <img
-        v-if="!!props.post.image"
-        :src="props.post.image"
-        class="w-full max-w-md"
-      />
+      <div v-if="!!props.post.image" class="w-full">
+        <LightboxComponent
+          :image="props.post.image"
+          classes="w-full h-full object-fit"
+        />
+      </div>
     </div>
     <!-- Action bar -->
     <div
@@ -229,29 +236,31 @@ async function reportPost() {
           </svg>
         </MenuButton>
         <MenuItems
-          class="flex flex-col absolute top-full w-52 mt-1 max-w-sm right-0 p-4 text-gray-800 bg-white border border-gray-200 rounded-lg shadow-md dark:text-white dark:bg-gray-800 dark:border-gray-700"
+          class="flex flex-col absolute top-0 right-full w-64 mr-2 max-w-sm p-4 text-gray-800 bg-white border border-gray-300 rounded-lg shadow-md dark:text-white dark:bg-gray-800 dark:border-gray-600"
         >
-          <p class="text-lg font-medium mb-4">
-            Are you sure you want to delete this post?
+          <p class="text-lg font-medium mb-4">Are you sure?</p>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            Do you you want to delete this post and all of it's comments? This
+            action cannot be undone.
           </p>
           <button
             type="button"
             @click="deletePost"
-            class="flex items-center justify-center gap-2.5 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+            class="flex items-center justify-center gap-2.5 w-full focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
+              class="flex-shrink-0 w-5 h-5 fill-current"
               viewBox="0 0 24 24"
               width="24"
               height="24"
-              class="w-5 h-5 fill-current"
             >
               <path fill="none" d="M0 0h24v24H0z" />
               <path
                 d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
               />
             </svg>
-            Delete Post
+            Yes, delete post.
           </button>
         </MenuItems>
       </Menu>
@@ -369,37 +378,57 @@ async function reportPost() {
       </div>
       <div
         v-if="props.post.comments?.length !== 0"
-        class="bg-white dark:bg-gray-800 rounded-b-lg"
+        class="bg-white dark:bg-gray-800 rounded-b-lg px-3 divide-y divide-gray-200 dark:divide-gray-600 mb-2"
       >
         <template
           v-for="(comment, idx) in props.post.comments"
           :key="comment.id"
         >
-          <div
-            class="flex items-center px-3 py-2 border-b border-gray-200 dark:border-gray-600"
-            :class="{
-              'rounded-b-lg': idx === props.post.comments.length - 1
-            }"
-          >
-            {{ comment.id }}
-            <img
-              @click="
-                $router.push({
-                  name: 'profile',
-                  params: { handle: comment.author.handle }
-                })
-              "
-              :src="comment.author.avatarUrl"
-              class="w-10 h-10 rounded-full cursor-pointer"
-            />
-            <div class="ml-3">
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                @{{ comment.author.handle }}
-              </p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ comment.content }}
-              </p>
+          <div class="flex items-center justify-between">
+            <div
+              class="flex items-center py-2"
+              :class="{
+                'rounded-b-lg': idx === props.post.comments.length - 1
+              }"
+            >
+              <img
+                @click="
+                  $router.push({
+                    name: 'profile',
+                    params: { handle: comment.author.handle }
+                  })
+                "
+                :src="comment.author.avatarUrl"
+                class="w-10 h-10 rounded-full cursor-pointer"
+              />
+              <div class="ml-3">
+                <span
+                  class="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  @{{ comment.author.handle }}
+                </span>
+                <p class="text-gray-900 dark:text-white">
+                  {{ comment.content }}
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              class="p-2 text-xs rounded-md bg-white text-red-500 hover:bg-red-500 hover:text-white dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-400 dark:hover:text-gray-900 transition-colors duration-200 ease-in-out"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
+                />
+              </svg>
+            </button>
           </div>
         </template>
       </div>

@@ -7,7 +7,9 @@ import useUserStore from '@/stores/user'
 import { onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import LoaderComponent from '../../components/LoaderComponent.vue'
+import useInterface from '@/stores/interface'
 
+const ui = useInterface()
 const route = useRoute()
 const user = useUserStore()
 
@@ -15,7 +17,9 @@ const state = reactive({
   posts: [],
   suggestedUsers: [],
   loading: true,
-  error: null
+  error: null,
+  collapseFilters: false,
+  collapseSuggestions: false
 })
 
 const filters = reactive({
@@ -26,6 +30,10 @@ const filters = reactive({
 })
 
 onMounted(async () => {
+  state.loading = true
+  console.log(ui.isMobile)
+  state.collapseFilters = ui.isMobile
+
   state.posts = await loadPosts()
   state.posts
     .filter((post) => {
@@ -48,8 +56,21 @@ watch(
   async () => {
     state.loading = true
     state.posts = await loadPosts()
+
+    if (route.name === 'explore-network') {
+      // remove posts from users not in user's following array
+      state.posts = state.posts.filter((post) => {
+        if (user.user.following) {
+          return user.user.following
+            .map((user) => user.handle)
+            .includes(post.author.handle)
+        }
+      })
+    }
+
     state.loading = false
-  }
+  },
+  { immediate: true }
 )
 
 async function loadPosts() {
@@ -65,6 +86,11 @@ async function loadPosts() {
   }
   return posts.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds)
 }
+async function refreshPosts() {
+  state.loading = true
+  state.posts = await loadPosts()
+  state.loading = false
+}
 async function followUser(userData) {
   await user.toggleFollowUser(userData)
   state.suggestedUsers = await user.getSuggestedUsers()
@@ -77,14 +103,16 @@ async function followUser(userData) {
       <NavbarComponent />
 
       <div
-        class="flex flex-col md:flex-row container mx-auto gap-12 lg:gap-16 py-12 px-4"
+        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
       >
-        <div class="flex-none lg:w-full lg:max-w-xs">
-          <!-- New post modal -->
+        <div
+          class="sticky too-6 flex flex-col flex-none lg:w-full lg:max-w-sm gap-6 lg:gap-12"
+        >
+          <!-- Open new post modal -->
           <button
             type="button"
             @click="state.showNewPostDialog = true"
-            class="inline-flex w-full mb-12 items-center gap-4 justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
+            class="inline-flex w-full items-center gap-4 justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 focus:shadow-sm focus:translate-y-0.5 transition duration-200 ease-in-out"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -100,15 +128,55 @@ async function followUser(userData) {
             </svg>
             New Post
           </button>
-
           <!-- Filters -->
           <div
-            class="w-full p-4 mb-6 bg-white shadow-sm rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
+            class="w-full p-4 bg-white shadow-md rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
           >
-            <h4 class="text-gray-800 dark:text-white text-xl font-bold mb-4">
-              Filters
-            </h4>
-            <div class="flex flex-col gap-y-4 w-full">
+            <div
+              class="flex items-center justify-between"
+              :class="{ 'mb-4': !state.collapseFilters }"
+            >
+              <h4
+                class="flex items-center gap-3 text-gray-800 dark:text-white text-xl font-bold"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0H24V24H0z" />
+                  <path
+                    d="M21 4v2h-1l-5 7.5V22H9v-8.5L4 6H3V4h18zM6.404 6L11 12.894V20h2v-7.106L17.596 6H6.404z"
+                  />
+                </svg>
+                Filters
+              </h4>
+              <button
+                type="button"
+                @click="state.collapseFilters = !state.collapseFilters"
+                class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                :class="{ 'rotate-180': state.collapseFilters }"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M12 13.172l4.95-4.95 1.414 1.414L12 16 5.636 9.636 7.05 8.222z"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              v-if="!state.collapseFilters"
+              class="flex flex-col gap-y-4 w-full"
+            >
               <div class="flex items-center gap-6 justify-between">
                 <label
                   class="block text-sm font-medium text-gray-900 dark:text-gray-300"
@@ -150,15 +218,55 @@ async function followUser(userData) {
               </div>
             </div>
           </div>
-
           <!-- Suggestions -->
           <div
-            class="w-full p-4 bg-white shadow-sm rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
+            class="w-full p-4 bg-white shadow-md rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
           >
-            <h4 class="text-gray-800 dark:text-white text-xl font-bold mb-4">
-              Suggestions for you
-            </h4>
-            <div class="flex flex-col gap-y-4 w-full">
+            <div
+              class="flex items-center justify-between"
+              :class="{ 'mb-4': !state.collapseSuggestions }"
+            >
+              <h4
+                class="flex items-center gap-3 text-gray-800 dark:text-white text-xl font-bold"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
+                  />
+                </svg>
+                Suggestions for you
+              </h4>
+              <button
+                type="button"
+                @click="state.collapseSuggestions = !state.collapseSuggestions"
+                class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                :class="{ 'rotate-180': state.collapseSuggestions }"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M12 13.172l4.95-4.95 1.414 1.414L12 16 5.636 9.636 7.05 8.222z"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              v-if="!state.collapseSuggestions"
+              class="flex flex-col gap-y-4 w-full"
+            >
               <template v-if="state.suggestedUsers.length === 0">
                 <p class="text-gray-500 dark:text-gray-400">
                   No suggestions at this time. Check back later.
@@ -166,17 +274,23 @@ async function followUser(userData) {
               </template>
               <template v-for="user in state.suggestedUsers" :key="user.id">
                 <div class="flex items-center">
-                  <img :src="user.avatarUrl" class="w-10 h-10 rounded-full" />
-                  <div class="ml-4">
-                    <h6
-                      class="text-gray-800 dark:text-white text-lg font-medum"
-                    >
-                      @{{ user.handle }}
-                    </h6>
-                    <p class="text-gray-500 dark:text-gray-400 text-sm">
-                      {{ user.fullName }}
-                    </p>
-                  </div>
+                  <router-link
+                    :to="`/social/@${user.handle}`"
+                    class="flex items-center"
+                  >
+                    <img :src="user.avatarUrl" class="w-10 h-10 rounded-full" />
+
+                    <div class="ml-4">
+                      <h6
+                        class="text-gray-800 dark:text-white text-lg font-medum"
+                      >
+                        @{{ user.handle }}
+                      </h6>
+                      <p class="text-gray-500 dark:text-gray-400 text-sm">
+                        {{ user.fullName }}
+                      </p>
+                    </div>
+                  </router-link>
                   <button
                     type="button"
                     @click="followUser(user)"
@@ -189,23 +303,25 @@ async function followUser(userData) {
             </div>
           </div>
         </div>
+
         <!-- Content -->
-        <div class="flex-1 max-h-full overflow-y-auto">
+        <div class="flex-1 max-h-full">
           <div
             v-if="state.loading"
             class="flex items-center justify-center text-gray-900 dark:text-white"
           >
             <LoaderComponent size="lg" />
           </div>
-          <div v-else class="w-full flex flex-col gap-12 max-w-screen-lg">
+          <div v-else class="w-full flex flex-col gap-12">
             <!-- Tabs -->
             <div
-              class="text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700"
+              class="max-w-full text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700"
             >
-              <ul class="flex flex-wrap -mb-px">
+              <ul class="relative overflow-x-scroll flex -mb-px">
                 <li class="mr-2">
                   <router-link
                     to="/explore/all"
+                    class="whitespace-nowrap"
                     :class="
                       route.name === 'explore-all'
                         ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
@@ -217,6 +333,7 @@ async function followUser(userData) {
                 <li class="mr-2">
                   <router-link
                     to="/explore/network"
+                    class="whitespace-nowrap"
                     :class="
                       route.name === 'explore-network'
                         ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
@@ -228,6 +345,7 @@ async function followUser(userData) {
                 <li class="mr-2">
                   <router-link
                     to="/explore/education"
+                    class="whitespace-nowrap"
                     :class="
                       route.name === 'explore-education'
                         ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
@@ -239,6 +357,7 @@ async function followUser(userData) {
                 <li class="mr-2">
                   <router-link
                     to="/explore/interests"
+                    class="whitespace-nowrap"
                     :class="
                       route.name === 'explore-interests'
                         ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
@@ -252,6 +371,7 @@ async function followUser(userData) {
             <template v-if="state.posts.length > 0">
               <PostComponent
                 v-for="p in state.posts"
+                @delete="refreshPosts"
                 :key="p.id"
                 :post="p"
                 class="shadow-sm"
@@ -277,7 +397,11 @@ async function followUser(userData) {
             <div
               class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
             >
-              <NewPostComponent />
+              <NewPostComponent
+                @post-created="
+                  () => (refreshPosts(), (state.showNewPostDialog = false))
+                "
+              />
               <button
                 @click="state.showNewPostDialog = false"
                 class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import useUserStore from '@/stores/user'
+import { getAuth } from 'firebase/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,7 +12,7 @@ const router = createRouter({
       if (to.hash) {
         return { el: to.hash }
       } else {
-        return { top: 0 }
+        return savedPosition || { top: 0 }
       }
     }
   },
@@ -43,6 +44,8 @@ const router = createRouter({
       beforeEnter: (to, from, next) => {
         const auth = getAuth()
         auth.signOut()
+        const user = useUserStore()
+        user.logout()
         next('/?logout=true')
       }
     },
