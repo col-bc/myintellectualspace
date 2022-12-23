@@ -103,10 +103,10 @@ async function followUser(userData) {
       <NavbarComponent />
 
       <div
-        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
+        class="relative h-full max-w-screen container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
       >
         <div
-          class="sticky too-6 flex flex-col flex-none lg:w-full lg:max-w-sm gap-6 lg:gap-12"
+          class="sticky too-6 flex flex-col flex-none w-full lg:max-w-sm gap-6 lg:gap-12"
         >
           <!-- Open new post modal -->
           <button
@@ -315,9 +315,9 @@ async function followUser(userData) {
           <div v-else class="w-full flex flex-col gap-12">
             <!-- Tabs -->
             <div
-              class="max-w-full text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700"
+              class="relative max-w-full text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700"
             >
-              <ul class="relative overflow-x-scroll flex -mb-px">
+              <ul class="flex flex-wrap -mb-px">
                 <li class="mr-2">
                   <router-link
                     to="/explore/all"
