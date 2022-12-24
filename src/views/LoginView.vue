@@ -110,7 +110,6 @@ async function loginWithGoogle() {
       getDoc(doc(db, 'users', user.uid)).then(async (doc) => {
         if (doc.exists()) {
           await userStore.setUser(doc.data())
-          console.log('User logged in: ', doc.data())
           // handle redirect
           // push to onboarding if handle or fullName if not set
           if (!userStore.user.handle || !userStore.user.fullName) {
@@ -138,6 +137,10 @@ async function loginWithGoogle() {
       })
     })
     .catch((error) => {
+      if (error.code === 'auth/unauthorized-domain') {
+        alert.value = 'Authentication is not enabled for this domain.'
+        return
+      }
       alert.value = error.message
     })
 }

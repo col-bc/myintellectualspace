@@ -7,8 +7,10 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
 
-      <div class="container mx-auto flex flex-col md:flex-row md:items-center">
-        <div class="w-full flex justify-center lg:w-1/2">
+      <div
+        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap*12 lg:gap-16 py-12 px-2 md:px-4"
+      >
+        <div class="w-full flex justify-center lg:w-1/2 mb-12">
           <lottie-player
             src="https://assets1.lottiefiles.com/packages/lf20_AQcLsD.json"
             background="transparent"
@@ -18,26 +20,28 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
             autoplay
           ></lottie-player>
         </div>
-        <div class="w-full lg:w-1/2 text-center md:text-left flex flex-col">
+        <div class="w-full lg:w-1/2 flex flex-col">
           <h1
-            class="text-3xl text-center lg:text-left font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white mb-12"
+            class="text-3xl font-black drop-shadow-xl leading-relaxed text-gray-900 dark:text-white mb-12"
           >
-            This page is in development.
+            This page is under construction.
           </h1>
-          <p class="text-lg text-gray-700 dark:text-gray-300 mb-12">
+          <p
+            class="leading-loose text-lg text-gray-700 dark:text-gray-300 mb-12"
+          >
             We're constantly working on new features and improving the user
             experience. Please check back later. Thank you for your patience.
           </p>
 
           <div
-            class="p-6 mb-12 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
+            class="p-4 md:p-6 mb-12 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
           >
             <h5
-              class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
+              class="mb-2 text-2xl font-bold tracking-tight leading-relaxed text-gray-900 dark:text-white"
             >
               Get notified when this page is ready
             </h5>
-            <p class="text-gray-700 dark:text-gray-300 mb-4">
+            <p class="leading-loose text-gray-700 dark:text-gray-300 mb-4">
               Enter your email address below to be notified when this page is
               live.
             </p>

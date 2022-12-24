@@ -121,13 +121,13 @@ async function getGeolocation() {
 <template>
   <form @submit.prevent="verifyForm()">
     <div
-      class="mb-4 w-full bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-600"
+      class="w-full bg-white shadow-sm rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
     >
       <div class="flex py-2 px-4">
         <textarea
           v-model="newPost.content"
           rows="6"
-          class="flex-1 px-0 w-full text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400"
+          class="flex-1 px-0 w-full text-sm text-gray-900 bg-transparent border-0 focus:ring-0 dark:text-white dark:placeholder-gray-400"
           placeholder="Share with your network"
         ></textarea>
         <img
@@ -143,7 +143,7 @@ async function getGeolocation() {
         type="error"
       />
       <div
-        class="flex justify-between items-center py-2 px-3 bg-gray-50 border-t dark:border-gray-600 dark:bg-gray-700"
+        class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-b-lg border-t dark:border-gray-600 dark:bg-gray-700"
       >
         <button
           type="submit"

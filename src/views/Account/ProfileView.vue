@@ -195,7 +195,7 @@ async function changeAvatar() {
         class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
       >
         <div
-          class="sticky top-6 flex flex-col items-start gap-12 w-full md:w-80"
+          class="md:sticky md:top-6 flex flex-col items-start gap-12 w-full md:max-w-xs lg:max-w-sm"
         >
           <!-- Avatar -->
           <div
@@ -203,7 +203,7 @@ async function changeAvatar() {
           >
             <img
               :src="state.userData.avatarUrl"
-              class="rounded-lg w-full h-auto md:w-80 md:h-80"
+              class="rounded-lg w-full h-auto md:max-w-sm aspect-square object-cover"
             />
             <button
               v-if="state.isOwnAccount"

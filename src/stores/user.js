@@ -19,7 +19,7 @@ import {
   getDownloadURL
 } from '@firebase/storage'
 import { defineStore } from 'pinia'
-import { vModelCheckbox } from 'vue'
+import { v4 } from 'uuid'
 
 /*
   Functions and state for user data existing in 
@@ -270,6 +270,49 @@ export const useUserStore = defineStore({
         return { ...doc.data(), id: doc.id }
       })
     },
+    async getNetworkPosts() {
+      const db = getFirestore()
+      const postsRef = collection(db, 'posts')
+      const following = this.user.following || []
+      if (following.length === 0) {
+        return []
+      }
+      const q = query(
+        postsRef,
+        where(
+          'author.handle',
+          'in',
+          following.map((user) => user.handle)
+        )
+      )
+      const posts = await getDocs(q)
+      return posts.docs.map((doc) => {
+        return { ...doc.data(), id: doc.id }
+      })
+    },
+    async getEducationPosts() {
+      const db = getFirestore()
+      // get all users with education
+      const usersRef = collection(db, 'users')
+      const q = query(usersRef, where('educationLevel', '!=', null))
+      const users = await getDocs(q)
+      const usersWithEducation = users.docs.map((doc) => {
+        return { ...doc.data(), id: doc.id }
+      })
+      // get all posts by users with education
+      const postsRef = collection(db, 'posts')
+      const posts = await getDocs(postsRef)
+      const postsByUsersWithEducation = posts.docs
+        .map((doc) => {
+          return { ...doc.data(), id: doc.id }
+        })
+        .filter((post) => {
+          return usersWithEducation.some((user) => {
+            return user.handle === post.author.handle
+          })
+        })
+      return postsByUsersWithEducation
+    },
     async addPost(data) {
       // remove null or empty fields
       const filteredData = Object.keys(data).reduce((acc, key) => {
@@ -374,6 +417,7 @@ export const useUserStore = defineStore({
       const docData = await getDoc(docRef)
       const comments = docData.data().comments || []
       comments.push({
+        id: v4(),
         content: comment,
         author: {
           fullName: this.user.fullName,
@@ -398,28 +442,34 @@ export const useUserStore = defineStore({
         // update post in state
         const postIndex = this.posts.findIndex((p) => p.id === postId)
         this.posts[postIndex].comments = comments
-        // update lastActive field for user
-        const userRef = doc(db, 'users', this.user.uid)
-        await setDoc(
-          userRef,
-          { lastActive: serverTimestamp() },
-          { merge: true }
-        )
-        return comments
-      } else {
-        // update lastActive field of user
-        const userRef = doc(db, 'users', this.user.uid)
-        await setDoc(
-          userRef,
-          { lastActive: serverTimestamp() },
-          { merge: true }
-        )
-        return comments
       }
+      // update lastActive field of user
+      const userRef = doc(db, 'users', this.user.uid)
+      await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
+      return comments
     },
-    async deleteComment(postId, comment) {
-      // TODO
-      return
+    async deleteComment(postId, commentId) {
+      const db = getFirestore()
+      const postsRef = collection(db, 'posts')
+      const docRef = doc(postsRef, postId)
+      const docData = await getDoc(docRef)
+      const comments = docData.data().comments || []
+      const commentIndex = comments.findIndex(
+        (comment) => comment.id === commentId
+      )
+      comments.splice(commentIndex, 1)
+      // save changes to firestore
+      await setDoc(docRef, { comments }, { merge: true })
+      // update state if user is author of post
+      if (this.user.handle === docData.data().author.handle) {
+        // update post in state
+        const postIndex = this.posts.findIndex((p) => p.id === postId)
+        this.posts[postIndex].comments = comments
+      }
+      // update lastActive field for user
+      const userRef = doc(db, 'users', this.user.uid)
+      await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
+      return comments
     },
     async fetchLikedPostsByHandle(handle) {
       const db = getFirestore()

@@ -51,7 +51,6 @@ const router = createRouter({
     },
 
     // # Social Routes
-    // /social/me
     // /social/@:handle
     //  - /about
     //  - /comments
@@ -110,28 +109,31 @@ const router = createRouter({
     // # Explore Routes
     // /explore
     // - /all
+    // - /network
+    // - /education
+    // - /interests
     {
-      path: '/explore',
-      name: 'explore',
+      path: '/feed',
+      name: 'feed',
       children: [
         {
           path: 'all',
-          name: 'explore-all',
-          component: () => import('@/views/Explore/HomeView.vue')
+          name: 'feed-all',
+          component: () => import('@/views/Feed/HomeView.vue')
         },
         {
           path: 'network',
-          name: 'explore-network',
-          component: () => import('@/views/Explore/HomeView.vue')
+          name: 'feed-network',
+          component: () => import('@/views/Feed/HomeView.vue')
         },
         {
           path: 'education',
-          name: 'explore-education',
-          redirect: '/unavailable'
+          name: 'feed-education',
+          component: () => import('@/views/Feed/HomeView.vue')
         },
         {
           path: 'interests',
-          name: 'explore-interests',
+          name: 'feed-interests',
           redirect: '/unavailable'
         }
       ],
