@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
       tabindex="-1"
     >
       <div
-        class="flex items-center gap-3 py-3 px-4 text-sm bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover: rounded-lg text-white dark:text-gray-900"
+        class="flex items-center gap-4 py-3 px-4 text-sm bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 rounded-lg text-white dark:text-gray-900 shadow-lg shadow-purple-400/30"
       >
         <img :src="user.user.avatarUrl" class="h-12 w-12 rounded-md" />
         <div class="flex flex-1 flex-col gap-0.5">
@@ -100,10 +100,10 @@ onBeforeUnmount(() => {
         <button
           type="button"
           @click="closeDrawer"
-          class="text-white bg-gray-900 bg-opacity-0 hover:bg-opacity-25 rounded-md p-1.5 dark:text-gray-900"
+          class="text-white bg-black bg-opacity-0 hover:bg-opacity-25 rounded-md p-2.5 dark:text-gray-900"
         >
           <svg
-            class="w-5 h-5"
+            class="w-6 h-6"
             fill="currentColor"
             viewBox="0 0 20 20"
             xmlns="http://www.w3.org/2000/svg"
@@ -120,60 +120,72 @@ onBeforeUnmount(() => {
         <li>
           <router-link
             :to="{ name: 'profile', params: { handle: user.user.handle } }"
-            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="group flex items-center gap-4 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
+            <div
+              class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-500 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 group-hover:text-white dark:group-hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M20 22h-2v-2a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v2H4v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2zm-8-9a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
-              />
-            </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M20 22h-2v-2a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v2H4v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2zm-8-9a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
+                />
+              </svg>
+            </div>
             My Profile
           </router-link>
         </li>
         <li>
           <router-link
             to="/my-courses"
-            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="group flex items-center gap-4 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
+            <div
+              class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-500 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 group-hover:text-white dark:group-hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M21 18H6a1 1 0 0 0 0 2h15v2H6a3 3 0 0 1-3-3V4a2 2 0 0 1 2-2h16v16zM5 16.05c.162-.033.329-.05.5-.05H19V4H5v12.05zM16 9H8V7h8v2z"
-              />
-            </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M21 18H6a1 1 0 0 0 0 2h15v2H6a3 3 0 0 1-3-3V4a2 2 0 0 1 2-2h16v16zM5 16.05c.162-.033.329-.05.5-.05H19V4H5v12.05zM16 9H8V7h8v2z"
+                />
+              </svg>
+            </div>
             My Courses
           </router-link>
         </li>
         <li>
           <router-link
             to="/messages"
-            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="group flex items-center gap-4 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
+            <div
+              class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-500 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 group-hover:text-white dark:group-hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M14 22.5L11.2 19H6a1 1 0 0 1-1-1V7.103a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1h-5.2L14 22.5zm1.839-5.5H21V8.103H7V17H12.161L14 19.298 15.839 17zM2 2h17v2H3v11H1V3a1 1 0 0 1 1-1z"
-              />
-            </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M14 22.5L11.2 19H6a1 1 0 0 1-1-1V7.103a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1h-5.2L14 22.5zm1.839-5.5H21V8.103H7V17H12.161L14 19.298 15.839 17zM2 2h17v2H3v11H1V3a1 1 0 0 1 1-1z"
+                />
+              </svg>
+            </div>
             Messages
           </router-link>
         </li>
@@ -183,42 +195,50 @@ onBeforeUnmount(() => {
               name: 'profile-connections',
               params: { handle: user.user.handle }
             }"
-            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="group flex items-center gap-4 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
+            <div
+              class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-500 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 group-hover:text-white dark:group-hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
-              />
-            </svg>
-            Connections</router-link
-          >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
+                />
+              </svg>
+            </div>
+            Connections
+          </router-link>
         </li>
         <li>
           <router-link
             to="/meetings"
-            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="group flex items-center gap-4 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
+            <div
+              class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-500 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 group-hover:text-white dark:group-hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M17 9.2l5.213-3.65a.5.5 0 0 1 .787.41v12.08a.5.5 0 0 1-.787.41L17 14.8V19a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v4.2zm0 3.159l4 2.8V8.84l-4 2.8v.718zM3 6v12h12V6H3zm2 2h2v2H5V8z"
-              />
-            </svg>
-            Meetings</router-link
-          >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M17 9.2l5.213-3.65a.5.5 0 0 1 .787.41v12.08a.5.5 0 0 1-.787.41L17 14.8V19a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v4.2zm0 3.159l4 2.8V8.84l-4 2.8v.718zM3 6v12h12V6H3zm2 2h2v2H5V8z"
+                />
+              </svg>
+            </div>
+            Meetings
+          </router-link>
         </li>
       </ul>
       <ul
@@ -227,40 +247,49 @@ onBeforeUnmount(() => {
         <li>
           <router-link
             :to="{ name: 'settings' }"
-            class="flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="group flex items-center gap-4 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
+            <div
+              class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-500 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 group-hover:text-white dark:group-hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M3.34 17a10.018 10.018 0 0 1-.978-2.326 3 3 0 0 0 .002-5.347A9.99 9.99 0 0 1 4.865 4.99a3 3 0 0 0 4.631-2.674 9.99 9.99 0 0 1 5.007.002 3 3 0 0 0 4.632 2.672c.579.59 1.093 1.261 1.525 2.01.433.749.757 1.53.978 2.326a3 3 0 0 0-.002 5.347 9.99 9.99 0 0 1-2.501 4.337 3 3 0 0 0-4.631 2.674 9.99 9.99 0 0 1-5.007-.002 3 3 0 0 0-4.632-2.672A10.018 10.018 0 0 1 3.34 17zm5.66.196a4.993 4.993 0 0 1 2.25 2.77c.499.047 1 .048 1.499.001A4.993 4.993 0 0 1 15 17.197a4.993 4.993 0 0 1 3.525-.565c.29-.408.54-.843.748-1.298A4.993 4.993 0 0 1 18 12c0-1.26.47-2.437 1.273-3.334a8.126 8.126 0 0 0-.75-1.298A4.993 4.993 0 0 1 15 6.804a4.993 4.993 0 0 1-2.25-2.77c-.499-.047-1-.048-1.499-.001A4.993 4.993 0 0 1 9 6.803a4.993 4.993 0 0 1-3.525.565 7.99 7.99 0 0 0-.748 1.298A4.993 4.993 0 0 1 6 12c0 1.26-.47 2.437-1.273 3.334a8.126 8.126 0 0 0 .75 1.298A4.993 4.993 0 0 1 9 17.196zM12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-2a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
-              />
-            </svg>
-            Settings</router-link
-          >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M3.34 17a10.018 10.018 0 0 1-.978-2.326 3 3 0 0 0 .002-5.347A9.99 9.99 0 0 1 4.865 4.99a3 3 0 0 0 4.631-2.674 9.99 9.99 0 0 1 5.007.002 3 3 0 0 0 4.632 2.672c.579.59 1.093 1.261 1.525 2.01.433.749.757 1.53.978 2.326a3 3 0 0 0-.002 5.347 9.99 9.99 0 0 1-2.501 4.337 3 3 0 0 0-4.631 2.674 9.99 9.99 0 0 1-5.007-.002 3 3 0 0 0-4.632-2.672A10.018 10.018 0 0 1 3.34 17zm5.66.196a4.993 4.993 0 0 1 2.25 2.77c.499.047 1 .048 1.499.001A4.993 4.993 0 0 1 15 17.197a4.993 4.993 0 0 1 3.525-.565c.29-.408.54-.843.748-1.298A4.993 4.993 0 0 1 18 12c0-1.26.47-2.437 1.273-3.334a8.126 8.126 0 0 0-.75-1.298A4.993 4.993 0 0 1 15 6.804a4.993 4.993 0 0 1-2.25-2.77c-.499-.047-1-.048-1.499-.001A4.993 4.993 0 0 1 9 6.803a4.993 4.993 0 0 1-3.525.565 7.99 7.99 0 0 0-.748 1.298A4.993 4.993 0 0 1 6 12c0 1.26-.47 2.437-1.273 3.334a8.126 8.126 0 0 0 .75 1.298A4.993 4.993 0 0 1 9 17.196zM12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-2a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                />
+              </svg>
+            </div>
+            Settings
+          </router-link>
         </li>
         <li>
           <button
+            type="button"
             @click="logout"
-            class="w-full flex items-center gap-3 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+            class="w-full group flex items-center gap-4 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
+            <div
+              class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-500 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 group-hover:text-white dark:group-hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M5 22a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v3h-2V4H6v16h12v-2h2v3a1 1 0 0 1-1 1H5zm13-6v-3h-7v-2h7V8l5 4-5 4z"
-              />
-            </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="w-5 h-5 fill-current"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M5 22a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v3h-2V4H6v16h12v-2h2v3a1 1 0 0 1-1 1H5zm13-6v-3h-7v-2h7V8l5 4-5 4z"
+                />
+              </svg>
+            </div>
             Logout
           </button>
         </li>
@@ -275,7 +304,7 @@ onBeforeUnmount(() => {
       tabindex="-1"
     >
       <div
-        class="flex items-center justify-between py-3 px-4 text-sm bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover: rounded-lg text-white dark:text-gray-900"
+        class="flex items-center justify-between py-3 px-4 text-sm bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 hover: rounded-lg text-white dark:text-gray-900 shadow-lg shadow-purple-400/30"
       >
         <h3 class="text-lg font-semibold">Notifications</h3>
         <button
@@ -310,8 +339,51 @@ onBeforeUnmount(() => {
           :key="idx"
           class="py-4"
         >
-          <div class="flex items-start justify-between">
-            <div class="flex flex-col gap-2">
+          <div class="group flex items-center gap-4">
+            <div
+              class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 text-white dark:text-gray-900 bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                v-if="notification.type === 'follow'"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm6 6v-3h2v3h3v2h-3v3h-2v-3h-3v-2h3z"
+                />
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                v-if="notification.type === 'like'"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0H24V24H0z" />
+                <path
+                  d="M19 14v3h3v2h-3.001L19 22h-2l-.001-3H14v-2h3v-3h2zm1.243-9.243c2.262 2.268 2.34 5.88.236 8.235l-1.42-1.418c1.331-1.524 1.261-3.914-.232-5.404-1.503-1.499-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.991-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451l8.432 8.446L12 21.485 3.52 12.993c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228 2.349-2.109 5.979-2.039 8.242.228z"
+                />
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                v-if="notification.type === 'comment'"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M14 3v2H4v13.385L5.763 17H20v-7h2v8a1 1 0 0 1-1 1H6.455L2 22.5V4a1 1 0 0 1 1-1h11zm5 0V0h2v3h3v2h-3v3h-2V5h-3V3h3z"
+                />
+              </svg>
+            </div>
+            <div class="flex flex-col gap-1 flex-1">
               <p class="font-medium">
                 {{ notification.message }}
                 <br />
@@ -412,7 +484,7 @@ onBeforeUnmount(() => {
             <li>
               <router-link
                 :to="{ name: 'profile', params: { handle: searchText } }"
-                class="inline-flex items-center gap-3 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                class="inline-flex items-center gap-4 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -434,7 +506,7 @@ onBeforeUnmount(() => {
             <li>
               <router-link
                 :to="''"
-                class="inline-flex items-center gap-3 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                class="inline-flex items-center gap-4 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

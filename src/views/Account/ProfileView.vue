@@ -66,7 +66,7 @@ onMounted(async () => {
   } else {
     // populate state with data from store
     state.userData = user.user
-    state.posts = post.posts
+    state.posts = await post.fetchPostsByHandle(route.params.handle)
     state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
   }
@@ -544,30 +544,9 @@ async function changeAvatar() {
               :dismissible="false"
             />
 
-            <div class="flex items-center justify-between">
-              <h2 class="text-4xl font-bold py-3 dark:text-white">
-                Edit profile
-              </h2>
-              <button
-                type="button"
-                class="flex items-center gap-2.5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                @click="saveUser"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                  class="h-6 w-6 fill-current"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M5 5v14h14V7.828L16.172 5H5zM4 3h13l3.707 3.707a1 1 0 0 1 .293.707V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm8 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 6h9v4H6V6z"
-                  />
-                </svg>
-                Save Changes
-              </button>
-            </div>
+            <h2 class="text-4xl font-bold py-3 dark:text-white">
+              Edit profile
+            </h2>
             <!-- Handle -->
             <div>
               <span
@@ -707,6 +686,28 @@ async function changeAvatar() {
                 placeholder=""
                 rows="4"
               ></textarea>
+            </div>
+
+            <div class="mt-4">
+              <button
+                type="button"
+                class="ml-auto flex items-center gap-2.5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                @click="saveUser"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  class="h-6 w-6 fill-current"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M5 5v14h14V7.828L16.172 5H5zM4 3h13l3.707 3.707a1 1 0 0 1 .293.707V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm8 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 6h9v4H6V6z"
+                  />
+                </svg>
+                Save Changes
+              </button>
             </div>
           </div>
           <!-- Read profile -->
@@ -891,7 +892,7 @@ async function changeAvatar() {
               :to="'/social/@' + user.handle"
               v-for="user of state.userData.following"
               :key="user.id"
-              class="w-full p-4 text-gray-900 bg-white rounded-lg border shadow-sm border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white flex items-center gap-4"
+              class="w-full p-4 text-gray-900 bg-white rounded-lg border shadow border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-white flex items-center gap-4"
             >
               <div class="flex-shrink-0">
                 <img
