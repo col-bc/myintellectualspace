@@ -5,11 +5,13 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
 import NewPostComponent from '@/components/NewPostComponent.vue'
 import PostComponent from '@/components/PostComponent.vue'
 import useUserStore from '@/stores/user'
+import usePostStore from '@/stores/post'
 import { computed, onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Timestamp } from 'firebase/firestore'
 
 const user = useUserStore()
+const post = usePostStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -58,14 +60,14 @@ onMounted(async () => {
       return
     }
     // fetch posts and likes
-    state.posts = await user.fetchPostsByHandle(route.params.handle)
-    state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+    state.posts = await post.fetchPostsByHandle(route.params.handle)
+    state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
   } else {
     // populate state with data from store
     state.userData = user.user
-    state.posts = user.posts
-    state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+    state.posts = post.posts
+    state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
   }
   // check if user is recently active
@@ -93,13 +95,13 @@ onUpdated(async () => {
     state.isOwnAccount = user.user.handle === route.params.handle
     if (!state.isOwnAccount) {
       state.userData = await user.fetchUserByHandle(route.params.handle)
-      state.posts = await user.fetchPostsByHandle(route.params.handle)
-      state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+      state.posts = await post.fetchPostsByHandle(route.params.handle)
+      state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
       state.loading = false
     } else {
       state.userData = user.user
-      state.posts = user.posts
-      state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+      state.posts = post.posts
+      state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
       state.loading = false
     }
   }
@@ -127,7 +129,7 @@ const isFollowing = computed(() => {
 
 async function refreshPosts() {
   state.loading = true
-  await user.fetchPosts()
+  await post.fetchPosts()
   state.loading = false
 }
 async function saveUser() {
@@ -488,7 +490,7 @@ async function changeAvatar() {
             <div class="relative">
               <button
                 type="button"
-                @click="user.fetchPosts"
+                @click="post.fetchPosts"
                 class="peer p-2.5 rounded-full text-gray-700 bg-white hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700"
               >
                 <svg
@@ -819,7 +821,7 @@ async function changeAvatar() {
             <div class="relative">
               <button
                 type="button"
-                @click="user.fetchLikedPostsByHandle($route.params.handle)"
+                @click="post.fetchLikedPostsByHandle($route.params.handle)"
                 class="peer p-2.5 rounded-full text-gray-700 bg-white hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700"
               >
                 <svg

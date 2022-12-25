@@ -1,14 +1,16 @@
 <script setup>
-import useUserStore from '@/stores/user'
 import AlertComponent from '@/components/AlertComponent.vue'
-import { useRouter } from 'vue-router'
-import { computed, defineProps, onMounted, reactive } from 'vue'
+import usePostStore from '@/stores/post'
+import useUserStore from '@/stores/user'
 import { Timestamp } from '@firebase/firestore'
-import { Menu, MenuButton, MenuItems, Dialog } from '@headlessui/vue'
+import { Dialog, Menu, MenuButton, MenuItems } from '@headlessui/vue'
+import { computed, defineProps, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import LightboxComponent from './LightboxComponent.vue'
 
 const emit = defineEmits(['delete', 'comment'])
 const user = useUserStore()
+const post = usePostStore()
 const router = useRouter()
 const props = defineProps({
   post: {
@@ -95,7 +97,7 @@ async function toggleLike() {
   if (!user.isAuthenticated) {
     router.push('/login?redirect=/social/@' + props.post.author.handle)
   }
-  user.toggleLike(props.post)
+  post.toggleLike(props.post)
 }
 async function deletePost() {
   if (!user.isAuthenticated) {
@@ -104,7 +106,7 @@ async function deletePost() {
   if (!isOwnPost.value) {
     return
   }
-  user.deletePost(props.post)
+  post.deletePost(props.post)
   emit('delete', props.post.id)
 }
 async function addComment() {
@@ -112,7 +114,7 @@ async function addComment() {
     router.push('/login?redirect=', route.path)
   }
   if (state.comment.length > 0) {
-    state.comments = await user.addComment(props.post.id, state.comment)
+    state.comments = await post.addComment(props.post.id, state.comment)
     state.comment = ''
   }
 }
@@ -120,7 +122,7 @@ async function deleteComment(commentId) {
   if (!user.isAuthenticated) {
     router.push('/login?redirect=', route.path)
   }
-  state.comments = await user.deleteComment(props.post.id, commentId)
+  state.comments = await post.deleteComment(props.post.id, commentId)
 }
 async function reportPost() {
   if (!user.isAuthenticated) {

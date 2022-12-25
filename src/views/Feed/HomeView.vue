@@ -4,6 +4,7 @@ import PostComponent from '@/components/PostComponent.vue'
 import ModalComponent from '@/components/ModalComponent.vue'
 import NewPostComponent from '@/components/NewPostComponent.vue'
 import useUserStore from '@/stores/user'
+import usePostStore from '@/stores/post'
 import { onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LoaderComponent from '../../components/LoaderComponent.vue'
@@ -13,6 +14,7 @@ const ui = useInterface()
 const route = useRoute()
 const router = useRouter()
 const user = useUserStore()
+const post = usePostStore()
 
 const state = reactive({
   posts: [],
@@ -63,11 +65,11 @@ watch(
 async function loadPosts() {
   var posts = []
   if (route.name === 'feed-all') {
-    posts = await user.fetchAllPosts()
+    posts = await post.fetchAllPosts()
   } else if (route.name === 'feed-network') {
-    posts = await user.getNetworkPosts()
+    posts = await post.getNetworkPosts()
   } else if (route.name === 'feed-education') {
-    posts = await user.getEducationPosts()
+    posts = await post.getEducationPosts()
   }
 
   // Filter out posts by the current user

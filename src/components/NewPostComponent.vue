@@ -2,11 +2,13 @@
 import AlertComponent from '@/components/AlertComponent.vue'
 import { MAPS_API_KEY } from '@/secrets'
 import useUserStore from '@/stores/user'
+import usePostStore from '@/stores/post'
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 import { reactive } from 'vue'
 import LoaderComponent from './LoaderComponent.vue'
 
 const user = useUserStore()
+const post = usePostStore()
 const storage = getStorage()
 
 const emit = defineEmits(['postCreated'])
@@ -44,9 +46,7 @@ function verifyForm() {
 }
 async function createPost() {
   verifyForm()
-  if (newPost.error) {
-    return
-  }
+  if (newPost.error) return
   state.loading = true
   if (newPost.image) {
     // upload image to firebase storage
@@ -57,7 +57,7 @@ async function createPost() {
     await uploadBytes(storageRef, newPost.image)
     newPost.imageUrl = await getDownloadURL(storageRef)
     // create post
-    await user.addPost({
+    await post.addPost({
       content: newPost.content,
       location: newPost.location,
       likes: [],
@@ -66,7 +66,7 @@ async function createPost() {
     })
   } else {
     try {
-      await user.addPost({
+      await post.addPost({
         content: newPost.content,
         location: newPost.location,
         likes: [],
