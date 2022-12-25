@@ -17,6 +17,7 @@ import {
   ref,
   uploadBytes
 } from '@firebase/storage'
+import usePostStore from './post'
 import { defineStore } from 'pinia'
 
 /*
@@ -42,7 +43,8 @@ const useUserStore = defineStore({
     async setUser(user) {
       this.user = user
       // fetch posts
-      await this.fetchPosts()
+      const post = usePostStore()
+      await post.fetchPosts()
       // update lastActive field in user
       const db = getFirestore()
       const userRef = doc(db, 'users', this.user.uid)
