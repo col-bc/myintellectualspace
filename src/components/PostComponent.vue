@@ -1,14 +1,16 @@
 <script setup>
-import useUserStore from '@/stores/user'
 import AlertComponent from '@/components/AlertComponent.vue'
-import { useRouter } from 'vue-router'
-import { computed, defineProps, onMounted, reactive } from 'vue'
+import usePostStore from '@/stores/post'
+import useUserStore from '@/stores/user'
 import { Timestamp } from '@firebase/firestore'
-import { Menu, MenuButton, MenuItems, Dialog } from '@headlessui/vue'
+import { Dialog, Menu, MenuButton, MenuItems } from '@headlessui/vue'
+import { computed, defineProps, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import LightboxComponent from './LightboxComponent.vue'
 
-const emit = defineEmits(['delete'])
+const emit = defineEmits(['delete', 'comment'])
 const user = useUserStore()
+const post = usePostStore()
 const router = useRouter()
 const props = defineProps({
   post: {
@@ -23,6 +25,7 @@ const props = defineProps({
 const state = reactive({
   showComments: false,
   showDelete: false,
+  comments: props.post.comments,
   comment: '',
   showReportDialog: false,
   isRecentlyActive: false
@@ -94,7 +97,7 @@ async function toggleLike() {
   if (!user.isAuthenticated) {
     router.push('/login?redirect=/social/@' + props.post.author.handle)
   }
-  user.toggleLike(props.post)
+  post.toggleLike(props.post)
 }
 async function deletePost() {
   if (!user.isAuthenticated) {
@@ -103,7 +106,7 @@ async function deletePost() {
   if (!isOwnPost.value) {
     return
   }
-  user.deletePost(props.post)
+  post.deletePost(props.post)
   emit('delete', props.post.id)
 }
 async function addComment() {
@@ -111,9 +114,15 @@ async function addComment() {
     router.push('/login?redirect=', route.path)
   }
   if (state.comment.length > 0) {
-    await user.addComment(props.post.id, state.comment)
+    state.comments = await post.addComment(props.post.id, state.comment)
     state.comment = ''
   }
+}
+async function deleteComment(commentId) {
+  if (!user.isAuthenticated) {
+    router.push('/login?redirect=', route.path)
+  }
+  state.comments = await post.deleteComment(props.post.id, commentId)
 }
 async function reportPost() {
   if (!user.isAuthenticated) {
@@ -135,7 +144,7 @@ async function reportPost() {
 
 <template>
   <div
-    class="bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-600"
+    class="w-full bg-white shadow-sm rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
   >
     <!-- Header -->
     <div class="flex items-start p-4 pb-2">
@@ -377,13 +386,10 @@ async function reportPost() {
         </button>
       </div>
       <div
-        v-if="props.post.comments?.length !== 0"
+        v-if="state.comments?.length !== 0"
         class="bg-white dark:bg-gray-800 rounded-b-lg px-3 divide-y divide-gray-200 dark:divide-gray-600 mb-2"
       >
-        <template
-          v-for="(comment, idx) in props.post.comments"
-          :key="comment.id"
-        >
+        <template v-for="(comment, idx) in state.comments" :key="comment.id">
           <div class="flex items-center justify-between">
             <div
               class="flex items-center py-2"
@@ -414,7 +420,12 @@ async function reportPost() {
             </div>
             <button
               type="button"
-              class="p-2 text-xs rounded-md bg-white text-red-500 hover:bg-red-500 hover:text-white dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-400 dark:hover:text-gray-900 transition-colors duration-200 ease-in-out"
+              @click="deleteComment(comment.id)"
+              v-if="
+                comment.author.handle === user.user.handle ||
+                user.user.handle === props.post.author.handle
+              "
+              class="p-1.5 text-xs rounded-md bg-white text-red-500 hover:bg-red-500 hover:text-white dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-400 dark:hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

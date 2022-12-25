@@ -4,14 +4,17 @@ import PostComponent from '@/components/PostComponent.vue'
 import ModalComponent from '@/components/ModalComponent.vue'
 import NewPostComponent from '@/components/NewPostComponent.vue'
 import useUserStore from '@/stores/user'
+import usePostStore from '@/stores/post'
 import { onMounted, onUpdated, reactive, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import LoaderComponent from '../../components/LoaderComponent.vue'
 import useInterface from '@/stores/interface'
 
 const ui = useInterface()
 const route = useRoute()
+const router = useRouter()
 const user = useUserStore()
+const post = usePostStore()
 
 const state = reactive({
   posts: [],
@@ -23,28 +26,17 @@ const state = reactive({
 })
 
 const filters = reactive({
-  showMyPosts: false,
-  expandComments: false,
+  showMyPosts: true,
   showNewPostDialog: false,
-  limit: 10
+  limit: 10,
+  page: 1,
+  total: 0
 })
 
 onMounted(async () => {
   state.loading = true
-  console.log(ui.isMobile)
   state.collapseFilters = ui.isMobile
-
   state.posts = await loadPosts()
-  state.posts
-    .filter((post) => {
-      if (filters.showMyPosts) {
-        return post.author.id === user.user.id
-      }
-      return true
-    })
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, filters.limit)
-
   state.suggestedUsers = await user.getSuggestedUsers()
 
   // TODO: pagination
@@ -56,35 +48,41 @@ watch(
   async () => {
     state.loading = true
     state.posts = await loadPosts()
-
-    if (route.name === 'explore-network') {
-      // remove posts from users not in user's following array
-      state.posts = state.posts.filter((post) => {
-        if (user.user.following) {
-          return user.user.following
-            .map((user) => user.handle)
-            .includes(post.author.handle)
-        }
-      })
-    }
-
+    state.loading = false
+  },
+  { immediate: true }
+)
+watch(
+  () => [filters.showMyPosts, filters.limit, filters.page],
+  async () => {
+    state.loading = true
+    state.posts = await loadPosts()
     state.loading = false
   },
   { immediate: true }
 )
 
 async function loadPosts() {
-  var posts = await user.fetchAllPosts()
-
-  if (route.name === 'explore-all') {
-    // pass
-  } else if (route.name === 'explore-network') {
-    // remove posts from users not in network
-    posts = posts.filter((post) => {
-      return !user.user.following?.includes(post.author.handle)
-    })
+  var posts = []
+  if (route.name === 'feed-all') {
+    posts = await post.fetchAllPosts()
+  } else if (route.name === 'feed-network') {
+    posts = await post.getNetworkPosts()
+  } else if (route.name === 'feed-education') {
+    posts = await post.getEducationPosts()
   }
-  return posts.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds)
+
+  // Filter out posts by the current user
+  if (!filters.showMyPosts) {
+    posts = posts.filter((post) => post.author.handle !== user.user.handle)
+  }
+  // Paginate
+  filters.total = Math.ceil(posts.length / filters.limit)
+  posts = posts
+    .sort((a, b) => b.createdAt.seconds - a.createdAt.seconds)
+    .slice((filters.page - 1) * filters.limit, filters.page * filters.limit)
+
+  return posts
 }
 async function refreshPosts() {
   state.loading = true
@@ -95,6 +93,21 @@ async function followUser(userData) {
   await user.toggleFollowUser(userData)
   state.suggestedUsers = await user.getSuggestedUsers()
 }
+
+function nextPage() {
+  if (filters.page < filters.total) {
+    filters.page++
+  }
+}
+function prevPage() {
+  if (filters.page > 1) {
+    filters.page--
+  }
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 </script>
 
 <template>
@@ -103,10 +116,10 @@ async function followUser(userData) {
       <NavbarComponent />
 
       <div
-        class="relative h-full max-w-screen container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
+        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
       >
         <div
-          class="sticky too-6 flex flex-col flex-none w-full lg:max-w-sm gap-6 lg:gap-12"
+          class="md:sticky md:top-6 flex flex-col items-start gap-12 w-full md:max-w-xs lg:max-w-sm"
         >
           <!-- Open new post modal -->
           <button
@@ -128,9 +141,10 @@ async function followUser(userData) {
             </svg>
             New Post
           </button>
+
           <!-- Filters -->
           <div
-            class="w-full p-4 bg-white shadow-md rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
+            class="w-full p-4 bg-white shadow rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
           >
             <div
               class="flex items-center justify-between"
@@ -183,22 +197,10 @@ async function followUser(userData) {
                   >Show my posts</label
                 >
                 <label class="inline-flex relative items-center cursor-pointer">
-                  <input type="checkbox" class="sr-only peer" />
-                  <div
-                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-                  ></div>
-                </label>
-              </div>
-              <div class="flex items-center gap-6 justify-between">
-                <label
-                  class="block text-sm font-medium text-gray-900 dark:text-gray-300"
-                  >Expand comments</label
-                >
-                <label class="inline-flex relative items-center cursor-pointer">
                   <input
+                    v-model="filters.showMyPosts"
                     type="checkbox"
                     class="sr-only peer"
-                    v-model="state.expandComments"
                   />
                   <div
                     class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
@@ -212,6 +214,7 @@ async function followUser(userData) {
                 >
                 <input
                   type="number"
+                  v-model="filters.limit"
                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-16 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder="20"
                 />
@@ -220,7 +223,7 @@ async function followUser(userData) {
           </div>
           <!-- Suggestions -->
           <div
-            class="w-full p-4 bg-white shadow-md rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
+            class="w-full p-4 bg-white shadow rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
           >
             <div
               class="flex items-center justify-between"
@@ -302,10 +305,82 @@ async function followUser(userData) {
               </template>
             </div>
           </div>
+          <button
+            type="button"
+            @click="scrollToTop"
+            class="hidden w-full md:flex items-center justify-center gap-3 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 hover:shadow transition-all duration-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 fill-current"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path d="M13 12v8h-2v-8H4l8-8 8 8z" />
+            </svg>
+            Back to top
+          </button>
         </div>
 
         <!-- Content -->
         <div class="flex-1 max-h-full">
+          <!-- Tabs -->
+          <div
+            class="mb-9 text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700"
+          >
+            <ul class="w-full flex flex-wrap -mb-px">
+              <li class="mr-2">
+                <router-link
+                  to="/feed/all"
+                  class="whitespace-nowrap"
+                  :class="
+                    route.name === 'feed-all'
+                      ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
+                      : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
+                  "
+                  >All Posts</router-link
+                >
+              </li>
+              <li class="mr-2">
+                <router-link
+                  to="/feed/network"
+                  class="whitespace-nowrap"
+                  :class="
+                    route.name === 'feed-network'
+                      ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
+                      : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
+                  "
+                  >My Network</router-link
+                >
+              </li>
+              <li class="mr-2">
+                <router-link
+                  to="/feed/education"
+                  class="whitespace-nowrap"
+                  :class="
+                    route.name === 'feed-education'
+                      ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
+                      : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
+                  "
+                  >Similar Education</router-link
+                >
+              </li>
+              <li class="mr-2">
+                <router-link
+                  to="/feed/interests"
+                  class="whitespace-nowrap"
+                  :class="
+                    route.name === 'feed-interests'
+                      ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
+                      : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
+                  "
+                  >Similar Interests</router-link
+                >
+              </li>
+            </ul>
+          </div>
           <div
             v-if="state.loading"
             class="flex items-center justify-center text-gray-900 dark:text-white"
@@ -313,61 +388,6 @@ async function followUser(userData) {
             <LoaderComponent size="lg" />
           </div>
           <div v-else class="w-full flex flex-col gap-12">
-            <!-- Tabs -->
-            <div
-              class="relative max-w-full text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700"
-            >
-              <ul class="flex flex-wrap -mb-px">
-                <li class="mr-2">
-                  <router-link
-                    to="/explore/all"
-                    class="whitespace-nowrap"
-                    :class="
-                      route.name === 'explore-all'
-                        ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-                        : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-                    "
-                    >All Posts</router-link
-                  >
-                </li>
-                <li class="mr-2">
-                  <router-link
-                    to="/explore/network"
-                    class="whitespace-nowrap"
-                    :class="
-                      route.name === 'explore-network'
-                        ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-                        : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-                    "
-                    >My Network</router-link
-                  >
-                </li>
-                <li class="mr-2">
-                  <router-link
-                    to="/explore/education"
-                    class="whitespace-nowrap"
-                    :class="
-                      route.name === 'explore-education'
-                        ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-                        : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-                    "
-                    >Similar Education</router-link
-                  >
-                </li>
-                <li class="mr-2">
-                  <router-link
-                    to="/explore/interests"
-                    class="whitespace-nowrap"
-                    :class="
-                      route.name === 'explore-interests'
-                        ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-                        : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-                    "
-                    >Similar Interests</router-link
-                  >
-                </li>
-              </ul>
-            </div>
             <template v-if="state.posts.length > 0">
               <PostComponent
                 v-for="p in state.posts"
@@ -377,11 +397,64 @@ async function followUser(userData) {
                 class="shadow-sm"
               />
             </template>
-            <div v-else class="text-center text-gray-500 dark:text-gray-400">
+            <template
+              v-else
+              class="text-center text-gray-500 dark:text-gray-400"
+            >
               No posts to show.
-            </div>
+            </template>
 
             <!-- Paginate -->
+            <div class="flex flex-col gap-4">
+              <p class="text-base text-center text-gray-500 dark:text-gray-400">
+                Page <span class="font-medium">{{ filters.page }}</span> of
+                <span class="font-medium">{{ filters.total }}</span>
+              </p>
+              <div class="flex items-center justify-center gap-3">
+                <!-- Previous Button -->
+                <button
+                  type="button"
+                  @click="prevPage"
+                  v-if="filters.page > 1"
+                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M7.828 11H20v2H7.828l5.364 5.364-1.414 1.414L4 12l7.778-7.778 1.414 1.414z"
+                    /></svg
+                  >Previous
+                </button>
+
+                <!-- Next Button -->
+                <button
+                  type="button"
+                  @click="nextPage"
+                  v-if="filters.page < filters.total"
+                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  Next
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -389,13 +462,14 @@ async function followUser(userData) {
       <Dialog
         :open="state.showNewPostDialog"
         @close="state.showNewPostDialog = false"
+        @keydown.escape="state.showNewPostDialog = false"
         class="relative z-10"
       >
         <div class="fixed inset-0 bg-black bg-opacity-60" />
         <div class="fixed inset-0 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4">
             <div
-              class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+              class="w-full max-w-2xl flex flex-col gap-6 p-6 bg-white rounded-lg shadow dark:bg-gray-800"
             >
               <NewPostComponent
                 @post-created="

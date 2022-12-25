@@ -5,11 +5,13 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
 import NewPostComponent from '@/components/NewPostComponent.vue'
 import PostComponent from '@/components/PostComponent.vue'
 import useUserStore from '@/stores/user'
+import usePostStore from '@/stores/post'
 import { computed, onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Timestamp } from 'firebase/firestore'
 
 const user = useUserStore()
+const post = usePostStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -58,14 +60,14 @@ onMounted(async () => {
       return
     }
     // fetch posts and likes
-    state.posts = await user.fetchPostsByHandle(route.params.handle)
-    state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+    state.posts = await post.fetchPostsByHandle(route.params.handle)
+    state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
   } else {
     // populate state with data from store
     state.userData = user.user
-    state.posts = user.posts
-    state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+    state.posts = await post.fetchPostsByHandle(route.params.handle)
+    state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
   }
   // check if user is recently active
@@ -93,13 +95,13 @@ onUpdated(async () => {
     state.isOwnAccount = user.user.handle === route.params.handle
     if (!state.isOwnAccount) {
       state.userData = await user.fetchUserByHandle(route.params.handle)
-      state.posts = await user.fetchPostsByHandle(route.params.handle)
-      state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+      state.posts = await post.fetchPostsByHandle(route.params.handle)
+      state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
       state.loading = false
     } else {
       state.userData = user.user
-      state.posts = user.posts
-      state.likes = await user.fetchLikedPostsByHandle(route.params.handle)
+      state.posts = post.posts
+      state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
       state.loading = false
     }
   }
@@ -127,7 +129,7 @@ const isFollowing = computed(() => {
 
 async function refreshPosts() {
   state.loading = true
-  await user.fetchPosts()
+  await post.fetchPosts()
   state.loading = false
 }
 async function saveUser() {
@@ -195,7 +197,7 @@ async function changeAvatar() {
         class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
       >
         <div
-          class="md:sticky md:top-6 flex flex-col items-start gap-12 w-full md:w-80"
+          class="md:sticky md:top-6 flex flex-col items-start gap-12 w-full md:max-w-xs lg:max-w-sm"
         >
           <!-- Avatar -->
           <div
@@ -203,7 +205,7 @@ async function changeAvatar() {
           >
             <img
               :src="state.userData.avatarUrl"
-              class="rounded-lg w-full h-auto md:w-80 md:h-80"
+              class="rounded-lg w-full h-auto md:max-w-sm aspect-square object-cover"
             />
             <button
               v-if="state.isOwnAccount"
@@ -488,7 +490,7 @@ async function changeAvatar() {
             <div class="relative">
               <button
                 type="button"
-                @click="user.fetchPosts"
+                @click="post.fetchPosts"
                 class="peer p-2.5 rounded-full text-gray-700 bg-white hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700"
               >
                 <svg
@@ -542,30 +544,9 @@ async function changeAvatar() {
               :dismissible="false"
             />
 
-            <div class="flex items-center justify-between">
-              <h2 class="text-4xl font-bold py-3 dark:text-white">
-                Edit profile
-              </h2>
-              <button
-                type="button"
-                class="flex items-center gap-2.5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                @click="saveUser"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                  class="h-6 w-6 fill-current"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M5 5v14h14V7.828L16.172 5H5zM4 3h13l3.707 3.707a1 1 0 0 1 .293.707V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm8 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 6h9v4H6V6z"
-                  />
-                </svg>
-                Save Changes
-              </button>
-            </div>
+            <h2 class="text-4xl font-bold py-3 dark:text-white">
+              Edit profile
+            </h2>
             <!-- Handle -->
             <div>
               <span
@@ -706,6 +687,28 @@ async function changeAvatar() {
                 rows="4"
               ></textarea>
             </div>
+
+            <div class="mt-4">
+              <button
+                type="button"
+                class="ml-auto flex items-center gap-2.5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                @click="saveUser"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  class="h-6 w-6 fill-current"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M5 5v14h14V7.828L16.172 5H5zM4 3h13l3.707 3.707a1 1 0 0 1 .293.707V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm8 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 6h9v4H6V6z"
+                  />
+                </svg>
+                Save Changes
+              </button>
+            </div>
           </div>
           <!-- Read profile -->
           <div v-else class="flex flex-col gap-6">
@@ -819,7 +822,7 @@ async function changeAvatar() {
             <div class="relative">
               <button
                 type="button"
-                @click="user.fetchLikedPostsByHandle($route.params.handle)"
+                @click="post.fetchLikedPostsByHandle($route.params.handle)"
                 class="peer p-2.5 rounded-full text-gray-700 bg-white hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700"
               >
                 <svg
@@ -889,7 +892,7 @@ async function changeAvatar() {
               :to="'/social/@' + user.handle"
               v-for="user of state.userData.following"
               :key="user.id"
-              class="w-full p-4 text-gray-900 bg-white rounded-lg border shadow-sm border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white flex items-center gap-4"
+              class="w-full p-4 text-gray-900 bg-white rounded-lg border shadow border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-white flex items-center gap-4"
             >
               <div class="flex-shrink-0">
                 <img

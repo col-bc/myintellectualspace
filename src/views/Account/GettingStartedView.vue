@@ -1,15 +1,14 @@
 <script setup>
-import AlertComponent from '@/components/AlertComponent.vue'
 import useUserStore from '@/stores/user'
+import {
+  collection,
+  getDocs,
+  getFirestore,
+  query,
+  where
+} from '@firebase/firestore'
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs
-} from '@firebase/firestore'
 
 const db = getFirestore()
 const router = useRouter()

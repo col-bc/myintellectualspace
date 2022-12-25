@@ -2,11 +2,13 @@
 import AlertComponent from '@/components/AlertComponent.vue'
 import { MAPS_API_KEY } from '@/secrets'
 import useUserStore from '@/stores/user'
+import usePostStore from '@/stores/post'
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 import { reactive } from 'vue'
 import LoaderComponent from './LoaderComponent.vue'
 
 const user = useUserStore()
+const post = usePostStore()
 const storage = getStorage()
 
 const emit = defineEmits(['postCreated'])
@@ -44,9 +46,7 @@ function verifyForm() {
 }
 async function createPost() {
   verifyForm()
-  if (newPost.error) {
-    return
-  }
+  if (newPost.error) return
   state.loading = true
   if (newPost.image) {
     // upload image to firebase storage
@@ -57,7 +57,7 @@ async function createPost() {
     await uploadBytes(storageRef, newPost.image)
     newPost.imageUrl = await getDownloadURL(storageRef)
     // create post
-    await user.addPost({
+    await post.addPost({
       content: newPost.content,
       location: newPost.location,
       likes: [],
@@ -66,7 +66,7 @@ async function createPost() {
     })
   } else {
     try {
-      await user.addPost({
+      await post.addPost({
         content: newPost.content,
         location: newPost.location,
         likes: [],
@@ -121,13 +121,13 @@ async function getGeolocation() {
 <template>
   <form @submit.prevent="verifyForm()">
     <div
-      class="mb-4 w-full bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-600"
+      class="w-full bg-white shadow-sm rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
     >
       <div class="flex py-2 px-4">
         <textarea
           v-model="newPost.content"
           rows="6"
-          class="flex-1 px-0 w-full text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400"
+          class="flex-1 px-0 w-full text-sm text-gray-900 bg-transparent border-0 focus:ring-0 dark:text-white dark:placeholder-gray-400"
           placeholder="Share with your network"
         ></textarea>
         <img
@@ -143,7 +143,7 @@ async function getGeolocation() {
         type="error"
       />
       <div
-        class="flex justify-between items-center py-2 px-3 bg-gray-50 border-t dark:border-gray-600 dark:bg-gray-700"
+        class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-b-lg border-t dark:border-gray-600 dark:bg-gray-700"
       >
         <button
           type="submit"

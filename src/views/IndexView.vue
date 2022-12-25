@@ -2,22 +2,20 @@
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import FooterComponent from '@/components/FooterComponent.vue'
 import PostComponent from '@/components/PostComponent.vue'
-
 import { onMounted, reactive } from 'vue'
 import useUserStore from '@/stores/user'
+import usePostStore from '@/stores/post'
 
 const user = useUserStore()
-const state = reactive({
-  posts: []
-})
+const post = usePostStore()
 
 onMounted(async () => {
-  const allPosts = await user.fetchAllPosts()
+  const allPosts = await post.fetchAllPosts()
   const length = allPosts.length > 10 ? 10 : allPosts.length
   for (let i = 0; i < length; i++) {
-    state.posts.push(allPosts[i])
+    post.posts.push(allPosts[i])
   }
-  state.posts.sort((a, b) => {
+  post.posts.sort((a, b) => {
     return b.createdAt.seconds - a.createdAt.seconds
   })
 })
@@ -119,7 +117,7 @@ onMounted(async () => {
       </h2>
       <div class="max-w-screen-xl w-full mx-auto px-2 md:px-0 mb-12 sm:px-4">
         <div class="w-full max-w-2xl mx-auto flex flex-col gap-4 md:gap-12">
-          <PostComponent v-for="post of state.posts" :key="post" :post="post" />
+          <PostComponent v-for="post of post.posts" :key="post" :post="post" />
         </div>
       </div>
       <div>
