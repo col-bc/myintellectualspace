@@ -72,15 +72,14 @@ onMounted(async () => {
   }
   // check if user is recently active
   const lastActiveTimestamp = await user.getLastActive(route.params.handle)
-  if (!lastActiveTimestamp) {
-    return
-  }
-  const lastActive = lastActiveTimestamp.toDate()
-  const now = new Date()
-  const diff = now.getTime() - lastActive.getTime()
-  const diffMinutes = Math.round(diff / 60000)
-  if (diffMinutes < 15) {
-    state.isRecentlyActive = true
+  if (!!lastActiveTimestamp) {
+    const lastActive = lastActiveTimestamp.toDate()
+    const now = new Date()
+    const diff = now.getTime() - lastActive.getTime()
+    const diffMinutes = Math.round(diff / 60000)
+    if (diffMinutes < 15) {
+      state.isRecentlyActive = true
+    }
   }
 
   // sort posts by date
@@ -263,7 +262,7 @@ async function changeAvatar() {
           <div class="sm:flex-1 w-full flex flex-col gap-6 lg:gap-12 mb-6">
             <!-- User menu -->
             <div
-              class="w-full font-medium text-gray-900 bg-white shadow-md rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              class="w-full font-medium text-gray-900 bg-white shadow-md rounded-lg border border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
             >
               <div class="p-4">
                 <div class="flex items-center justify-between">
@@ -484,7 +483,7 @@ async function changeAvatar() {
             @post-created="refreshPosts"
           />
           <div class="flex items-center justify-between">
-            <h2 class="text-4xl font-bold text-gray-800 dark:text-white">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-white">
               Posts by @{{ state.userData.handle }}
             </h2>
             <div class="relative">
@@ -544,7 +543,7 @@ async function changeAvatar() {
               :dismissible="false"
             />
 
-            <h2 class="text-4xl font-bold py-3 dark:text-white">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-white">
               Edit profile
             </h2>
             <!-- Handle -->
@@ -713,7 +712,7 @@ async function changeAvatar() {
           <!-- Read profile -->
           <div v-else class="flex flex-col gap-6">
             <div class="flex items-center justify-between">
-              <h2 class="text-4xl font-bold py-3 dark:text-white">
+              <h2 class="text-3xl font-bold text-gray-800 dark:text-white">
                 About @{{ state.userData.handle }}
               </h2>
             </div>
@@ -816,7 +815,7 @@ async function changeAvatar() {
           class="flex-1 flex flex-col gap-12 px-2"
         >
           <div class="flex items-center justify-between">
-            <h2 class="text-4xl font-bold text-gray-800 dark:text-white">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-white">
               Liked by @{{ state.userData.handle }}
             </h2>
             <div class="relative">
@@ -869,7 +868,7 @@ async function changeAvatar() {
           v-if="$route.name === 'profile-connections'"
           class="flex-1 flex flex-col gap-12 px-2"
         >
-          <h2 class="text-4xl font-bold text-gray-800 dark:text-white">
+          <h2 class="text-3xl font-bold text-gray-800 dark:text-white">
             @{{ state.userData.handle }}'s Connections
           </h2>
           <AlertComponent

@@ -232,14 +232,6 @@ const router = createRouter({
     },
 
     // # Other Routes
-    // /my-courses
-    {
-      path: '/my-courses',
-      name: 'my-courses',
-      // component: () => import('@/views/Account/MyCoursesView.vue'),
-      meta: { requiresAuth: true },
-      redirect: '/unavailable'
-    },
     // /getting-started
     {
       path: '/getting-started',
@@ -267,8 +259,23 @@ const router = createRouter({
     // /support
     {
       path: '/support',
-      name: 'support',
-      component: () => import('@/views/Support/GetHelpView.vue')
+      children: [
+        {
+          path: '',
+          name: 'support-home',
+          component: () => import('@/views/Support/HomeView.vue')
+        },
+        {
+          path: 'contact',
+          name: 'support-contact'
+          // component: () => import('@/views/Support/ContactView.vue')
+        },
+        {
+          path: 'bug-report',
+          name: 'support-bug-report',
+          component: () => import('@/views/Support/BugReportView.vue')
+        }
+      ]
     },
     // /messages
     {

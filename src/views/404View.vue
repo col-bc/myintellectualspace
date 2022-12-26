@@ -6,7 +6,7 @@ import NavbarComponent from '../components/NavbarComponent.vue'
   <NavbarComponent />
   <div class="min-h-screen max-w-lg mx-auto flex flex-col px-4 py-12 lg:py-16">
     <div
-      class="text-white mb-12 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+      class="text-white mb-12 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 dark:text-gray-800"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -28,7 +28,7 @@ import NavbarComponent from '../components/NavbarComponent.vue'
       </svg>
     </div>
     <h1
-      class="text-3xl text-center font-bold drop-shadow-xl leading-loose text-gray-900 dark:text-white mb-6"
+      class="text-center text-5xl font-black leading-loose text-gray-900 dark:text-white mb-12"
     >
       Page Not Found
     </h1>

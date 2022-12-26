@@ -4,7 +4,7 @@ import { MAPS_API_KEY } from '@/secrets'
 import useUserStore from '@/stores/user'
 import usePostStore from '@/stores/post'
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import LoaderComponent from './LoaderComponent.vue'
 
 const user = useUserStore()
@@ -23,6 +23,17 @@ const newPost = reactive({
   image: null,
   imageUrl: null
 })
+
+watch(
+  () => newPost.error,
+  (error) => {
+    if (error) {
+      setTimeout(() => {
+        newPost.error = ''
+      }, 3000)
+    }
+  }
+)
 
 async function selectPostImage() {
   var input = document.createElement('input')
@@ -123,6 +134,11 @@ async function getGeolocation() {
     <div
       class="w-full bg-white shadow-sm rounded-lg border border-gray-300 text-base font-normal text-gray-700 dark:text-gray-400 dark:border-gray-700 dark:bg-gray-800"
     >
+      <AlertComponent
+        :message="newPost.error"
+        v-if="!!newPost.error"
+        type="error"
+      />
       <div class="flex py-2 px-4">
         <textarea
           v-model="newPost.content"
@@ -136,12 +152,7 @@ async function getGeolocation() {
           class="h-fll w-48 ml-4 object-cover"
         />
       </div>
-      <AlertComponent
-        :message="newPost.error"
-        v-if="!!newPost.error"
-        :dismissible="false"
-        type="error"
-      />
+
       <div
         class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-b-lg border-t dark:border-gray-600 dark:bg-gray-700"
       >

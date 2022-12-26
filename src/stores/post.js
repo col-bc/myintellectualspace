@@ -49,6 +49,15 @@ const usePostStore = defineStore({
         return { ...doc.data(), id: doc.id }
       })
     },
+    async fetchPostByUid(uid) {
+      const db = getFirestore()
+      const postRef = doc(db, 'posts', uid)
+      const post = await getDoc(postRef)
+      if (post.exists()) {
+        return { ...post.data(), id: post.id }
+      }
+      return {}
+    },
     async fetchPostsByHandle(handle) {
       const db = getFirestore()
       const postsRef = collection(db, 'posts')

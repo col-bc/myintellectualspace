@@ -152,14 +152,14 @@ async function deactivateAccount() {}
   <main class="bg-white min-h-screen dark:bg-slate-800">
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
-      <div class="container flex flex-col mx-auto px-2 py-12">
-        <div class="flex flex-col md:flex-row items-start gap-12 lg:gap-16">
-          <div class="flex flex-col w-full md:w-auto">
-            <h1
-              class="w-full text-3xl mb-12 font-bold text-gray-900 dark:text-white"
-            >
-              Account Settings
-            </h1>
+
+      <div
+        class="container mx-auto px-2 md:px-4 py-12 text-gray-700 dark:text-gray-300"
+      >
+        <div
+          class="flex flex-col md:flex-row items-start relative h-full gap-6 md:gap:12 lg:gap-16"
+        >
+          <div class="w-full md:max-w-xs lg:max-w-sm md:sticky md:top-12">
             <!-- Menu -->
             <div
               class="w-full md:w-60 text-sm shadow-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -197,21 +197,24 @@ async function deactivateAccount() {}
             <LoaderComponent size="lg" />
           </div>
           <!-- Content -->
-          <div
-            v-else
-            class="flex-1 w-full max-w-xl mx-auto flex flex-col divide-y divide-gray-400 dark:divide-gray-600"
-          >
+          <div v-else class="flex-1 w-full max-w-xl mx-auto flex flex-col">
+            <h1
+              class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-12"
+            >
+              Settings
+            </h1>
+
             <!-- Account -->
             <form
               id="account"
-              class="flex flex-col gap-5 py-12"
+              class="flex flex-col gap-5 mb-12"
               @submit.prevent="updateUser"
             >
-              <h3
-                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              <h2
+                class="text-3xl font-bold drop-shadow-xl leading-relaxed text-gray-900 dark:text-white mb-6"
               >
                 Account
-              </h3>
+              </h2>
               <div>
                 <label
                   class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
@@ -281,13 +284,13 @@ async function deactivateAccount() {}
             </form>
 
             <!-- Password -->
-            <div id="security" class="flex flex-col gap-6 py-12">
+            <div id="security" class="flex flex-col gap-6 mb-12">
               <!-- Password -->
-              <h3
-                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              <h2
+                class="text-3xl font-bold drop-shadow-xl leading-relaxed text-gray-900 dark:text-white mb-6"
               >
                 Security
-              </h3>
+              </h2>
               <div
                 class="p-4 flex items-center gap-2.5 text-sm text-blue-700 bg-blue-100 rounded-lg dark:bg-blue-200 dark:text-blue-800"
                 role="alert"
@@ -398,14 +401,14 @@ async function deactivateAccount() {}
             <!-- Privacy -->
             <form
               id="privacy"
-              class="flex flex-col gap-6 py-12"
+              class="flex flex-col gap-6 mb-12"
               @submit.prevent="updateUser"
             >
-              <h3
-                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              <h2
+                class="text-3xl font-bold drop-shadow-xl leading-relaxed text-gray-900 dark:text-white mb-6"
               >
                 Privacy
-              </h3>
+              </h2>
 
               <div
                 class="flex items-center pl-4 rounded border border-gray-200 dark:border-gray-700"
@@ -466,14 +469,14 @@ async function deactivateAccount() {}
             <!-- Deactivate -->
             <form
               id="deactivate"
-              class="space-y-6 py-12"
+              class="space-y-6 mb-12"
               @submit.prevent="deactivateUser"
             >
-              <h3
-                class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+              <h2
+                class="text-3xl font-bold drop-shadow-xl leading-relaxed text-gray-900 dark:text-white mb-6"
               >
                 Deactivate account
-              </h3>
+              </h2>
               <button
                 type="button"
                 @click="state.showDeactivateDialog = true"
@@ -495,7 +498,7 @@ async function deactivateAccount() {}
                     class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
                   >
                     <div
-                      class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+                      class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 dark:text-gray-800"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

@@ -86,6 +86,17 @@ const useUserStore = defineStore({
       })
       return uid
     },
+    async fetchUserByUid(uid) {
+      // query firestore for user by uid
+      const db = getFirestore()
+      const userRef = doc(db, 'users', uid)
+      const docSnap = await getDoc(userRef)
+      if (docSnap.exists()) {
+        return { ...docSnap.data(), id: docSnap.id }
+      } else {
+        return {}
+      }
+    },
     async updateUser(data) {
       // strip empty or unfilled fields
       const filteredData = Object.keys(data).reduce((acc, key) => {

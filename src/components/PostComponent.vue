@@ -458,7 +458,7 @@ async function reportPost() {
           class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
         >
           <div
-            class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
+            class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 dark:text-gray-800"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -555,7 +555,9 @@ async function reportPost() {
                 rows="4"
               ></textarea>
             </div>
-            <div class="flex items-center justify-center gap-4">
+            <div
+              class="flex flex-col-reverse md:flex-row items-center justify-center gap-4"
+            >
               <button
                 type="submit"
                 class="w-full text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2"

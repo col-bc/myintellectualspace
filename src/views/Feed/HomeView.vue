@@ -416,7 +416,7 @@ function scrollToTop() {
                   type="button"
                   @click="prevPage"
                   v-if="filters.page > 1"
-                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm shadow font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -437,7 +437,7 @@ function scrollToTop() {
                   type="button"
                   @click="nextPage"
                   v-if="filters.page < filters.total"
-                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium shadow text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   Next
                   <svg
@@ -469,19 +469,38 @@ function scrollToTop() {
         <div class="fixed inset-0 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4">
             <div
-              class="w-full max-w-2xl flex flex-col gap-6 p-6 bg-white rounded-lg shadow dark:bg-gray-800"
+              class="w-full max-w-2xl flex flex-col gap-6 p-6 bg-white rounded-lg shadow dark:bg-gray-700"
             >
+              <div class="flex items-center justify-between">
+                <h2
+                  class="text-2xl font-semibold text-gray-900 dark:text-white"
+                >
+                  New Post
+                </h2>
+                <button
+                  type="button"
+                  @click="state.showNewPostDialog = false"
+                  class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-300 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"
+                    />
+                  </svg>
+                </button>
+              </div>
               <NewPostComponent
                 @post-created="
                   () => (refreshPosts(), (state.showNewPostDialog = false))
                 "
               />
-              <button
-                @click="state.showNewPostDialog = false"
-                class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
             </div>
           </div>
         </div>

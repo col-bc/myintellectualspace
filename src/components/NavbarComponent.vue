@@ -42,6 +42,26 @@ function closeDrawer() {
 function dismissAllNotifications() {
   user.dismissAllNotifications()
   state.notifications = []
+  state.showNotifications = false
+}
+async function notificationClick(n) {
+  return
+  if (n.type === 'follow') {
+    const user = await user.fetchUserByUid(n.recordId)
+    user.dismissNotification(n)
+    state.notifications = state.notifications.filter((x) => x !== n)
+    router.push({ name: 'user', params: { handle: user.handle } })
+  } else if (n.type === 'like') {
+    const post = await user.fetchPostByUid(n.recordId)
+    user.dismissNotification(n)
+    state.notifications = state.notifications.filter((x) => x !== n)
+    router.push({ name: 'post', params: { id: post.id } })
+  } else if (n.type === 'comment') {
+    const post = await user.fetchPostByUid(n.recordId)
+    user.dismissNotification(n)
+    state.notifications = state.notifications.filter((x) => x !== n)
+    router.push({ name: 'post', params: { id: post.id } })
+  }
 }
 
 watch(route.path, () => {
@@ -336,6 +356,7 @@ onBeforeUnmount(() => {
       >
         <li
           v-for="(notification, idx) of state.notifications"
+          @click="notificationClick(notification)"
           :key="idx"
           class="py-4"
         >

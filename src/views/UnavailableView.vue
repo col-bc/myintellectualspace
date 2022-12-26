@@ -10,21 +10,21 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
       <div
         class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap*12 lg:gap-16 py-12 px-2 md:px-4"
       >
-        <div class="w-full flex justify-center lg:w-1/2 mb-12">
+        <div class="w-full md:w-auto flex justify-center mb-12">
           <lottie-player
             src="https://assets1.lottiefiles.com/packages/lf20_AQcLsD.json"
             background="transparent"
             speed="1"
-            class="w-full max-w-sm lg:max-w-xl"
+            class="w-full max-w-sm md:max-w-md lg:max-w-lg"
             loop
             autoplay
           ></lottie-player>
         </div>
-        <div class="w-full lg:w-1/2 flex flex-col">
+        <div class="flex-1 flex flex-col">
           <h1
-            class="text-3xl font-black drop-shadow-xl leading-relaxed text-gray-900 dark:text-white mb-12"
+            class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-12"
           >
-            This page is under construction.
+            This page is unavailable
           </h1>
           <p
             class="leading-loose text-lg text-gray-700 dark:text-gray-300 mb-12"
@@ -34,11 +34,9 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
           </p>
 
           <div
-            class="p-4 md:p-6 mb-12 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
+            class="p-4 md:p-6 mb-12 bg-white border border-gray-300 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
           >
-            <h5
-              class="mb-2 text-2xl font-bold tracking-tight leading-relaxed text-gray-900 dark:text-white"
-            >
+            <h5 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Get notified when this page is ready
             </h5>
             <p class="leading-loose text-gray-700 dark:text-gray-300 mb-4">

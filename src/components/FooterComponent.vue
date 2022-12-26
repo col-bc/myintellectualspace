@@ -38,7 +38,9 @@
                 >
               </li>
               <li>
-                <a href="#" class="hover:underline">FAQ</a>
+                <router-link to="/support" class="hover:underline"
+                  >Support</router-link
+                >
               </li>
             </ul>
           </div>
