@@ -14,8 +14,8 @@ import useUserStore from '@/stores/user'
 const user = useUserStore()
 
 const form = reactive({
-  isSubmitted: true,
-  submissionId: 'F3X14S231',
+  isSubmitted: false,
+  submissionId: '',
   error: null,
   email: '',
   contactConsent: 'default',

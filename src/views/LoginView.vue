@@ -97,8 +97,8 @@ async function loginWithEmail() {
     */
     console.log(error)
     alert.value = 'Invalid email or password'
-  } finally {
     loading.value = false
+  } finally {
     form.password = ''
   }
 }
@@ -126,10 +126,7 @@ async function loginWithGoogle() {
         return
       }
       alert.value = error.message
-    })
-    .finally(() => {
       loading.value = false
-      form.password = ''
     })
 }
 function acceptBeta() {
@@ -155,11 +152,13 @@ function acceptBeta() {
       return
     }
   }
+  loading.value = false
 }
 function declineBeta() {
   form.showBetaDialog = false
   // logout user
   userStore.logout()
+  loading.value = false
 }
 </script>
 
