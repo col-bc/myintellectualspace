@@ -30,7 +30,7 @@ onMounted(async () => {
 function logout() {
   user.logout()
   state.showDrawer = false
-  router.push('/')
+  router.push('/logout')
 }
 function closeDrawer() {
   if (state.showDrawer) {
@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
           </svg>
         </button>
       </div>
-      <ul class="py-2.5 text-sm text-gray-700 dark:text-gray-200">
+      <ul class="py-2.5 text-sm text-gray-800 dark:text-gray-100">
         <li>
           <router-link
             :to="{ name: 'profile', params: { handle: user.user.handle } }"
@@ -195,14 +195,14 @@ onBeforeUnmount(() => {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
                 class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
                 width="24"
                 height="24"
               >
                 <path fill="none" d="M0 0h24v24H0z" />
                 <path
-                  d="M14 22.5L11.2 19H6a1 1 0 0 1-1-1V7.103a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1h-5.2L14 22.5zm1.839-5.5H21V8.103H7V17H12.161L14 19.298 15.839 17zM2 2h17v2H3v11H1V3a1 1 0 0 1 1-1z"
+                  d="M2 8.994A5.99 5.99 0 0 1 8 3h8c3.313 0 6 2.695 6 5.994V21H8c-3.313 0-6-2.695-6-5.994V8.994zM20 19V8.994A4.004 4.004 0 0 0 16 5H8a3.99 3.99 0 0 0-4 3.994v6.012A4.004 4.004 0 0 0 8 19h12zm-6-8h2v2h-2v-2zm-6 0h2v2H8v-2z"
                 />
               </svg>
             </div>
@@ -330,7 +330,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           @click="closeDrawer"
-          class="text-white bg-gray-900 bg-opacity-0 hover:bg-opacity-25 rounded-md p-1.5 dark:text-gray-900"
+          class="text-white bg-black bg-opacity-0 hover:bg-opacity-25 rounded-md p-2.5 dark:text-gray-900"
         >
           <svg
             class="w-5 h-5"
@@ -401,6 +401,19 @@ onBeforeUnmount(() => {
                 <path fill="none" d="M0 0h24v24H0z" />
                 <path
                   d="M14 3v2H4v13.385L5.763 17H20v-7h2v8a1 1 0 0 1-1 1H6.455L2 22.5V4a1 1 0 0 1 1-1h11zm5 0V0h2v3h3v2h-3v3h-2V5h-3V3h3z"
+                />
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                v-if="notification.type === 'message'"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M6.455 19L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455zm-.692-2H20V5H4v13.385L5.763 17zM11 10h2v2h-2v-2zm-4 0h2v2H7v-2zm8 0h2v2h-2v-2z"
                 />
               </svg>
             </div>

@@ -45,15 +45,14 @@ window.addEventListener('resize', () => {
 </template>
 
 <style>
-/* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap'); */
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: 'Sora', 'Roboto', sans-serif;
+  font-family: 'Inter', 'Roboto', sans-serif;
   @apply bg-white dark:bg-slate-800;
 }
 </style>

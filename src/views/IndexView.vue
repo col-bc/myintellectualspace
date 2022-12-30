@@ -35,7 +35,9 @@ onMounted(async () => {
         class="px-2 sm:px-4 py-2 text-sm text-blue-700 bg-blue-100 border-y border-blue-700 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800"
         role="alert"
       >
-        <div class="max-w-screen-xl mx-auto flex flex-row items-center px-4">
+        <div
+          class="container max-w-screen-xl mx-auto flex flex-row items-center px-4"
+        >
           <span>You have been logged out.</span>
           <button
             type="button"
@@ -64,7 +66,7 @@ onMounted(async () => {
       >
         <div class="container mx-auto flex-1 flex flex-col gap-8 py-12">
           <h1
-            class="max-w-screen-xl text-3xl md:text-5xl font-black drop-shadow-xl md:leading-relaxed text-white"
+            class="max-w-screen-xl text-4xl md:text-5xl font-black drop-shadow-xl md:leading-relaxed text-white"
           >
             Your space to learn, grow, share and connect.
           </h1>

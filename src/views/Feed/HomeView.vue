@@ -116,7 +116,7 @@ function scrollToTop() {
       <NavbarComponent />
 
       <div
-        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
+        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 mb-12 px-2 md:px-4"
       >
         <div
           class="md:sticky md:top-6 flex flex-col items-start gap-12 w-full md:max-w-xs lg:max-w-sm"

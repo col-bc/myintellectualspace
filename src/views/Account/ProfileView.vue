@@ -65,7 +65,7 @@ onMounted(async () => {
     state.loading = false
   } else {
     // populate state with data from store
-    state.userData = user.user
+    state.userData = await user.fetchCurrentUser()
     state.posts = await post.fetchPostsByHandle(route.params.handle)
     state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
     state.loading = false
@@ -98,7 +98,7 @@ onUpdated(async () => {
       state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
       state.loading = false
     } else {
-      state.userData = user.user
+      state.userData = await user.fetchCurrentUser()
       state.posts = post.posts
       state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
       state.loading = false
@@ -193,10 +193,10 @@ async function changeAvatar() {
       </div>
       <div
         v-else
-        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 px-2 md:px-4"
+        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 mb-12 px-2 md:px-4"
       >
         <div
-          class="md:sticky md:top-6 flex flex-col items-start gap-12 w-full md:max-w-xs lg:max-w-sm"
+          class="md:sticky md:top-6 flex flex-col items-start gap-6 w-full md:max-w-xs lg:max-w-sm"
         >
           <!-- Avatar -->
           <div
@@ -673,6 +673,19 @@ async function changeAvatar() {
                 placeholder=""
               />
             </div>
+            <!-- Company -->
+            <div>
+              <span
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Company</span
+              >
+              <input
+                type="text"
+                v-model="state.userData.company"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder=""
+              />
+            </div>
             <!-- Interests -->
             <div>
               <span
@@ -786,6 +799,15 @@ async function changeAvatar() {
               >
               <span class="text-gray-900 text-sm dark:text-white">
                 {{ state.userData.occupation || 'Not provided' }}
+              </span>
+            </div>
+            <div class="flex items-center">
+              <span
+                class="flex-shrink-0 font-semibold mr-2 uppercase text-sm w-64 dark:text-gray-300"
+                >Company</span
+              >
+              <span class="text-gray-900 text-sm dark:text-white">
+                {{ state.userData.company || 'Not provided' }}
               </span>
             </div>
             <div class="flex items-center">

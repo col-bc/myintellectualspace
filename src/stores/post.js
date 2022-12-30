@@ -29,7 +29,7 @@ const usePostStore = defineStore({
       const user = useUserStore()
       const db = getFirestore()
       const postsRef = collection(db, 'posts')
-      if (user.user.handle) {
+      if (!user.user.handle) {
         // user has not completed onboarding
         this.posts = []
         return

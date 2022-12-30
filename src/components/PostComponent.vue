@@ -422,8 +422,8 @@ async function reportPost() {
               type="button"
               @click="deleteComment(comment.id)"
               v-if="
-                comment.author.handle === user.user.handle ||
-                user.user.handle === props.post.author.handle
+                comment.author.handle === user.user?.handle ||
+                user.user?.handle === props.post.author.handle
               "
               class="p-1.5 text-xs rounded-md bg-white text-red-500 hover:bg-red-500 hover:text-white dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-400 dark:hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >

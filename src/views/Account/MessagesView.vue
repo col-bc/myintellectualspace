@@ -1,444 +1,352 @@
 <script setup>
 import axios from 'axios'
-import { reactive, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import useUserStore from '../../stores/user.js'
+import { reactive, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import useUserStore from '@/stores/user.js'
+import useMessageStore from '@/stores/message.js'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import AlertComponent from '@/components/AlertComponent.vue'
+import LoaderComponent from '@/components/LoaderComponent.vue'
+import NewMessageRoomComponent from '@/components/NewMessageRoomComponent.vue'
 
-const userStore = useUserStore()
+const user = useUserStore()
+const message = useMessageStore()
 const route = useRoute()
+const router = useRouter()
 
-const data = reactive({
-  sent: [],
-  received: [],
-  archive: [],
-  folder: 'inbox', // inbox, sent, archive
-  openMessage: null,
-  newMessage: false,
+const state = reactive({
   loading: false,
-  searching: false,
-  search: '',
-  searchResults: [],
-  error: null
+  messageRooms: [],
+  activeRoom: null,
+  messageContent: '',
+  showNewMessageDialog: false
 })
 onMounted(async () => {
-  data.loading = true
-  try {
-    const response = await axios.get('/api/message', {
-      headers: {
-        Authorization: userStore.getBearerToken
-      }
-    })
-    data.sent = response.data.sent
-    data.received = response.data.received
-  } catch (error) {
-    data.error = error
-  } finally {
-    data.loading = false
+  state.loading = true
+  await message.fetchMessageRooms()
+  if (route.params.roomId) {
+    const room = message.rooms.find((room) => room.id === route.params.roomId)
+    if (room) {
+      state.activeRoom = room
+    }
   }
+  state.loading = false
 })
 
-function newMessage() {
-  data.openMessage = {
-    sender: ''
-  }
-  data.newMessage = true
+watch(
+  () => route.params.roomId,
+  async (roomId) => {
+    if (roomId) {
+      const room = message.rooms.find((room) => room.id === roomId)
+      if (room) {
+        state.activeRoom = room
+      }
+    } else {
+      state.activeRoom = null
+    }
+  },
+  { immediate: true }
+)
+
+async function sendMessage() {
+  state.activeRoom.messages = await message.sendMessage(
+    state.activeRoom.id,
+    state.messageContent
+  )
+  state.messageContent = ''
 }
-function openMessage(message) {
-  data.openMessage = message
-  data.newMessage = false
+function getAvatarByUid(uid) {
+  var u = undefined
+  if (state.activeRoom.owner.uid === uid) {
+    u = state.activeRoom.owner
+  } else {
+    // get nested user object from recipient object where index matches uid
+    u = state.activeRoom.recipient[uid]
+  }
+  return u.avatarUrl
 }
 </script>
 
 <template>
   <main class="bg-white min-h-screen dark:bg-slate-800">
-    <div class="max-w-screen-xl mx-auto">
+    <div class="max-w-screen-xl mx-auto h-full flex flex-col">
       <NavbarComponent />
-
-      <div class="container mx-auto px-2 md:px-4">
-        <div class="flex items-center justify-between pt-12 mb-6">
-          <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+      <div
+        v-if="state.loading"
+        class="h-screen flex items-center justify-center"
+      >
+        <LoaderComponent size="lg" class="text-gray-900 dark:text-white" />
+      </div>
+      <div
+        v-else
+        class="flex-1 container mx-auto flex flex-col py-12 px-2 md:px-4"
+      >
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between mb-12"
+        >
+          <h1
+            class="text-5xl font-black leading-loose text-gray-900 dark:text-white"
+          >
             Messages
           </h1>
           <button
-            @click="newMessage()"
             type="button"
-            class="py-3 px-5 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            @click="state.showNewMessageDialog = true"
+            class="inline-flex items-center justify-center w-auto gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 focus:shadow-sm focus:translate-y-0.5 transition duration-200 ease-in-out"
           >
-            Send Message
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 fill-current"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M14 3v2H4v13.385L5.763 17H20v-7h2v8a1 1 0 0 1-1 1H6.455L2 22.5V4a1 1 0 0 1 1-1h11zm5 0V0h2v3h3v2h-3v3h-2V5h-3V3h3z"
+              />
+            </svg>
+            Create New Message
           </button>
         </div>
 
-        <div class="flex items-start pb-12 gap-12">
-          <!-- Folders -->
+        <div
+          class="flex-1 flex flex-col md:flex-row md:items-stretch bg-white dark:bg-gray-800 border rounded-lg shadow-lg border-gray-300 dark:border-gray-700 mb-12 h-96"
+        >
+          <!-- Message rooms -->
           <div
-            class="w-48 text-gray-900 divide-y dark:text-gray-200 divide-gray-300 dark:divide-gray-600"
+            class="h-full w-full md:max-w-sm bg-gray-50 dark:bg-gray-800 rounded-l-lg"
           >
-            <button
-              @click="data.folder = 'inbox'"
-              type="button"
-              class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-              :class="{
-                'text-blue-700 dark:text-white': data.folder === 'inbox'
-              }"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4 mr-3"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
-                <path
-                  d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
-                />
-              </svg>
-              Inbox
-            </button>
-            <button
-              @click="data.folder = 'sent'"
-              type="button"
-              class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-              :class="{
-                'text-blue-700 dark:text-white': data.folder === 'sent'
-              }"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4 mr-3"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
-              Sent
-            </button>
-            <button
-              @click="data.folder = 'archive'"
-              type="button"
-              class="inline-flex relative items-center py-2 px-4 w-full text-sm font-medium hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white"
-              :class="{
-                'text-blue-700 dark:text-white': data.folder === 'archive'
-              }"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4 mr-3"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="21 8 21 21 3 21 3 8" />
-                <rect x="1" y="3" width="22" height="5" />
-                <line x1="10" y1="12" x2="14" y2="12" />
-              </svg>
-              Archived
-            </button>
+            <h5 class="text-lg font-bold text-gray-900 dark:text-white p-4">
+              Message List
+            </h5>
+            <template v-if="message.rooms?.length !== 0">
+              <ul class="mb-12 relative overflow-y-auto h-full">
+                <li
+                  v-for="room in message.rooms"
+                  :key="room"
+                  class="py-2 px-4 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                  :class="{
+                    'bg-gray-200 dark:bg-gray-700':
+                      state.activeRoom?.id === room.id
+                  }"
+                  @click="
+                    router.push({
+                      name: 'messages',
+                      params: { roomId: room.id }
+                    })
+                  "
+                >
+                  <div class="flex items-center gap-4">
+                    <div class="flex -space-x-4">
+                      <img
+                        v-for="recipient in room.recipient"
+                        :key="recipient.uid"
+                        class="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800"
+                        :src="recipient.avatarUrl"
+                      />
+                    </div>
+                    <h4
+                      class="flex-1 text-gray-700 text-lg dark:text-gray-300 font-medium"
+                    >
+                      {{ room.name }}
+                    </h4>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">
+                      {{
+                        new Date(room.updated.seconds * 1000).toLocaleString(
+                          'en-US'
+                        )
+                      }}
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </template>
+            <template v-else>
+              <p class="px-4 mb-12 text-gray-700 dark:text-gray-300">
+                You don't have any message room yet.
+              </p>
+            </template>
           </div>
 
-          <div class="flex-1">
-            <div v-if="data.loading" class="text-center" role="status">
-              <svg
-                class="inline mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-                viewBox="0 0 100 101"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+          <!-- Message content -->
+          <div
+            class="relative flex-1 flex flex-col border-t md:border-t-0 md:border-l border-gray-300 dark:border-gray-700"
+          >
+            <div
+              class="flex items-center gap-4 h-14 px-4 shadow rounded-t-lg border-b border-gray-300 dark:border-gray-700"
+            >
+              <h5
+                class="flex-1 text-lg font-bold text-gray-900 dark:text-white"
               >
-                <path
-                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                  fill="currentFill"
-                />
-              </svg>
-              <span class="sr-only">Loading...</span>
+                {{ state.activeRoom?.name || 'Select a message room' }}
+              </h5>
+              <button
+                v-if="!!state.activeRoom"
+                type="button"
+                @click="deleteRoom"
+                class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
+                  />
+                </svg>
+              </button>
+              <button
+                v-if="!!state.activeRoom"
+                type="button"
+                @click="deleteRoom"
+                class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
+                  />
+                </svg>
+              </button>
+              <button
+                v-if="!!state.activeRoom"
+                type="button"
+                @click="deleteRoom"
+                class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M8.686 4l2.607-2.607a1 1 0 0 1 1.414 0L15.314 4H19a1 1 0 0 1 1 1v3.686l2.607 2.607a1 1 0 0 1 0 1.414L20 15.314V19a1 1 0 0 1-1 1h-3.686l-2.607 2.607a1 1 0 0 1-1.414 0L8.686 20H5a1 1 0 0 1-1-1v-3.686l-2.607-2.607a1 1 0 0 1 0-1.414L4 8.686V5a1 1 0 0 1 1-1h3.686zM6 6v3.515L3.515 12 6 14.485V18h3.515L12 20.485 14.485 18H18v-3.515L20.485 12 18 9.515V6h-3.515L12 3.515 9.515 6H6zm6 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
+                  />
+                </svg>
+              </button>
+              <button
+                v-if="!!state.activeRoom"
+                type="button"
+                @click="router.push({ name: 'messages' })"
+                class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"
+                  />
+                </svg>
+              </button>
             </div>
-
-            <div v-if="!data.loading" class="flex items-start w-full gap-12">
-              <!-- Message List -->
-              <ul
-                v-if="data.folder === 'inbox'"
-                class="flex-1 max-w-screen-lg flex flex-col rounded-lg bg-white shadow-sm border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <li
-                  v-for="message of data.received"
-                  :key="message"
-                  class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-white dark:hover:bg-gray-800"
-                  @click="openMessage(message)"
-                >
-                  <img
-                    :src="message.sender.avatar_uri"
-                    class="w-12 h-12 rounded-full mr-4"
-                  />
-                  <p class="mr-4 dark:text-gray-300">
-                    {{ message.sender.handle }}
-                  </p>
-                  <div class="flex-1 text-left font-medium dark:text-white">
-                    {{ message.subject }}
-                  </div>
-                </li>
-                <li
-                  v-if="data.received.length === 0"
-                  class="flex items-center justify-center p-2 rounded-lg"
-                >
-                  <p class="text-center text-gray-500">No messages found.</p>
-                </li>
-              </ul>
-              <ul
-                v-if="data.folder === 'sent'"
-                class="flex-1 max-w-screen-lg flex flex-col rounded-lg bg-white shadow-sm border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <li
-                  v-for="message of data.sent"
-                  :key="message"
-                  class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-white dark:hover:bg-gray-800"
-                  @click="openMessage(message)"
-                >
-                  <img
-                    :src="message.recipient.avatar_uri"
-                    class="w-12 h-12 rounded-full mr-4"
-                  />
-                  <p class="mr-4 dark:text-gray-300">
-                    {{ message.recipient.handle }}
-                  </p>
-                  <div class="flex-1 text-left font-medium dark:text-white">
-                    {{ message.subject }}
-                  </div>
-                </li>
-                <li
-                  v-if="data.sent.length === 0"
-                  class="flex items-center justify-center p-2 rounded-lg"
-                >
-                  <p class="text-center text-gray-500">No messages found.</p>
-                </li>
-              </ul>
-              <ul
-                v-if="data.folder === 'archive'"
-                class="flex-1 max-w-screen-lg flex flex-col rounded-lg bg-white shadow-sm border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <li
-                  v-for="message of data.archive"
-                  :key="message"
-                  class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-white dark:hover:bg-gray-800"
-                  @click="openMessage(message)"
-                >
-                  <img
-                    :src="message.sender.avatar_uri"
-                    class="w-12 h-12 rounded-full mr-4"
-                  />
-                  <p class="mr-4 dark:text-gray-300">
-                    {{ message.sender.handle }}
-                  </p>
-                  <div class="flex-1 text-left font-medium dark:text-white">
-                    {{ message.subject }}
-                  </div>
-                </li>
-                <li
-                  v-if="data.archive.length === 0"
-                  class="flex items-center justify-center p-2 rounded-lg"
-                >
-                  <p class="text-center text-gray-500">No messages found.</p>
-                </li>
-              </ul>
-              <!-- New Message -->
-              <div
-                v-if="data.newMessage"
-                class="flex-1 flex flex-col p-4 rounded-lg bg-white shadow-md border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div class="flex justify-between items-center w-full mb-6">
-                  <h3 class="text-lg font-bold dark:text-white">New Message</h3>
-                  <button
-                    type="button"
-                    @click="data.newMessage = false"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+            <template v-if="state.activeRoom">
+              <div class="flex-1 py-6 p-6">
+                <template v-for="msg in state.activeRoom.messages" :key="msg">
+                  <div
+                    class="w-full max-w-xs items-center gap-4 mb-4 rounded-lg p-2"
+                    :class="[
+                      msg.uid === user.user.uid
+                        ? 'justify-  flex flex-row-reverse ml-auto bg-blue-200 dark:bg-blue-400 rounded-br-none'
+                        : 'justify-start flex bg-gray-200 dark:bg-gray-700 rounded-bl-none'
+                    ]"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
-                    <span class="sr-only">Close</span>
-                  </button>
-                </div>
-                <form class="flex flex-col gap-6" @submit.prevent="null">
-                  <div class="flex">
-                    <span
-                      class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 rounded-l-md border border-r-0 border-gray-300 dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600"
-                    >
-                      @
-                    </span>
-                    <input
-                      type="text"
-                      disabled
-                      v-model="userStore.getHandle"
-                      class="rounded-none cursor-not-allowed rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Your handle"
+                    <img
+                      class="w-10 h-10 rounded-full"
+                      :src="getAvatarByUid(msg.uid)"
                     />
+                    <div class="flex-1 flex flex-col">
+                      <p class="text-gray-900 dark:text-gray-200">
+                        {{ msg.message }}
+                      </p>
+                      <p
+                        class="text-xs mt-2"
+                        :class="[
+                          msg.uid === user.user.uid
+                            ? 'text-gray-600 dark:text-white'
+                            : 'text-gray-600 dark:text-gray-400'
+                        ]"
+                      >
+                        {{
+                          new Date(msg.created.seconds * 1000).toLocaleString(
+                            'en-US'
+                          )
+                        }}
+                      </p>
+                    </div>
                   </div>
-                  <div class="flex">
-                    <span
-                      class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 rounded-l-md border border-r-0 border-gray-300 dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600"
-                    >
-                      @
-                    </span>
-                    <input
-                      type="text"
-                      v-model="data.openMessage.to"
-                      @blur="searchUsers()"
-                      class="rounded-none rounded-r-lg bg-gray-50 border text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Recipient's handle"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="Subject"
-                  />
-                  <textarea
-                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="Message"
-                    rows="4"
-                  ></textarea>
-                  <div>
-                    <button
-                      type="submit"
-                      class="w-auto text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                    >
-                      Submit
-                    </button>
-                  </div>
-                </form>
+                </template>
               </div>
-              <!-- Read Message -->
-              <div
-                v-if="data.openMessage"
-                class="flex-1 flex flex-col p-4 rounded-lg bg-white shadow-md border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div class="flex justify-end items-center w-full mb-6">
-                  <button
-                    type="button"
-                    @click="data.openMessage = null"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                    data-modal-toggle="defaultModal"
+              <div class="flex items-center py-4 rounded-lg p-4">
+                <textarea
+                  rows="1"
+                  v-model="state.messageContent"
+                  @keydown.enter.prevent="sendMessage"
+                  class="block shadow-sm mr-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  placeholder="Your message..."
+                ></textarea>
+                <button
+                  type="submit"
+                  @click="sendMessage"
+                  class="inline-flex justify-center p-2 text-blue-600 rounded-full cursor-pointer hover:bg-blue-100 dark:text-blue-500 dark:hover:bg-gray-600"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
-                    <span class="sr-only">Close</span>
-                  </button>
-                </div>
-                <form class="flex flex-col gap-6" @submit.prevent="null">
-                  <div>
-                    <label
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                      >From</label
-                    >
-                    <input
-                      type="text"
-                      disabled
-                      v-model="data.openMessage.sender.handle"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="From"
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M3 13h6v-2H3V1.846a.5.5 0 0 1 .741-.438l18.462 10.154a.5.5 0 0 1 0 .876L3.741 22.592A.5.5 0 0 1 3 22.154V13z"
                     />
-                  </div>
-                  <div>
-                    <label
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                      >To</label
-                    >
-                    <input
-                      type="text"
-                      disabled
-                      v-model="data.openMessage.recipient.handle"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Recipient"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                      >Subject</label
-                    >
-                    <input
-                      type="text"
-                      disabled
-                      v-model="data.openMessage.subject"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Subject"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                      >Message</label
-                    >
-                    <textarea
-                      disabled
-                      v-model="data.openMessage.body"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Message"
-                      rows="4"
-                    ></textarea>
-                  </div>
-                  <div>
-                    <button
-                      type="submit"
-                      class="w-auto text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                    >
-                      Reply
-                    </button>
-                    <button
-                      type="button"
-                      class="py-2.5 px-5 ml-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-white hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </form>
+                  </svg>
+                  <span class="sr-only">Send message</span>
+                </button>
               </div>
-            </div>
+            </template>
           </div>
         </div>
       </div>
     </div>
   </main>
+
+  <Dialog
+    :open="state.showNewMessageDialog"
+    @close="state.showNewMessageDialog = false"
+    class="relative z-10"
+  >
+    <div class="fixed inset-0 bg-black bg-opacity-60" />
+    <div class="fixed inset-0 overflow-y-auto">
+      <div class="flex min-h-full items-center justify-center p-4">
+        <div
+          class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+        >
+          <NewMessageRoomComponent
+            @cancel="state.showNewMessageDialog = false"
+            @room-created="(data) => (state.showNewMessageDialog = false)"
+          />
+        </div>
+      </div>
+    </div>
+  </Dialog>
 </template>

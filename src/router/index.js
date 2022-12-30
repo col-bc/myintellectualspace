@@ -105,6 +105,19 @@ const router = createRouter({
       name: 'not-found',
       component: () => import('@/views/Account/UserNotFoundView.vue')
     },
+    // /messages
+    {
+      path: '/messages',
+      name: 'messages',
+      component: () => import('@/views/Account/MessagesView.vue'),
+      meta: { requiresAuth: true },
+      params: {
+        roomId: {
+          type: String,
+          required: false
+        }
+      }
+    },
 
     // # Explore Routes
     // /explore
@@ -276,13 +289,6 @@ const router = createRouter({
           component: () => import('@/views/Support/BugReportView.vue')
         }
       ]
-    },
-    // /messages
-    {
-      path: '/messages',
-      name: 'messages',
-      component: () => import('@/views/Account/MessagesView.vue'),
-      meta: { requiresAuth: true }
     },
     // /settings
     {

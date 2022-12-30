@@ -18,6 +18,7 @@ import {
   uploadBytes
 } from '@firebase/storage'
 import usePostStore from './post'
+import useMessageStore from './message'
 import { defineStore } from 'pinia'
 
 /*
@@ -42,13 +43,25 @@ const useUserStore = defineStore({
   actions: {
     async setUser(user) {
       this.user = user
+      console.log(this.user.uid)
       // fetch posts
       const post = usePostStore()
       await post.fetchPosts()
+      // check for new messages
+      const message = useMessageStore()
+      await message.checkForNewMessages()
       // update lastActive field in user
       const db = getFirestore()
       const userRef = doc(db, 'users', this.user.uid)
       await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
+    },
+    async fetchCurrentUser() {
+      // update user state with current user data
+      const db = getFirestore()
+      const userRef = doc(db, 'users', this.user.uid)
+      const docSnap = await getDoc(userRef)
+      this.user = { ...docSnap.data(), id: docSnap.id }
+      return this.user
     },
     async fetchUserByHandle(handle) {
       // query firestore for user by handle
@@ -125,6 +138,7 @@ const useUserStore = defineStore({
       if (userIndex === -1) {
         // user is not in following array, add them
         following.push({
+          uid: user.uid,
           handle: user.handle,
           avatarUrl: user.avatarUrl,
           fullName: user.fullName
