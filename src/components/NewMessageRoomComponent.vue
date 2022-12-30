@@ -2,10 +2,18 @@
 import useUserStore from '@/stores/user'
 import useMessageStore from '@/stores/message'
 import LoaderComponent from '@/components/LoaderComponent.vue'
-import { computed, defineEmits, reactive } from 'vue'
+import AlertComponent from '@/components/AlertComponent.vue'
+import { defineProps, defineEmits, reactive, onMounted } from 'vue'
 
 const user = useUserStore()
 const message = useMessageStore()
+
+const props = defineProps({
+  to: {
+    type: String,
+    required: false
+  }
+})
 
 const emit = defineEmits(['room-created', 'cancel'])
 const state = reactive({
@@ -13,7 +21,33 @@ const state = reactive({
   recipients: {},
   recipientSearch: '',
   loadingRecipient: false,
-  error: {}
+  error: null
+})
+
+onMounted(() => {
+  if (props.to) {
+    if (user.user.uid === props.to) {
+      state.error = {
+        message: 'You cannot send a message to yourself',
+        type: 'error'
+      }
+      return
+    } else if (!user.user.following?.find((u) => u.uid === props.to)) {
+      state.error = {
+        message:
+          'You are not following this user. You can only message users you are following',
+        type: 'error'
+      }
+      return
+    } else {
+      const u = user.user.following.find((u) => u.uid === props.to)
+      state.recipients[props.to] = {
+        handle: u.handle,
+        fullName: u.fullName,
+        avatarUrl: u.avatarUrl
+      }
+    }
+  }
 })
 
 function recipientPreview() {
@@ -83,7 +117,11 @@ async function createRoom() {
     Create a new message room
   </h2>
   <form @submit.prevent="createRoom" class="flex flex-col gap-6">
-    <AlertComponent type="error" :message="state.error.message" />
+    <AlertComponent
+      v-if="!!state.error"
+      :type="state.error.type"
+      :message="state.error.message"
+    />
     <div>
       <label
         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -167,7 +205,7 @@ async function createRoom() {
     </div>
     <template v-if="state.recipients !== 0">
       <div v-for="recp in state.recipients" :key="recp">
-        <div class="flex items-center gap-4 w-full px-4 py-2">
+        <div class="flex items-center gap-4 w-full py-2">
           <img
             :src="recp.avatarUrl"
             class="w-8 h-8 rounded-full object-cover"
