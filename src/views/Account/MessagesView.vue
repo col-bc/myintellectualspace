@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios'
-import { reactive, onMounted, watch } from 'vue'
+import { reactive, onMounted, watch, onUpdated } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useUserStore from '@/stores/user.js'
 import useMessageStore from '@/stores/message.js'
@@ -19,7 +19,8 @@ const state = reactive({
   messageRooms: [],
   activeRoom: null,
   messageContent: '',
-  showNewMessageDialog: false
+  showNewMessageDialog: false,
+  composerTo: null
 })
 onMounted(async () => {
   state.loading = true
@@ -28,9 +29,27 @@ onMounted(async () => {
     const room = message.rooms.find((room) => room.id === route.params.roomId)
     if (room) {
       state.activeRoom = room
+    } else {
+      router.push({ name: 'messages-home' })
     }
   }
+  if (route.name === 'messages-compose') {
+    state.showNewMessageDialog = true
+    state.composerTo = route.params.to
+  }
   state.loading = false
+})
+onUpdated(async () => {
+  if (route.name === 'messages-home' && state.activeRoom) {
+    state.activeRoom = null
+  } else if (route.name === 'messages-room' && !state.activeRoom) {
+    const room = message.rooms.find((room) => room.id === route.params.roomId)
+    if (room) {
+      state.activeRoom = room
+    } else {
+      router.push({ name: 'messages-home' })
+    }
+  }
 })
 
 watch(
@@ -132,7 +151,7 @@ function getAvatarByUid(uid) {
                   }"
                   @click="
                     router.push({
-                      name: 'messages',
+                      name: 'messages-room',
                       params: { roomId: room.id }
                     })
                   "
@@ -203,7 +222,7 @@ function getAvatarByUid(uid) {
               <button
                 v-if="!!state.activeRoom"
                 type="button"
-                @click="deleteRoom"
+                @click="updateRecipients"
                 class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
               >
                 <svg
@@ -222,7 +241,7 @@ function getAvatarByUid(uid) {
               <button
                 v-if="!!state.activeRoom"
                 type="button"
-                @click="deleteRoom"
+                @click="updateSettings"
                 class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
               >
                 <svg
@@ -241,7 +260,7 @@ function getAvatarByUid(uid) {
               <button
                 v-if="!!state.activeRoom"
                 type="button"
-                @click="router.push({ name: 'messages' })"
+                @click="router.push({ name: 'messages-home' })"
                 class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
               >
                 <svg
@@ -326,27 +345,28 @@ function getAvatarByUid(uid) {
             </template>
           </div>
         </div>
+
+        <Dialog
+          :open="state.showNewMessageDialog"
+          @close="state.showNewMessageDialog = false"
+          class="relative z-10"
+        >
+          <div class="fixed inset-0 bg-black bg-opacity-60" />
+          <div class="fixed inset-0 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+              <div
+                class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+              >
+                <NewMessageRoomComponent
+                  @cancel="state.showNewMessageDialog = false"
+                  @room-created="(data) => (state.showNewMessageDialog = false)"
+                  :to="state.composerTo ? state.composerTo : null"
+                />
+              </div>
+            </div>
+          </div>
+        </Dialog>
       </div>
     </div>
   </main>
-
-  <Dialog
-    :open="state.showNewMessageDialog"
-    @close="state.showNewMessageDialog = false"
-    class="relative z-10"
-  >
-    <div class="fixed inset-0 bg-black bg-opacity-60" />
-    <div class="fixed inset-0 overflow-y-auto">
-      <div class="flex min-h-full items-center justify-center p-4">
-        <div
-          class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
-        >
-          <NewMessageRoomComponent
-            @cancel="state.showNewMessageDialog = false"
-            @room-created="(data) => (state.showNewMessageDialog = false)"
-          />
-        </div>
-      </div>
-    </div>
-  </Dialog>
 </template>

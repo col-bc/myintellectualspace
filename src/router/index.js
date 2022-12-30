@@ -109,14 +109,37 @@ const router = createRouter({
     {
       path: '/messages',
       name: 'messages',
-      component: () => import('@/views/Account/MessagesView.vue'),
       meta: { requiresAuth: true },
-      params: {
-        roomId: {
-          type: String,
-          required: false
+      children: [
+        {
+          path: '',
+          name: 'messages-home',
+          component: () => import('@/views/Account/MessagesView.vue')
+        },
+        {
+          path: ':roomId',
+          name: 'messages-room',
+          component: () => import('@/views/Account/MessagesView.vue'),
+          params: {
+            roomId: {
+              type: String,
+              required: true
+            }
+          }
+        },
+        {
+          path: 'compose/:to',
+          name: 'messages-compose',
+          component: () => import('@/views/Account/MessagesView.vue'),
+          query: {
+            to: {
+              type: String,
+              required: false,
+              default: null
+            }
+          }
         }
-      }
+      ]
     },
 
     // # Explore Routes
