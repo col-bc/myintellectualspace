@@ -10,17 +10,14 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.2",
     "@tailwindcss/forms": "^0.5.2",
-    "@tinymce/tinymce-vue": "^5.0.0",
-    "@zoomus/websdk": "^2.6.0",
+    "@videosdk.live/js-sdk": "^0.0.57",
     "autoprefixer": "^10.4.7",
-    "axios": "^0.27.2",
     "firebase": "^9.14.0",
     "flowbite": "^1.5.1",
     "pinia": "^2.0.16",
     "pinia-plugin-persistedstate": "^1.6.3",
     "postcss": "^8.4.14",
     "tailwindcss": "^3.1.6",
-    "tinymce": "^5.10.5",
     "uuid": "^9.0.0",
     "vue": "^3.2.37",
     "vue-router": "^4.1.2"
