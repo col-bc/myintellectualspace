@@ -8,6 +8,7 @@ Intellectual Space is a place for learning, networking, and innovation. Our miss
 - [Firebase](https://firebase.google.com/)
 - [Tailwindcss](https://tailwindcss.com/) + [Flowbite](https://flowbite.com/) Components
 - [VideoSDK](https://videosdk.live/)
+- [Remix Icons](https://remixicon.com/)
 
 ### Report a bug or issue
 Click [here](https://github.com/col-bc/myintellectualspace/issues/new?assignees=&labels=bug&template=bug_report.md&title=) to submit a bug report. Or visit the issue section on this repository.
