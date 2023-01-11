@@ -142,8 +142,8 @@ const router = createRouter({
       ]
     },
 
-    // # Explore Routes
-    // /explore
+    // # Feed Routes
+    // /feed
     // - /all
     // - /network
     // - /education
@@ -152,6 +152,10 @@ const router = createRouter({
       path: '/feed',
       name: 'feed',
       children: [
+        {
+          path: '',
+          redirect: { name: 'feed-all' }
+        },
         {
           path: 'all',
           name: 'feed-all',
