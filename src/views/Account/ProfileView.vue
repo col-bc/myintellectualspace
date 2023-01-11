@@ -181,9 +181,9 @@ async function changeAvatar() {
       </div>
       <div
         v-else
-        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 mb-12 px-2 md:px-4"
+        class="container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 mb-12 px-2 md:px-4"
       >
-        <div class="md:sticky md:top-6 w-full md:max-w-xs lg:max-w-sm">
+        <div class="w-full md:max-w-xs lg:max-w-sm">
           <div class="flex flex-col items-start gap-6">
             <!-- Avatar -->
             <div

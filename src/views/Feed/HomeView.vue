@@ -39,7 +39,6 @@ onMounted(async () => {
   state.posts = await loadPosts()
   state.suggestedUsers = await user.getSuggestedUsers()
 
-  // TODO: pagination
   state.loading = false
 })
 
@@ -116,10 +115,10 @@ function scrollToTop() {
       <NavbarComponent />
 
       <div
-        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 mb-12 px-2 md:px-4"
+        class="container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 mb-12 px-2 md:px-4"
       >
         <div
-          class="md:sticky md:top-6 flex flex-col items-start gap-12 w-full md:max-w-xs lg:max-w-sm"
+          class="flex flex-col items-start gap-12 w-full md:max-w-xs lg:max-w-sm"
         >
           <!-- Open new post modal -->
           <button
@@ -308,7 +307,7 @@ function scrollToTop() {
           <button
             type="button"
             @click="scrollToTop"
-            class="hidden w-full md:flex items-center justify-center gap-3 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 hover:shadow transition-all duration-300"
+            class="md:sticky md:top-6 hidden w-full md:flex items-center justify-center gap-3 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 hover:shadow transition-all duration-300"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
