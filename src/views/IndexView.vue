@@ -11,7 +11,7 @@ const post = usePostStore()
 
 onMounted(async () => {
   const allPosts = await post.fetchAllPosts()
-  const length = allPosts.length > 10 ? 10 : allPosts.length
+  const length = allPosts.length > 5 ? 5 : allPosts.length
   for (let i = 0; i < length; i++) {
     post.posts.push(allPosts[i])
   }
@@ -125,7 +125,7 @@ onMounted(async () => {
       <div>
         <button
           type="button"
-          @click="$router.push('/explore/all')"
+          @click="$router.push('/feed/all')"
           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base mx-auto px-6 py-3.5 text-center flex items-center shadow-lg"
         >
           Explore All Content
