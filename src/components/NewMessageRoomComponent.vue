@@ -3,7 +3,7 @@ import useUserStore from '@/stores/user'
 import useMessageStore from '@/stores/message'
 import LoaderComponent from '@/components/LoaderComponent.vue'
 import AlertComponent from '@/components/AlertComponent.vue'
-import { defineProps, defineEmits, reactive, onMounted } from 'vue'
+import { reactive, onMounted } from 'vue'
 
 const user = useUserStore()
 const message = useMessageStore()
@@ -51,7 +51,7 @@ onMounted(() => {
 })
 
 function recipientPreview() {
-  const allUsers = user.user.following
+  const allUsers = user.user.following || []
   const results = allUsers?.filter((user) => {
     return (
       user.handle.toLowerCase().includes(state.recipientSearch.toLowerCase()) ||

@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, defineProps, onMounted, onUpdated } from 'vue'
+import { reactive, onMounted, onUpdated } from 'vue'
 import { Dialog } from '@headlessui/vue'
 
 const props = defineProps({

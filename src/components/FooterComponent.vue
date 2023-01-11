@@ -24,7 +24,7 @@
             >
           </router-link>
         </div>
-        <div class="flex flex-col md:flex-row md:items-center gap-12">
+        <div class="flex flex-col md:flex-row md:items-start gap-12">
           <div>
             <h2
               class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
@@ -48,19 +48,15 @@
             <h2
               class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
             >
-              Follow us
+              Get involved
             </h2>
             <ul class="text-gray-600 dark:text-gray-400">
               <li class="mb-4">
                 <a
-                  href="https://github.com/themesberg/flowbite"
+                  href="https://github.com/col-bc/myintellectualspace"
                   class="hover:underline"
+                  target="_blank"
                   >Github</a
-                >
-              </li>
-              <li>
-                <a href="https://discord.gg/4eeurUVvTy" class="hover:underline"
-                  >Discord</a
                 >
               </li>
             </ul>
@@ -73,7 +69,9 @@
             </h2>
             <ul class="text-gray-600 dark:text-gray-400">
               <li class="mb-4">
-                <a href="#" class="hover:underline">Privacy Policy</a>
+                <router-link to="/privacy" class="hover:underline"
+                  >Privacy Policy</router-link
+                >
               </li>
               <li>
                 <router-link to="/terms" class="hover:underline"
@@ -90,8 +88,10 @@
       <div class="sm:flex sm:items-center sm:justify-between">
         <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400"
           >© 2022
-          <a href="https://flowbite.com/" class="hover:underline"
-            >My My Intellectual Space</a
+          <a
+            href="https://my-intellectual-space.firebaseapp.com/"
+            class="hover:underline"
+            >My Intellectual Space</a
           >. All Rights Reserved.
         </span>
       </div>

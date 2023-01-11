@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, reactive, onMounted, onUpdated } from 'vue'
+import { reactive, onMounted, onUpdated } from 'vue'
 
 const props = defineProps({
   type: {

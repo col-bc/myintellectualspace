@@ -134,7 +134,7 @@ const useUserStore = defineStore({
       const docRef = doc(db, 'users', this.user.uid)
       const following = this.user.following || []
       // check if user's handle is in following array
-      const userIndex = following.findIndex((handle) => handle === user.handle)
+      const userIndex = following.findIndex((handle) => handle.uid === user.uid)
       if (userIndex === -1) {
         // user is not in following array, add them
         following.push({
@@ -259,8 +259,12 @@ const useUserStore = defineStore({
       await setDoc(docRef, { notifications: [] }, { merge: true })
       this.notifications = []
     },
-
-    // POST ACTIONS
+    isFollowing(uid) {
+      // check if user is following another user
+      if (!this.user) return false
+      const following = this.user.following || []
+      return following.some((user) => user.uid === uid)
+    },
 
     logout() {
       this.clearUser()

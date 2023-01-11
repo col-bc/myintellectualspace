@@ -390,8 +390,10 @@ async function registerWithGoogle() {
               >terms of service</router-link
             >
             and
-            <a href="#" class="text-blue-600 hover:underline dark:text-blue-400"
-              >privacy policy</a
+            <router-link
+              to="/privacy"
+              class="text-blue-600 hover:underline dark:text-blue-400"
+              >privacy policy</router-link
             >.</label
           >
         </div>

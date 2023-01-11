@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, onMounted, defineEmits, reactive } from 'vue'
+import { onMounted, defineEmits, reactive } from 'vue'
 
 const emits = defineEmits(['rated'])
 

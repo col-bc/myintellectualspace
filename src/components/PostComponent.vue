@@ -4,7 +4,7 @@ import usePostStore from '@/stores/post'
 import useUserStore from '@/stores/user'
 import { Timestamp } from '@firebase/firestore'
 import { Dialog, Menu, MenuButton, MenuItems } from '@headlessui/vue'
-import { computed, defineProps, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import LightboxComponent from './LightboxComponent.vue'
 

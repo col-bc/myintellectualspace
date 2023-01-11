@@ -176,6 +176,21 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
 
+    // # Meeting Routes
+    // /meeting/:id
+    {
+      path: '/meeting/:channel',
+      name: 'meeting',
+      params: {
+        channel: {
+          type: String,
+          required: true
+        }
+      },
+      component: () => import('@/views/Account/VideoMeetingView.vue'),
+      meta: { requiresAuth: true }
+    },
+
     // # Learn Routes - TODO
     // /learn
     //  - /learn/:id
@@ -246,25 +261,7 @@ const router = createRouter({
     {
       path: '/meetings',
       name: 'meetings',
-      redirect: '/unavailable'
-      // component: () => import('@/views/Account/MeetingsView.vue')
-    },
-    {
-      path: '/meetings/new',
-      name: 'new-meeting',
-      redirect: '/unavailable'
-      // component: () => import('@/views/Account/NewMeetingView.vue')
-    },
-    {
-      path: '/meetings/:id',
-      name: 'meeting',
-      params: {
-        id: {
-          type: String,
-          required: true
-        }
-      },
-      redirect: '/unavailable'
+      component: () => import('@/views/Account/MeetingsView.vue')
     },
 
     // # Other Routes
@@ -290,7 +287,8 @@ const router = createRouter({
     // /privacy
     {
       path: '/privacy',
-      name: 'privacy'
+      name: 'privacy',
+      component: () => import('@/views/PrivacyView.vue')
     },
     // /support
     {
@@ -305,11 +303,6 @@ const router = createRouter({
           path: 'contact',
           name: 'support-contact'
           // component: () => import('@/views/Support/ContactView.vue')
-        },
-        {
-          path: 'bug-report',
-          name: 'support-bug-report',
-          component: () => import('@/views/Support/BugReportView.vue')
         }
       ]
     },

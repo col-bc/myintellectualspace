@@ -1,13 +1,11 @@
 <script setup>
-import axios from 'axios'
-import { reactive, onMounted, watch, onUpdated } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import useUserStore from '@/stores/user.js'
-import useMessageStore from '@/stores/message.js'
-import NavbarComponent from '@/components/NavbarComponent.vue'
-import AlertComponent from '@/components/AlertComponent.vue'
 import LoaderComponent from '@/components/LoaderComponent.vue'
+import NavbarComponent from '@/components/NavbarComponent.vue'
 import NewMessageRoomComponent from '@/components/NewMessageRoomComponent.vue'
+import useMessageStore from '@/stores/message.js'
+import useUserStore from '@/stores/user.js'
+import { onMounted, onUpdated, reactive, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const user = useUserStore()
 const message = useMessageStore()
@@ -100,9 +98,7 @@ function getAvatarByUid(uid) {
         v-else
         class="flex-1 container mx-auto flex flex-col py-12 px-2 md:px-4"
       >
-        <div
-          class="flex flex-col md:flex-row md:items-center md:justify-between mb-12"
-        >
+        <div class="flex items-center justify-between mb-12 gap-6">
           <h1
             class="text-5xl font-black leading-loose text-gray-900 dark:text-white"
           >
@@ -111,11 +107,11 @@ function getAvatarByUid(uid) {
           <button
             type="button"
             @click="state.showNewMessageDialog = true"
-            class="inline-flex items-center justify-center w-auto gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 focus:shadow-sm focus:translate-y-0.5 transition duration-200 ease-in-out"
+            class="inline-flex items-center justify-center w-auto gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg p-4 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 focus:shadow-sm focus:translate-y-0.5 transition transform duration-200 ease-in-out"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6 fill-current"
+              class="w-8 h-8 fill-current"
               viewBox="0 0 24 24"
               width="24"
               height="24"
@@ -125,7 +121,6 @@ function getAvatarByUid(uid) {
                 d="M14 3v2H4v13.385L5.763 17H20v-7h2v8a1 1 0 0 1-1 1H6.455L2 22.5V4a1 1 0 0 1 1-1h11zm5 0V0h2v3h3v2h-3v3h-2V5h-3V3h3z"
               />
             </svg>
-            Create New Message
           </button>
         </div>
 
@@ -345,28 +340,27 @@ function getAvatarByUid(uid) {
             </template>
           </div>
         </div>
-
-        <Dialog
-          :open="state.showNewMessageDialog"
-          @close="state.showNewMessageDialog = false"
-          class="relative z-10"
-        >
-          <div class="fixed inset-0 bg-black bg-opacity-60" />
-          <div class="fixed inset-0 overflow-y-auto">
-            <div class="flex min-h-full items-center justify-center p-4">
-              <div
-                class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
-              >
-                <NewMessageRoomComponent
-                  @cancel="state.showNewMessageDialog = false"
-                  @room-created="(data) => (state.showNewMessageDialog = false)"
-                  :to="state.composerTo ? state.composerTo : null"
-                />
-              </div>
+      </div>
+      <Dialog
+        :open="state.showNewMessageDialog"
+        @close="state.showNewMessageDialog = false"
+        class="relative z-10"
+      >
+        <div class="fixed inset-0 bg-black bg-opacity-60" />
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <div
+              class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+            >
+              <NewMessageRoomComponent
+                @cancel="state.showNewMessageDialog = false"
+                @room-created="(data) => (state.showNewMessageDialog = false)"
+                :to="state.composerTo ? state.composerTo : null"
+              />
             </div>
           </div>
-        </Dialog>
-      </div>
+        </div>
+      </Dialog>
     </div>
   </main>
 </template>

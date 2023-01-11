@@ -159,6 +159,7 @@ function declineBeta() {
   // logout user
   userStore.logout()
   loading.value = false
+  router.push({ path: '/login', query: { declineBeta: true } })
 }
 </script>
 
@@ -237,7 +238,11 @@ function declineBeta() {
       >
         <!-- Alerts -->
         <div
-          v-if="$route.query.registered === 'true' || !!alert"
+          v-if="
+            $route.query.registered === 'true' ||
+            $route.query.declineBeta === 'true' ||
+            !!alert
+          "
           class="flex flex-col gap-y-2"
         >
           <AlertComponent
@@ -246,6 +251,13 @@ function declineBeta() {
             type="success"
             :dismissible="false"
           />
+          <AlertComponent
+            v-if="$route.query.declineBeta === 'true'"
+            message="You have declined the beta terms and therefore are not permitted to access the service at this time. Please accept the terms, or check back later."
+            type="error"
+            :dismissible="false"
+          />
+
           <AlertComponent
             v-if="!!alert"
             :message="alert"
@@ -334,7 +346,7 @@ function declineBeta() {
             based on new development needs. If you encounter any issues, please
             report them to us by visiting the
             <router-link
-              to="/support/report"
+              to="/support"
               target="_blank"
               class="text-blue-700 hover:underline dark:text-blue-400"
               >Support Center</router-link

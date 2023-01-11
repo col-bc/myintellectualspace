@@ -145,7 +145,9 @@ async function saveUser() {
           <div>
             <span
               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Handle</span
+              >Handle<span class="align-super text-xs text-red-500"
+                >*</span
+              ></span
             >
             <input
               type="text"
@@ -158,7 +160,7 @@ async function saveUser() {
           <div>
             <span
               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Name</span
+              >Name<span class="align-super text-xs text-red-500">*</span></span
             >
             <input
               type="text"
