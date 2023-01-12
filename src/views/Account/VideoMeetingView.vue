@@ -1,11 +1,13 @@
 <script setup>
 import AgoraRTC from 'agora-rtc-sdk-ng'
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import useUserStore from '@/stores/user'
 import useInterface from '@/stores/interface'
 import LoaderComponent from '@/components/LoaderComponent.vue'
+import AlertComponent from '@/components/AlertComponent.vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
+import { Menu, MenuButton, MenuItem, MenuItems, Dialog } from '@headlessui/vue'
+import { v4 as uuidv4 } from 'uuid'
 
 const user = useUserStore()
 const ui = useInterface()
@@ -40,7 +42,9 @@ const state = reactive({
   enableAudio: true,
   loading: true,
   error: null,
-  showMenu: false
+  showMenu: false,
+  showLeaveDialog: false,
+  notifications: []
 })
 
 const remotePlayerContainer = document.createElement('div')
@@ -58,6 +62,18 @@ onMounted(async () => {
   await onJoinMeeting()
   state.loading = false
 })
+
+watch(
+  () => state.notifications,
+  (notifications) => {
+    if (notifications.length > 0) {
+      setTimeout(() => {
+        state.notifications.shift()
+      }, 5000)
+    }
+  },
+  { deep: true }
+)
 
 async function getToken() {
   const TOKEN_URL = `http://127.0.0.1:8000/token/${options.channel}`
@@ -87,10 +103,9 @@ async function startBasicCall() {
   // Set the local video container size.
   localPlayerContainer.style.width = '100%'
   localPlayerContainer.style.height = '100%'
-  localPlayerContainer.classList = 'rounded-lg'
   // Set the remote video container size.
-  remotePlayerContainer.style.width = '500x'
-  remotePlayerContainer.style.height = '500px'
+  remotePlayerContainer.style.width = '100%'
+  remotePlayerContainer.style.height = '100%'
 
   // Listen for the "user-published" event to retrieve a AgoraRTCRemoteUser object.
   agoraEngine.on('user-published', async (user, mediaType) => {
@@ -159,6 +174,11 @@ async function onJoinMeeting() {
   ])
   // Play the local video track.
   channelParameters.localVideoTrack.play(localPlayerContainer)
+  state.notifications.push({
+    id: uuidv4(),
+    type: 'default',
+    message: 'You have joined the meeting'
+  })
   console.log('publish success!')
 }
 async function onLeaveMeeting() {
@@ -174,8 +194,6 @@ async function onLeaveMeeting() {
   await agoraEngine.leave()
   console.log('You left the channel')
   router.push('/my-meetings')
-  // Refresh the page for reuse
-  window.location.reload()
 }
 function removeVideoDiv(elementId) {
   // Remove the video stream from the container.
@@ -193,19 +211,37 @@ function reset() {
 function toggleAudio() {
   state.enableAudio = !state.enableAudio
   channelParameters.localAudioTrack.setEnabled(state.enableAudio)
+  state.notifications.push({
+    id: uuidv4(),
+    type: 'default',
+    message: state.enableAudio
+      ? 'You have unmuted your microphone'
+      : 'You have muted your microphone'
+  })
 }
 function toggleVideo() {
   state.enableVideo = !state.enableVideo
   channelParameters.localVideoTrack.setEnabled(state.enableVideo)
   document.querySelector('#local-player video').style.display =
     state.enableVideo ? 'block' : 'none'
+  state.notifications.push({
+    id: uuidv4(),
+    type: 'default',
+    message: state.enableVideo
+      ? 'You have turned on your camera'
+      : 'You have turned off your camera'
+  })
 }
 
 async function copyLink() {
-  const text = `https://localhost:3000/meeting/join/${options.channel}}`
+  const text = `https://my-intellectual-space.web.app/meeting/join/${options.channel}`
   try {
     await navigator.clipboard.writeText(text)
-    state.copied = true
+    state.notifications.push({
+      id: uuidv4(),
+      type: 'default',
+      message: 'Meeting link copied to clipboard'
+    })
   } catch (err) {
     console.error('Failed to copy: ', err)
   }
@@ -218,12 +254,12 @@ async function copyLink() {
       v-if="!state.error"
       class="min-h-screen flex flex-col container max-w-screen-xl mx-auto"
     >
-      <div
+      <nav
         class="flex-none p-2 flex items-center gap-4 border-b border-gray-300 dark:border-gray-700"
       >
         <button
           type="button"
-          @click="onLeaveMeeting"
+          @click="state.showLeaveDialog = true"
           class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-3 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700"
         >
           <svg
@@ -282,7 +318,7 @@ async function copyLink() {
           </MenuButton>
           <MenuItems
             as="div"
-            class="absolute z-30 right-0 w-48 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 rounded shadow-lg dark:bg-gray-700 py-1 text-sm text-gray-700 dark:text-gray-200"
+            class="absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 rounded shadow-lg dark:bg-gray-700 py-1 text-sm text-gray-700 dark:text-gray-200"
           >
             <MenuItem
               as="button"
@@ -336,12 +372,43 @@ async function copyLink() {
               </svg>
               Change Theme
             </MenuItem>
+            <MenuItem
+              as="button"
+              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
+                />
+              </svg>
+              Manage participants
+            </MenuItem>
           </MenuItems>
         </Menu>
-      </div>
+      </nav>
+      <!-- Content -->
       <div
         class="relative flex-1 container max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-2"
       >
+        <!-- notifications -->
+        <template v-if="state.notifications.length">
+          <div class="absolute top-6 right-6 z-20">
+            <AlertComponent
+              v-for="n in state.notifications"
+              :key="n.id"
+              :message="n.message"
+              :type="n.type"
+              class="shadow-lg mb-4"
+            />
+          </div>
+        </template>
         <!-- Local player -->
         <div
           class="flex-1 flex items-center justify-center p-4 border-b md:border-b-0 md:border-r border-gray-300 dark:border-gray-700"
@@ -351,11 +418,9 @@ async function copyLink() {
         </div>
         <!-- Remote player -->
         <div
-          class="flex-1 flex items-center justify-center p-4 border-b md:border-b-0 md:border-r border-gray-300 dark:border-gray-700"
+          class="flex-1 flex flex-wrap items-start p-4"
           id="remote-container"
-        >
-          Participants
-        </div>
+        ></div>
         <!-- Toolbar -->
         <div
           class="absolute z-20 bottom-6 w-full left-0 right-0 flex items-center justify-center"
@@ -369,7 +434,7 @@ async function copyLink() {
               @click="toggleAudio"
               class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-full hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
             >
-              <template v-if="state.enableAudio">
+              <template v-if="!state.enableAudio">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="w-5 h-5 mr-3 fill-current"
@@ -502,5 +567,62 @@ async function copyLink() {
         </div>
       </div>
     </div>
+
+    <!-- Confirm quit dialog -->
+    <Dialog
+      :open="state.showLeaveDialog"
+      @close="state.showLeaveDialog = false"
+      class="relative z-10"
+    >
+      <div class="fixed inset-0 bg-black bg-opacity-60" />
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <div
+            class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+          >
+            <div
+              class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 dark:text-gray-800"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-24 h-24 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M4 18h2v2h12V4H6v2H4V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3zm2-7h7v2H6v3l-5-4 5-4v3z"
+                />
+              </svg>
+            </div>
+            <h2
+              class="text-2xl font-bold text-center mb-12 text-gray-900 dark:text-white"
+            >
+              Are you sure you want to leave?
+            </h2>
+
+            <div
+              class="flex flex-col-reverse md:flex-row items-center justify-center gap-4"
+            >
+              <button
+                type="submit"
+                @click="state.showLeaveDialog = false"
+                class="w-full text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg px-5 py-2.5 text-center mr-2"
+              >
+                Cancel
+              </button>
+              <button
+                type="reset"
+                @click="onLeaveMeeting"
+                class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Dialog>
   </main>
 </template>

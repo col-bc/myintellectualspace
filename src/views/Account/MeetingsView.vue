@@ -3,15 +3,18 @@ import { ref, reactive } from 'vue'
 import LoaderComponent from '@/components/LoaderComponent.vue'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import useUserStore from '@/stores/user'
+import { useRouter } from 'vue-router'
+import { generate } from '@vue/compiler-core'
 
 const user = useUserStore()
+const router = useRouter()
 const state = reactive({
   loading: false,
   meetingId: '',
   error: null
 })
 
-function createMeetingId() {
+function generateId() {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
   let id = ''
   for (let i = 0; i < 4; i++) {
@@ -26,6 +29,25 @@ function createMeetingId() {
     id += chars[Math.floor(Math.random() * chars.length)]
   }
   return id
+}
+function validateMeeting() {
+  state.error = null
+  // match 4-4-4
+  if (state.meetingId.match(/^[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$/)) {
+    router.push({
+      name: 'join-meeting',
+      params: { channel: state.meetingId }
+    })
+  } else {
+    state.error = 'Meeting id is invalid'
+  }
+}
+function createMeeting() {
+  state.meetingId = generateId()
+  router.push({
+    name: 'host-meeting',
+    params: { channel: state.meetingId }
+  })
 }
 </script>
 
@@ -50,7 +72,7 @@ function createMeetingId() {
             Video Meetings
           </h1>
           <div
-            class="flex flex-1 w-full max-w-xl items-center p-4 bg-white dark:bg-gray-800 border rounded-lg shadow-lg border-gray-300 dark:border-gray-700 mb-6"
+            class="flex flex-1 w-full max-w-xl items-start p-4 bg-white dark:bg-gray-800 border rounded-lg shadow-lg border-gray-300 dark:border-gray-700 mb-6"
           >
             <div class="w-full mr-4">
               <label
@@ -77,37 +99,27 @@ function createMeetingId() {
                 <input
                   type="text"
                   v-model="state.meetingId"
-                  class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  @keyup.enter="validateMeeting"
+                  class="block w-full p-4 pl-10 text-lg text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder="Enter meeting id"
-                  required
                 />
                 <button
                   type="button"
-                  @click="
-                    $router.push({
-                      name: 'join-meeting',
-                      params: { channel: state.meetingId }
-                    })
-                  "
+                  @click="validateMeeting"
                   v-if="!!state.meetingId"
                   class="text-white absolute right-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 >
                   Join
                 </button>
               </div>
+              <p class="text-red-500 text-sm mt-2" v-if="state.error">
+                {{ state.error }}
+              </p>
             </div>
             <button
               type="button"
-              @click="
-                () => {
-                  state.meetingId = createMeetingId()
-                  $router.push({
-                    name: 'host-meeting',
-                    params: { channel: state.meetingId }
-                  })
-                }
-              "
-              class="flex items-center justify-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              @click="createMeeting"
+              class="mt-4 flex items-center justify-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
