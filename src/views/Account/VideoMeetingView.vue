@@ -2,9 +2,13 @@
 import AgoraRTC from 'agora-rtc-sdk-ng'
 import { onMounted, reactive, ref } from 'vue'
 import useUserStore from '@/stores/user'
+import useInterface from '@/stores/interface'
+import LoaderComponent from '@/components/LoaderComponent.vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
 const user = useUserStore()
+const ui = useInterface()
 const route = useRoute()
 const router = useRouter()
 const agoraEngine = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' })
@@ -33,19 +37,26 @@ var channelParameters = {
 }
 const state = reactive({
   enableVideo: true,
-  enableAudio: true
+  enableAudio: true,
+  loading: true,
+  error: null,
+  showMenu: false
 })
-const videoContainer = ref(null)
+
+const remotePlayerContainer = document.createElement('div')
+const localPlayerContainer = document.createElement('div')
 
 onMounted(async () => {
+  state.error = null
   // Get the App ID and channel name from the URL.
+  console.log(route.params)
   options.channel = route.params.channel
-  options.token = await getToken()
   // Get a token from the Agora Token Server.
-  // options.token = await getToken()
+  options.token = await getToken()
   // Join the channel.
   await startBasicCall()
   await onJoinMeeting()
+  state.loading = false
 })
 
 async function getToken() {
@@ -71,22 +82,16 @@ async function getToken() {
   return token
 }
 async function startBasicCall() {
-  // Dynamically create a container in the form of a DIV element to play the remote video track.
-  const remotePlayerContainer = document.querySelector('#remote-container')
-  // Dynamically create a container in the form of a DIV element to play the local video track.
-  const localPlayerContainer = document.querySelector('#local-player')
   // Specify the ID of the DIV container. You can use the uid of the local user.
   localPlayerContainer.id = options.uid
-  // Set the textContent property of the local video container to the local user id.
-  localPlayerContainer.textContent = 'Local user ' + options.uid
   // Set the local video container size.
-  localPlayerContainer.style.width = '640px'
-  localPlayerContainer.style.height = '480px'
-  localPlayerContainer.style.padding = '15px 5px 5px 5px'
+  localPlayerContainer.style.width = '100%'
+  localPlayerContainer.style.height = '100%'
+  localPlayerContainer.classList = 'rounded-lg'
   // Set the remote video container size.
-  remotePlayerContainer.style.width = '640px'
-  remotePlayerContainer.style.height = '480px'
-  remotePlayerContainer.style.padding = '15px 5px 5px 5px'
+  remotePlayerContainer.style.width = '500x'
+  remotePlayerContainer.style.height = '500px'
+
   // Listen for the "user-published" event to retrieve a AgoraRTCRemoteUser object.
   agoraEngine.on('user-published', async (user, mediaType) => {
     // Subscribe to the remote user when the SDK triggers the "user-published" event.
@@ -104,8 +109,8 @@ async function startBasicCall() {
       remotePlayerContainer.id = user.uid.toString()
       channelParameters.remoteUid = user.uid.toString()
       remotePlayerContainer.textContent = 'Remote user ' + user.uid.toString()
-      // Append the remote container to the page body.
-      document.body.append(remotePlayerContainer)
+      // Append the remote container to the remote-container element.
+      document.querySelector('#remote-container').append(remotePlayerContainer)
       // Play the remote video track.
       channelParameters.remoteVideoTrack.play(remotePlayerContainer)
     }
@@ -116,10 +121,10 @@ async function startBasicCall() {
       // Play the remote audio track. No need to pass any DOM element.
       channelParameters.remoteAudioTrack.play()
     }
-    // Listen for the "user-unpublished" event.
-    agoraEngine.on('user-unpublished', (user) => {
-      console.log(user.uid + 'has left the channel')
-    })
+  })
+  // Listen for the "user-unpublished" event.
+  agoraEngine.on('user-unpublished', (user) => {
+    console.log(user.uid + 'has left the channel')
   })
 }
 async function onJoinMeeting() {
@@ -130,17 +135,23 @@ async function onJoinMeeting() {
     options.token || null,
     options.uid
   )
-  // Create a local audio track from the audio sampled by a microphone.
   try {
+    // Create a local audio track from the audio sampled by a microphone.
     channelParameters.localAudioTrack =
       await AgoraRTC.createMicrophoneAudioTrack()
   } catch (error) {
-    console.log(error)
+    state.error =
+      'Microphone access is required to join the meeting. Please update your browser settings and try again.'
   }
-  // Create a local video track from the video captured by a camera.
-  channelParameters.localVideoTrack = await AgoraRTC.createCameraVideoTrack()
-  // Append the local video container to the page body.
-  document.body.append(localPlayerContainer)
+  try {
+    // Create a local video track from the video captured by a camera.
+    channelParameters.localVideoTrack = await AgoraRTC.createCameraVideoTrack()
+  } catch (error) {
+    state.error =
+      'Camera access is required to join the meeting Please update your browser settings and try again.'
+  }
+  // Append the local video container to the local container element.
+  document.querySelector('#local-player').append(localPlayerContainer)
   // Publish the local audio and video tracks in the channel.
   await agoraEngine.publish([
     channelParameters.localAudioTrack,
@@ -154,12 +165,15 @@ async function onLeaveMeeting() {
   // Destroy the local audio and video tracks.
   channelParameters.localAudioTrack.close()
   channelParameters.localVideoTrack.close()
+  // Close the video/audio
+
   // Remove the containers you created for the local video and remote video.
   removeVideoDiv(remotePlayerContainer.id)
   removeVideoDiv(localPlayerContainer.id)
   // Leave the channel
   await agoraEngine.leave()
   console.log('You left the channel')
+  router.push('/my-meetings')
   // Refresh the page for reuse
   window.location.reload()
 }
@@ -172,27 +186,49 @@ function removeVideoDiv(elementId) {
   }
 }
 
+function reset() {
+  window.location.reload()
+}
+
 function toggleAudio() {
   state.enableAudio = !state.enableAudio
+  channelParameters.localAudioTrack.setEnabled(state.enableAudio)
 }
 function toggleVideo() {
   state.enableVideo = !state.enableVideo
+  channelParameters.localVideoTrack.setEnabled(state.enableVideo)
+  document.querySelector('#local-player video').style.display =
+    state.enableVideo ? 'block' : 'none'
+}
+
+async function copyLink() {
+  const text = `https://localhost:3000/meeting/join/${options.channel}}`
+  try {
+    await navigator.clipboard.writeText(text)
+    state.copied = true
+  } catch (err) {
+    console.error('Failed to copy: ', err)
+  }
 }
 </script>
+
 <template>
   <main class="bg-white dark:bg-gray-800">
-    <div class="h-screen flex flex-col container max-w-screen-xl mx-auto">
+    <div
+      v-if="!state.error"
+      class="min-h-screen flex flex-col container max-w-screen-xl mx-auto"
+    >
       <div
-        class="flex-none p-4 flex items-center gap-6 border-b border-gray-300 dark:border-gray-700"
+        class="flex-none p-2 flex items-center gap-4 border-b border-gray-300 dark:border-gray-700"
       >
         <button
           type="button"
-          @click.stop
+          @click="onLeaveMeeting"
           class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-3 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-8 h-8 fill-current"
+            class="w-6 h-6 fill-current"
             viewBox="0 0 24 24"
             width="24"
             height="24"
@@ -203,108 +239,266 @@ function toggleVideo() {
             />
           </svg>
         </button>
-        <h4
-          class="text-3xl text-gray-900 dark:text-white font-bold font-mono uppercase mx-auto"
-        >
+        <h5 class="text-xl text-gray-900 dark:text-white font-bold mx-auto">
           {{ route.params.channel }}
-        </h4>
+        </h5>
         <button
           type="button"
-          @click.stop="toggleAudio"
-          class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-3 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-        >
-          <template v-if="state.enableAudio">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-8 h-8 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M12 3a3 3 0 0 0-3 3v4a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zm0-2a5 5 0 0 1 5 5v4a5 5 0 0 1-10 0V6a5 5 0 0 1 5-5zM3.055 11H5.07a7.002 7.002 0 0 0 13.858 0h2.016A9.004 9.004 0 0 1 13 18.945V23h-2v-4.055A9.004 9.004 0 0 1 3.055 11z"
-              />
-            </svg>
-          </template>
-          <template v-else>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-8 h-8 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M16.425 17.839A8.941 8.941 0 0 1 13 18.945V23h-2v-4.055A9.004 9.004 0 0 1 3.055 11H5.07a7.002 7.002 0 0 0 9.87 5.354l-1.551-1.55A5 5 0 0 1 7 10V8.414L1.393 2.808l1.415-1.415 19.799 19.8-1.415 1.414-4.767-4.768zm-7.392-7.392l2.52 2.52a3.002 3.002 0 0 1-2.52-2.52zm10.342 4.713l-1.443-1.442c.509-.81.856-1.73.997-2.718h2.016a8.95 8.95 0 0 1-1.57 4.16zm-2.91-2.909l-1.548-1.548c.054-.226.083-.46.083-.703V6a3 3 0 0 0-5.818-1.032L7.686 3.471A5 5 0 0 1 17 6v4a4.98 4.98 0 0 1-.534 2.251z"
-              />
-            </svg>
-          </template>
-        </button>
-        <button
-          type="button"
-          @click.stop="toggleVideo"
-          class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-3 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-        >
-          <template v-if="state.enableVideo">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-8 h-8 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M9.828 5l-2 2H4v12h16V7h-3.828l-2-2H9.828zM9 3h6l2 2h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4l2-2zm3 15a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zm0-2a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"
-              />
-            </svg>
-          </template>
-          <template v-else>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-8 h-8 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M19.586 21H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h.586L1.393 2.808l1.415-1.415 19.799 19.8-1.415 1.414L19.586 21zm-14-14H4v12h13.586l-2.18-2.18A5.5 5.5 0 0 1 7.68 9.094L5.586 7zm3.524 3.525a3.5 3.5 0 0 0 4.865 4.865L9.11 10.525zM22 17.785l-2-2V7h-3.828l-2-2H9.828l-.307.307-1.414-1.414L9 3h6l2 2h4a1 1 0 0 1 1 1v11.786zM11.263 7.05a5.5 5.5 0 0 1 6.188 6.188l-2.338-2.338a3.515 3.515 0 0 0-1.512-1.512l-2.338-2.338z"
-              />
-            </svg>
-          </template>
-        </button>
-        <button
-          type="button"
-          @click.stop
-          class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-3 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+          @click="copyLink"
+          class="flex-shrink-0 flex items-center justify-center gap-2 text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-600 dark:focus:ring-blue-800"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-8 h-8 fill-current"
+            class="w-6 h-6 fill-current"
             viewBox="0 0 24 24"
             width="24"
             height="24"
           >
             <path fill="none" d="M0 0h24v24H0z" />
             <path
-              d="M12 3c-.825 0-1.5.675-1.5 1.5S11.175 6 12 6s1.5-.675 1.5-1.5S12.825 3 12 3zm0 15c-.825 0-1.5.675-1.5 1.5S11.175 21 12 21s1.5-.675 1.5-1.5S12.825 18 12 18zm0-7.5c-.825 0-1.5.675-1.5 1.5s.675 1.5 1.5 1.5 1.5-.675 1.5-1.5-.675-1.5-1.5-1.5z"
+              d="M7 6V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1.001 1.001 0 0 1 3 21l.003-14c0-.552.45-1 1.007-1H7zM5.003 8L5 20h10V8H5.003zM9 6h8v10h2V4H9v2z"
             />
           </svg>
+          Copy link
         </button>
+        <Menu as="div" class="relative">
+          <MenuButton
+            as="button"
+            type="button"
+            class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-3 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 fill-current"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M12 3c-.825 0-1.5.675-1.5 1.5S11.175 6 12 6s1.5-.675 1.5-1.5S12.825 3 12 3zm0 15c-.825 0-1.5.675-1.5 1.5S11.175 21 12 21s1.5-.675 1.5-1.5S12.825 18 12 18zm0-7.5c-.825 0-1.5.675-1.5 1.5s.675 1.5 1.5 1.5 1.5-.675 1.5-1.5-.675-1.5-1.5-1.5z"
+              />
+            </svg>
+          </MenuButton>
+          <MenuItems
+            as="div"
+            class="absolute z-30 right-0 w-48 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 rounded shadow-lg dark:bg-gray-700 py-1 text-sm text-gray-700 dark:text-gray-200"
+          >
+            <MenuItem
+              as="button"
+              @click="copyLink"
+              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M13.12 17.023l-4.199-2.29a4 4 0 1 1 0-5.465l4.2-2.29a4 4 0 1 1 .959 1.755l-4.2 2.29a4.008 4.008 0 0 1 0 1.954l4.199 2.29a4 4 0 1 1-.959 1.755zM6 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm11-6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
+                />
+              </svg>
+              Share meeting link
+            </MenuItem>
+            <MenuItem
+              as="button"
+              @click="ui.toggleTheme"
+              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+              <svg
+                v-if="ui.getIsDark"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"
+                />
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"
+                />
+              </svg>
+              Change Theme
+            </MenuItem>
+          </MenuItems>
+        </Menu>
       </div>
       <div
-        class="flex-1 p-4 container max-w-screen-xl mx-auto flex items-center justify-center gap-6 md:gap-12 lg:gap-16"
+        class="relative flex-1 container max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-2"
       >
         <!-- Local player -->
-        <div class="bg-blue-200 rounded-lg flex-1" id="local-player">
-          Local Player
+        <div
+          class="flex-1 flex items-center justify-center p-4 border-b md:border-b-0 md:border-r border-gray-300 dark:border-gray-700"
+          id="local-player"
+        >
+          <LoaderComponent v-if="state.loading" size="lg" />
         </div>
         <!-- Remote player -->
-        <div class="bg-blue-200 rounded-lg flex-1" id="remote-container">
-          Remote Player
+        <div
+          class="flex-1 flex items-center justify-center p-4 border-b md:border-b-0 md:border-r border-gray-300 dark:border-gray-700"
+          id="remote-container"
+        >
+          Participants
+        </div>
+        <!-- Toolbar -->
+        <div
+          class="absolute z-20 bottom-6 w-full left-0 right-0 flex items-center justify-center"
+          role="group"
+        >
+          <div
+            class="inline-flex rounded-full shadow-lg items-center justify-center"
+          >
+            <button
+              type="button"
+              @click="toggleAudio"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-full hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+            >
+              <template v-if="state.enableAudio">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 mr-3 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M12 3a3 3 0 0 0-3 3v4a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zm0-2a5 5 0 0 1 5 5v4a5 5 0 0 1-10 0V6a5 5 0 0 1 5-5zM3.055 11H5.07a7.002 7.002 0 0 0 13.858 0h2.016A9.004 9.004 0 0 1 13 18.945V23h-2v-4.055A9.004 9.004 0 0 1 3.055 11z"
+                  />
+                </svg>
+                Unmute
+              </template>
+              <template v-else>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 mr-3 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M16.425 17.839A8.941 8.941 0 0 1 13 18.945V23h-2v-4.055A9.004 9.004 0 0 1 3.055 11H5.07a7.002 7.002 0 0 0 9.87 5.354l-1.551-1.55A5 5 0 0 1 7 10V8.414L1.393 2.808l1.415-1.415 19.799 19.8-1.415 1.414-4.767-4.768zm-7.392-7.392l2.52 2.52a3.002 3.002 0 0 1-2.52-2.52zm10.342 4.713l-1.443-1.442c.509-.81.856-1.73.997-2.718h2.016a8.95 8.95 0 0 1-1.57 4.16zm-2.91-2.909l-1.548-1.548c.054-.226.083-.46.083-.703V6a3 3 0 0 0-5.818-1.032L7.686 3.471A5 5 0 0 1 17 6v4a4.98 4.98 0 0 1-.534 2.251z"
+                  />
+                </svg>
+                Mute
+              </template>
+            </button>
+            <button
+              type="button"
+              @click="toggleVideo"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+            >
+              <template v-if="state.enableVideo">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 mr-3 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M9.828 5l-2 2H4v12h16V7h-3.828l-2-2H9.828zM9 3h6l2 2h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4l2-2zm3 15a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zm0-2a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"
+                  />
+                </svg>
+                Disable video
+              </template>
+              <template v-else>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 mr-3 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M19.586 21H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h.586L1.393 2.808l1.415-1.415 19.799 19.8-1.415 1.414L19.586 21zm-14-14H4v12h13.586l-2.18-2.18A5.5 5.5 0 0 1 7.68 9.094L5.586 7zm3.524 3.525a3.5 3.5 0 0 0 4.865 4.865L9.11 10.525zM22 17.785l-2-2V7h-3.828l-2-2H9.828l-.307.307-1.414-1.414L9 3h6l2 2h4a1 1 0 0 1 1 1v11.786zM11.263 7.05a5.5 5.5 0 0 1 6.188 6.188l-2.338-2.338a3.515 3.515 0 0 0-1.512-1.512l-2.338-2.338z"
+                  />
+                </svg>
+                Enable video
+              </template>
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-full hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 mr-3 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M13 7.22L9.603 10H6v4h3.603L13 16.78V7.22zM8.889 16H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h3.889l5.294-4.332a.5.5 0 0 1 .817.387v15.89a.5.5 0 0 1-.817.387L8.89 16zm9.974.591l-1.422-1.422A3.993 3.993 0 0 0 19 12c0-1.43-.75-2.685-1.88-3.392l1.439-1.439A5.991 5.991 0 0 1 21 12c0 1.842-.83 3.49-2.137 4.591z"
+                />
+              </svg>
+              Volume
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Error state -->
+    <div
+      v-else
+      class="min-h-screen container max-w-screen-xl mx-auto flex items-center justify-center h-full"
+    >
+      <div class="flex flex-col items-center gap-6 md:gap-12">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-24 h-24 fill-red-700 dark:fill-red-400"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+        >
+          <path fill="none" d="M0 0h24v24H0z" />
+          <path
+            d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm0-8h2v6h-2V7z"
+          />
+        </svg>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">
+          An error occurred
+        </h1>
+        <p
+          class="text-xl text-center leading-loose text-gray-700 dark:text-gray-300"
+        >
+          {{ state.error }}
+        </p>
+        <div>
+          <button
+            type="button"
+            @click="reset"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+          >
+            Reload
+          </button>
+          <button
+            type="button"
+            @click="$router.push('/')"
+            class="py-2.5 px-5 ml-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+          >
+            Go to homepage
+          </button>
         </div>
       </div>
     </div>

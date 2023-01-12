@@ -181,9 +181,9 @@ const router = createRouter({
     },
 
     // # Meeting Routes
-    // /meeting/:id
+    // /meeting/:channel
     {
-      path: '/meeting/:channel',
+      path: '/meeting',
       name: 'meeting',
       params: {
         channel: {
@@ -191,7 +191,35 @@ const router = createRouter({
           required: true
         }
       },
-      component: () => import('@/views/Account/VideoMeetingView.vue'),
+      children: [
+        {
+          path: '',
+          name: 'meetings-home',
+          redirect: { name: 'my-meetings' }
+        },
+        {
+          path: 'host/:channel',
+          name: 'host-meeting',
+          params: {
+            channel: {
+              type: String,
+              required: true
+            }
+          },
+          component: () => import('@/views/Account/VideoMeetingView.vue')
+        },
+        {
+          path: 'join/:channel',
+          name: 'join-meeting',
+          params: {
+            channel: {
+              type: String,
+              required: true
+            }
+          },
+          component: () => import('@/views/Account/VideoMeetingView.vue')
+        }
+      ],
       meta: { requiresAuth: true }
     },
 
@@ -263,8 +291,8 @@ const router = createRouter({
 
     // # Meeting Routes - TODO
     {
-      path: '/meetings',
-      name: 'meetings',
+      path: '/my-meetings',
+      name: 'my-meetings',
       component: () => import('@/views/Account/MeetingsView.vue')
     },
 

@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
         </li>
         <li>
           <router-link
-            to="/meetings"
+            to="/my-meetings"
             class="group flex items-center gap-4 py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <div
