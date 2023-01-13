@@ -8,7 +8,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
       <NavbarComponent />
 
       <div
-        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap*12 lg:gap-16 py-12 px-2 md:px-4"
+        class="relative h-full container mx-auto flex flex-col md:flex-row-reverse items-start gap-6 md:gap*12 lg:gap-16 py-12 px-2 md:px-4"
       >
         <div class="w-full md:w-auto flex justify-center mb-12">
           <lottie-player
@@ -22,19 +22,19 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
         </div>
         <div class="flex-1 flex flex-col">
           <h1
-            class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-12"
+            class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-6"
           >
             This page is unavailable
           </h1>
           <p
-            class="leading-loose text-lg text-gray-700 dark:text-gray-300 mb-12"
+            class="leading-loose text-lg text-gray-700 dark:text-gray-300 mb-6"
           >
             We're constantly working on new features and improving the user
             experience. Please check back later. Thank you for your patience.
           </p>
 
           <div
-            class="p-4 md:p-6 mb-12 bg-white border border-gray-300 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
+            class="p-4 md:p-6 mb-6 w-full md:max-w-xl bg-white border border-gray-300 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700"
           >
             <h5 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Get notified when this page is ready

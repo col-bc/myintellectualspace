@@ -293,7 +293,7 @@ const router = createRouter({
     {
       path: '/my-meetings',
       name: 'my-meetings',
-      component: () => import('@/views/Account/MeetingsView.vue')
+      component: () => import('@/views/Account/MyMeetingsView.vue')
     },
 
     // # Other Routes

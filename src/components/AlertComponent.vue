@@ -63,7 +63,7 @@ onUpdated(() => {
       v-if="alert.showIcon"
       class="w-5 h-5"
       :class="{
-        'fill-gray-700 dark:fill-gray-800': alert.type === 'default',
+        'fill-gray-700 dark:fill-gray-300': alert.type === 'default',
         'fill-red-700 dark:fill-red-800': alert.type === 'error',
         'fill-green-700 dark:fill-green-800': alert.type === 'success',
         'fill-blue-700 dark:fill-blue-800': alert.type === 'primary'

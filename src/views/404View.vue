@@ -28,15 +28,23 @@ import NavbarComponent from '../components/NavbarComponent.vue'
       </svg>
     </div>
     <h1
-      class="text-center text-5xl font-black leading-loose text-gray-900 dark:text-white mb-12"
+      class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-6"
     >
-      Page Not Found
+      404 - Page Not Found
     </h1>
     <p
-      class="text-gray-700 text-lg font-medium text-center dark:text-gray-300 mb-12"
+      class="text-gray-700 text-lg font-medium leading-loose dark:text-gray-300 mb-6"
     >
-      Error 404. The page you are looking for does not exist. Please check the
-      URL ang try again.
+      The page you are looking for does not exist. Please check the URL ang try
+      again.
+    </p>
+    <p class="text-gray-700 text-lg font-medium dark:text-gray-300 mb-12">
+      Think this is a mistake?
+      <router-link
+        to="/support"
+        class="text-blue-700 hover:underline dark:text-blue-400"
+        >Submit a bug report</router-link
+      >.
     </p>
 
     <div class="w-full flex items-center gap-6">

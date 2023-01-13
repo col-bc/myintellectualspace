@@ -56,7 +56,9 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
           </div>
         </div>
       </div>
-      <div class="flex flex-col md:flex-row md:justify-between w-full gap-6">
+      <div
+        class="flex flex-col md:flex-row md:justify-between w-full gap-6 mb-12 px-2 md:px-4"
+      >
         <div
           class="w-full max-w-sm p-6 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-lg dark:bg-gray-800 dark:border-gray-700 transition-all duration-100 ease-linear"
         >

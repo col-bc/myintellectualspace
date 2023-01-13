@@ -249,18 +249,18 @@ async function copyLink() {
 </script>
 
 <template>
-  <main class="bg-white dark:bg-gray-800">
+  <main class="bg-white dark:bg-slate-800">
     <div
       v-if="!state.error"
       class="min-h-screen flex flex-col container max-w-screen-xl mx-auto"
     >
       <nav
-        class="flex-none p-2 flex items-center gap-4 border-b border-gray-300 dark:border-gray-700"
+        class="flex-none p-2 flex items-center flex-wrap gap-4 shadow-lg border-b border-gray-300 dark:border-gray-700"
       >
         <button
           type="button"
           @click="state.showLeaveDialog = true"
-          class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-3 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+          class="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -275,8 +275,32 @@ async function copyLink() {
             />
           </svg>
         </button>
-        <h5 class="text-xl text-gray-900 dark:text-white font-bold mx-auto">
-          {{ route.params.channel }}
+        <h2
+          class="flex-1 md:flex-none flex items-center mr-auto md:mr-6 text-gray-900 dark:text-white"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="fill-current h-8 w-8 mr-3"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+          >
+            <path fill="none" d="M0 0H24V24H0z" />
+            <path
+              d="M11 2c4.068 0 7.426 3.036 7.934 6.965l2.25 3.539c.148.233.118.58-.225.728L19 14.07V17c0 1.105-.895 2-2 2h-1.999L15 22H6v-3.694c0-1.18-.436-2.297-1.244-3.305C3.657 13.631 3 11.892 3 10c0-4.418 3.582-8 8-8zm0 5c-.552 0-1 .448-1 1v.999L9 9c-.552 0-1 .448-1 1s.448 1 1 1l1-.001V12c0 .552.448 1 1 1s1-.448 1-1v-1h1c.552 0 1-.448 1-1s-.448-1-1-1h-1V8c0-.552-.448-1-1-1z"
+            />
+          </svg>
+          <span
+            class="hidden md:block self-center text-xl font-bold whitespace-nowrap"
+            >Intellectual Space</span
+          >
+          <span
+            class="block md:hidden self-center text-xl font-bold whitespace-nowrap"
+            >MIS</span
+          >
+        </h2>
+        <h5 class="text-xl text-gray-900 dark:text-white font-bold md:flex-1 md:text-center">
+          Meeting ID: <span class="font-mono uppercase">{{ route.params.channel }}</span>
         </h5>
         <button
           type="button"
@@ -295,13 +319,13 @@ async function copyLink() {
               d="M7 6V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1.001 1.001 0 0 1 3 21l.003-14c0-.552.45-1 1.007-1H7zM5.003 8L5 20h10V8H5.003zM9 6h8v10h2V4H9v2z"
             />
           </svg>
-          Copy link
+          Copy Link
         </button>
-        <Menu as="div" class="relative">
+        <Menu as="div" class="relative" v-if="$route.name === 'host-meeting'">
           <MenuButton
             as="button"
             type="button"
-            class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-3 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+            class="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -318,27 +342,8 @@ async function copyLink() {
           </MenuButton>
           <MenuItems
             as="div"
-            class="absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 rounded shadow-lg dark:bg-gray-700 py-1 text-sm text-gray-700 dark:text-gray-200"
+            class="absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-700 py-1 text-sm text-gray-700 dark:text-gray-200"
           >
-            <MenuItem
-              as="button"
-              @click="copyLink"
-              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M13.12 17.023l-4.199-2.29a4 4 0 1 1 0-5.465l4.2-2.29a4 4 0 1 1 .959 1.755l-4.2 2.29a4.008 4.008 0 0 1 0 1.954l4.199 2.29a4 4 0 1 1-.959 1.755zM6 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm11-6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
-                />
-              </svg>
-              Share meeting link
-            </MenuItem>
             <MenuItem
               as="button"
               @click="ui.toggleTheme"
@@ -423,7 +428,7 @@ async function copyLink() {
         ></div>
         <!-- Toolbar -->
         <div
-          class="absolute z-20 bottom-6 w-full left-0 right-0 flex items-center justify-center"
+          class="absolute z-10 bottom-6 w-full left-0 right-0 flex items-center justify-center"
           role="group"
         >
           <div
