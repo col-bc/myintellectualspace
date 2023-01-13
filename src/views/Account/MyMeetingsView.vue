@@ -12,7 +12,7 @@ const state = reactive({
   loading: false,
   meetingId: '',
   error: null,
-  recentMeetings: null
+  recentMeetings: []
 })
 
 watch(
