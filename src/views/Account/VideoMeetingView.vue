@@ -1,6 +1,6 @@
 <script setup>
 import AgoraRTC from 'agora-rtc-sdk-ng'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import useUserStore from '@/stores/user'
 import useInterface from '@/stores/interface'
 import LoaderComponent from '@/components/LoaderComponent.vue'
@@ -43,6 +43,11 @@ const state = reactive({
   loading: true,
   error: null,
   showMenu: false,
+  quality: {
+    up: 0,
+    down: 0
+  },
+  timer: 0,
   showLeaveDialog: false,
   notifications: []
 })
@@ -59,7 +64,13 @@ onMounted(async () => {
   options.token = await getToken()
   // Join the channel.
   await startBasicCall()
+  // start timer
+  setInterval(() => {
+    state.timer++
+  }, 1000)
   await onJoinMeeting()
+  // Enable dual-stream mode.
+  agoraEngine.enableDualStream()
   state.loading = false
 })
 
@@ -74,6 +85,14 @@ watch(
   },
   { deep: true }
 )
+
+const resolveTimer = computed(() => {
+  const minutes = Math.floor(state.timer / 60)
+  const seconds = state.timer % 60
+  return `${minutes < 10 ? '0' + minutes : minutes}:${
+    seconds < 10 ? '0' + seconds : seconds
+  }`
+})
 
 async function getToken() {
   const TOKEN_URL = `http://127.0.0.1:8000/token/${options.channel}`
@@ -112,7 +131,7 @@ async function startBasicCall() {
     // Subscribe to the remote user when the SDK triggers the "user-published" event.
     await agoraEngine.subscribe(user, mediaType)
     console.log('subscribe success')
-    // Subscribe and play the remote video in the container If the remote user publishes a video track.
+    // Subscribe and play the remote video in the container If the remote user publishes a video trauserck.
     if (mediaType == 'video') {
       // Retrieve the remote video track.
       channelParameters.remoteVideoTrack = user.videoTrack
@@ -136,10 +155,17 @@ async function startBasicCall() {
       // Play the remote audio track. No need to pass any DOM element.
       channelParameters.remoteAudioTrack.play()
     }
+    console.log(user)
   })
   // Listen for the "user-unpublished" event.
   agoraEngine.on('user-unpublished', (user) => {
     console.log(user.uid + 'has left the channel')
+  })
+
+  // Get the uplink network condition
+  agoraEngine.on('network-quality', (quality) => {
+    state.quality.up = quality.uplinkNetworkQuality
+    state.quality.down = quality.downlinkNetworkQuality
   })
 }
 async function onJoinMeeting() {
@@ -177,7 +203,7 @@ async function onJoinMeeting() {
   state.notifications.push({
     id: uuidv4(),
     type: 'default',
-    message: 'You have joined the meeting'
+    message: 'You have joined meeting ' + options.channel
   })
   console.log('publish success!')
 }
@@ -246,6 +272,14 @@ async function copyLink() {
     console.error('Failed to copy: ', err)
   }
 }
+
+function resolveQuality(q) {
+  if (q === 1) return 'Excellent'
+  if (q === 2) return 'Good'
+  if (q === 3) return 'Poor'
+  if (q === 4) return 'Bad'
+  return 'Unknown'
+}
 </script>
 
 <template>
@@ -299,33 +333,124 @@ async function copyLink() {
             >MIS</span
           >
         </h2>
-        <h5 class="text-xl text-gray-900 dark:text-white font-bold md:flex-1 md:text-center">
-          Meeting ID: <span class="font-mono uppercase">{{ route.params.channel }}</span>
+        <h5
+          class="text-2xl tracking-widest uppercase text-gray-900 dark:text-white font-bold font-mono md:flex-1 md:text-center"
+        >
+          {{ route.params.channel }}
         </h5>
-        <button
-          type="button"
-          @click="copyLink"
-          class="flex-shrink-0 flex items-center justify-center gap-2 text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-600 dark:focus:ring-blue-800"
+        <!-- Timer -->
+        <div
+          class="px-5 py-2.5 flex items-center text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-6 h-6 fill-current"
+            class="w-6 h-6 fill-gray-800 dark:fill-gray-100 mr-2.5"
             viewBox="0 0 24 24"
             width="24"
             height="24"
           >
             <path fill="none" d="M0 0h24v24H0z" />
             <path
-              d="M7 6V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1.001 1.001 0 0 1 3 21l.003-14c0-.552.45-1 1.007-1H7zM5.003 8L5 20h10V8H5.003zM9 6h8v10h2V4H9v2z"
+              d="M17.618 5.968l1.453-1.453 1.414 1.414-1.453 1.453a9 9 0 1 1-1.414-1.414zM12 20a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM11 8h2v6h-2V8zM8 1h8v2H8V1z"
             />
           </svg>
-          Copy Link
-        </button>
-        <Menu as="div" class="relative" v-if="$route.name === 'host-meeting'">
+          {{ resolveTimer }}
+        </div>
+        <!-- Quality -->
+        <div
+          class="relative group border-r border-gray-200 dark:border-gray-700"
+        >
+          <div class="px-5 py-2.5 flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 fill-gray-800 dark:fill-gray-100 mr-2.5"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0L24 0 24 24 0 24z" />
+              <path
+                d="M3.929 4.929l1.414 1.414C3.895 7.791 3 9.791 3 12c0 2.21.895 4.21 2.343 5.657L3.93 19.07C2.119 17.261 1 14.761 1 12s1.12-5.261 2.929-7.071zm16.142 0C21.881 6.739 23 9.239 23 12s-1.12 5.262-2.929 7.071l-1.414-1.414C20.105 16.209 21 14.209 21 12s-.895-4.208-2.342-5.656L20.07 4.93zM13 5v6h3l-5 8v-6H8l5-8zM6.757 7.757l1.415 1.415C7.448 9.895 7 10.895 7 12c0 1.105.448 2.105 1.172 2.828l-1.415 1.415C5.672 15.157 5 13.657 5 12c0-1.657.672-3.157 1.757-4.243zm10.487.001C18.329 8.844 19 10.344 19 12c0 1.657-.672 3.157-1.757 4.243l-1.415-1.415C16.552 14.105 17 13.105 17 12c0-1.104-.447-2.104-1.17-2.827l1.414-1.415z"
+              />
+            </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6"
+              :class="{
+                'fill-green-500': state.quality.up === 1,
+                'fill-yellow-500': state.quality.up === 2,
+                'fill-orange-500': state.quality.up === 3,
+                'fill-red-500': state.quality.up === 4,
+                'fill-gray-500': state.quality.up === 0
+              }"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path d="M13 12h7l-8 8-8-8h7V4h2z" />
+            </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6"
+              :class="{
+                'fill-green-500': state.quality.down === 1,
+                'fill-yellow-500': state.quality.down === 2,
+                'fill-orange-500': state.quality.down === 3,
+                'fill-red-500': state.quality.down === 4,
+                'fill-gray-500': state.quality.down === 0
+              }"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path d="M13 12v8h-2v-8H4l8-8 8 8z" />
+            </svg>
+          </div>
+          <div
+            class="hidden group-hover:block absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 rounded shadow-lg dark:bg-gray-700 py-1 text-sm text-gray-700 dark:text-gray-200"
+          >
+            <h6 class="px-4 py-2 text-gray-900 dark:text-white font-bold">
+              Stream Quality
+            </h6>
+            <div
+              class="flex flex-col text-gray-700 dark:text-gray-400 px-4 py-2 gap-2"
+            >
+              <span class="font-bold">
+                Upload:
+                <span
+                  class="ml-2 font-normal"
+                  :class="{
+                    'text-green-500': state.quality.up === 1,
+                    'text-yellow-500': state.quality.up === 2,
+                    'text-orange-500': state.quality.up === 3,
+                    'text-red-500': state.quality.up === 4
+                  }"
+                  >{{ resolveQuality(state.quality.up) }}</span
+                >
+              </span>
+              <span class="font-bold">
+                Download:
+                <span
+                  class="ml-2"
+                  :class="{
+                    'text-green-500': state.quality.down === 1,
+                    'text-yellow-500': state.quality.down === 2,
+                    'text-orange-500': state.quality.down === 3,
+                    'text-red-500': state.quality.down === 4
+                  }"
+                  >{{ resolveQuality(state.quality.down) }}</span
+                >
+              </span>
+            </div>
+          </div>
+        </div>
+        <Menu as="div" class="relative">
           <MenuButton
             as="button"
             type="button"
-            class="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800"
+            class="text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm p-2.5 text-center dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -376,6 +501,25 @@ async function copyLink() {
                 />
               </svg>
               Change Theme
+            </MenuItem>
+            <MenuItem
+              as="button"
+              @click="copyLink"
+              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M7 6V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1.001 1.001 0 0 1 3 21l.003-14c0-.552.45-1 1.007-1H7zM5.003 8L5 20h10V8H5.003zM9 6h8v10h2V4H9v2z"
+                />
+              </svg>
+              Copy Link
             </MenuItem>
             <MenuItem
               as="button"
