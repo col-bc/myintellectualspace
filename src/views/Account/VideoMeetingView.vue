@@ -58,7 +58,6 @@ const localPlayerContainer = document.createElement('div')
 onMounted(async () => {
   state.error = null
   // Get the App ID and channel name from the URL.
-  console.log(route.params)
   options.channel = route.params.channel
   // Get a token from the Agora Token Server.
   options.token = await getToken()
@@ -95,16 +94,16 @@ const resolveTimer = computed(() => {
 })
 
 async function getToken() {
-  const TOKEN_URL = `http://127.0.0.1:8000/token/${options.channel}`
+  const TOKEN_URL = `https://my-intellectual-space.ue.r.appspot.com/token/${options.channel}`
   const { token } = await fetch(TOKEN_URL, {
     method: 'GET',
     headers: {
       'Access-Control-Allow-Origin': '*'
     }
   })
-    .then((res) => {
+    .then(async (res) => {
       if (res.ok) {
-        return res.json()
+        return await res.json()
       } else {
         throw new Error('Token request returned non 200 status code.')
       }
@@ -113,7 +112,7 @@ async function getToken() {
       console.log(err)
     })
 
-  console.log(token)
+  console.log('token: ', token)
   return token
 }
 async function startBasicCall() {
@@ -170,6 +169,7 @@ async function startBasicCall() {
 }
 async function onJoinMeeting() {
   // Join a channel.
+  console.log('joining channel. token: ', options.token)
   await agoraEngine.join(
     options.appId,
     options.channel,
