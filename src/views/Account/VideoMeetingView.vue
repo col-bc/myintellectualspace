@@ -42,10 +42,14 @@ const state = reactive({
   enableAudio: true,
   loading: true,
   error: null,
-  showMenu: false,
+  isScreenShare: false,
   quality: {
     up: 0,
     down: 0
+  },
+  volume: {
+    local: 0,
+    remote: 0
   },
   timer: 0,
   showLeaveDialog: false,
@@ -85,6 +89,15 @@ watch(
   { deep: true }
 )
 
+watch(
+  () => state.volume,
+  (volume) => {
+    channelParameters.localAudioTrack.setVolume(parseInt(volume.local))
+    channelParameters.remoteAudioTrack?.setVolume(parseInt(volume.remote))
+  },
+  { deep: true }
+)
+
 const resolveTimer = computed(() => {
   const minutes = Math.floor(state.timer / 60)
   const seconds = state.timer % 60
@@ -105,7 +118,7 @@ async function getToken() {
       if (res.ok) {
         return await res.json()
       } else {
-        throw new Error('Token request returned non 200 status code.')
+        throw new Error('Video token request returned non 200 status code.')
       }
     })
     .catch((err) => {
@@ -129,7 +142,6 @@ async function startBasicCall() {
   agoraEngine.on('user-published', async (user, mediaType) => {
     // Subscribe to the remote user when the SDK triggers the "user-published" event.
     await agoraEngine.subscribe(user, mediaType)
-    console.log('subscribe success')
     // Subscribe and play the remote video in the container If the remote user publishes a video trauserck.
     if (mediaType == 'video') {
       // Retrieve the remote video track.
@@ -141,7 +153,6 @@ async function startBasicCall() {
       // Specify the ID of the DIV container. You can use the uid of the remote user.
       remotePlayerContainer.id = user.uid.toString()
       channelParameters.remoteUid = user.uid.toString()
-      remotePlayerContainer.textContent = 'Remote user ' + user.uid.toString()
       // Append the remote container to the remote-container element.
       document.querySelector('#remote-container').append(remotePlayerContainer)
       // Play the remote video track.
@@ -153,12 +164,28 @@ async function startBasicCall() {
       channelParameters.remoteAudioTrack = user.audioTrack
       // Play the remote audio track. No need to pass any DOM element.
       channelParameters.remoteAudioTrack.play()
+      state.volume.remote = 100
+      state.volume.local = 100
     }
-    console.log(user)
+    // add notification
+    state.notifications.push({
+      type: 'primary',
+      message: `${user.uid} has joined the channel`
+    })
   })
   // Listen for the "user-unpublished" event.
   agoraEngine.on('user-unpublished', (user) => {
-    console.log(user.uid + 'has left the channel')
+    // Stop playing the remote audio and video when the SDK triggers the "user-unpublished" event.
+    channelParameters.remoteVideoTrack.stop()
+    channelParameters.remoteAudioTrack.stop()
+    // Remove the remote container from the DOM.
+    document
+      .querySelector('#remote-container')
+      .removeChild(remotePlayerContainer)
+    state.notifications.push({
+      type: 'error',
+      message: `${user.uid} has left the channel`
+    })
   })
 
   // Get the uplink network condition
@@ -202,7 +229,7 @@ async function onJoinMeeting() {
   channelParameters.localVideoTrack.play(localPlayerContainer)
   state.notifications.push({
     id: uuidv4(),
-    type: 'default',
+    type: 'primary',
     message: 'You have joined meeting ' + options.channel
   })
   console.log('publish success!')
@@ -218,6 +245,8 @@ async function onLeaveMeeting() {
   removeVideoDiv(localPlayerContainer.id)
   // Leave the channel
   await agoraEngine.leave()
+
+  // TODO: add meeting duration to recentMeetings in local storage
   window.close()
 }
 function removeVideoDiv(elementId) {
@@ -279,6 +308,34 @@ function resolveQuality(q) {
   if (q === 4) return 'Bad'
   return 'Unknown'
 }
+
+async function toggleScreenShare() {
+  if (state.isScreenShare == false) {
+    // Create a screen track for screen sharing.
+    channelParameters.screenTrack = await AgoraRTC.createScreenVideoTrack()
+    // Stop playing the local video track.
+    channelParameters.localVideoTrack.stop()
+    // Unpublish the local video track.
+    await agoraEngine.unpublish(channelParameters.localVideoTrack)
+    // Publish the screen track.
+    await agoraEngine.publish(channelParameters.screenTrack)
+    // Play the screen track on local container.
+    channelParameters.screenTrack.play(localPlayerContainer)
+    // Update the screen sharing state.
+    state.isScreenShare = true
+  } else {
+    // Stop playing the screen track.
+    channelParameters.screenTrack.stop()
+    // Unpublish the screen track.
+    await agoraEngine.unpublish(channelParameters.screenTrack)
+    // Publish the local video track.
+    await agoraEngine.publish(channelParameters.localVideoTrack)
+    // Play the local video on the local container.
+    channelParameters.localVideoTrack.play(localPlayerContainer)
+    // Update the screen sharing state.
+    state.isScreenShare = false
+  }
+}
 </script>
 
 <template>
@@ -337,6 +394,15 @@ function resolveQuality(q) {
         >
           {{ route.params.channel }}
         </h5>
+        <!-- End scree share -->
+        <button
+          v-if="state.isScreenShare"
+          type="button"
+          @click="toggleScreenShare"
+          class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
+        >
+          End Screen Share
+        </button>
         <!-- Timer -->
         <div
           class="px-5 py-2.5 flex items-center text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700"
@@ -449,7 +515,7 @@ function resolveQuality(q) {
           <MenuButton
             as="button"
             type="button"
-            class="text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm p-2.5 text-center dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            class="text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm p-2.5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -518,7 +584,7 @@ function resolveQuality(q) {
                   d="M7 6V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1.001 1.001 0 0 1 3 21l.003-14c0-.552.45-1 1.007-1H7zM5.003 8L5 20h10V8H5.003zM9 6h8v10h2V4H9v2z"
                 />
               </svg>
-              Copy Link
+              Copy Meeting Link
             </MenuItem>
             <MenuItem
               as="button"
@@ -537,6 +603,25 @@ function resolveQuality(q) {
                 />
               </svg>
               Manage participants
+            </MenuItem>
+            <MenuItem
+              as="button"
+              @click="toggleScreenShare"
+              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M10 3v2H5v14h14v-5h2v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6zm7.586 2H13V3h8v8h-2V6.414l-7 7L10.586 12l7-7z"
+                />
+              </svg>
+              Start Screen Share
             </MenuItem>
           </MenuItems>
         </Menu>
@@ -566,7 +651,7 @@ function resolveQuality(q) {
         </div>
         <!-- Remote player -->
         <div
-          class="flex-1 flex flex-wrap items-start p-4"
+          class="flex-1 h-full grid grid-flow-col md:grid-flow-col md:grid-cold-2 p-4"
           id="remote-container"
         ></div>
         <!-- Toolbar -->
@@ -649,24 +734,81 @@ function resolveQuality(q) {
                 Enable video
               </template>
             </button>
-            <button
-              type="button"
-              class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-full hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 mr-3 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
+            <Menu as="div" class="relative">
+              <MenuButton
+                as="button"
+                type="button"
+                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-full hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
               >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M13 7.22L9.603 10H6v4h3.603L13 16.78V7.22zM8.889 16H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h3.889l5.294-4.332a.5.5 0 0 1 .817.387v15.89a.5.5 0 0 1-.817.387L8.89 16zm9.974.591l-1.422-1.422A3.993 3.993 0 0 0 19 12c0-1.43-.75-2.685-1.88-3.392l1.439-1.439A5.991 5.991 0 0 1 21 12c0 1.842-.83 3.49-2.137 4.591z"
-                />
-              </svg>
-              Volume
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5 mr-3 fill-current"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path
+                    d="M13 7.22L9.603 10H6v4h3.603L13 16.78V7.22zM8.889 16H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h3.889l5.294-4.332a.5.5 0 0 1 .817.387v15.89a.5.5 0 0 1-.817.387L8.89 16zm9.974.591l-1.422-1.422A3.993 3.993 0 0 0 19 12c0-1.43-.75-2.685-1.88-3.392l1.439-1.439A5.991 5.991 0 0 1 21 12c0 1.842-.83 3.49-2.137 4.591z"
+                  />
+                </svg>
+                Volume
+              </MenuButton>
+              <MenuItems
+                class="absolute bottom-full left-1/2 right-1/2 -translate-x-1/2 w-96 mb-2 bg-white dark:bg-gray-800 border rounded-lg border-gray-300 dark:border-gray-700 shadow-lg p-4"
+              >
+                <div class="flex flex-col">
+                  <div>
+                    <label
+                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                      >Local audio volume</label
+                    >
+                    <div class="flex items-center w-full">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1000"
+                        step="1"
+                        v-model="state.volume.local"
+                        class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="1000"
+                        step="1"
+                        v-model="state.volume.local"
+                        class="w-20 ml-2 text-center text-sm rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                      >Remote audio volume</label
+                    >
+                    <div class="flex items-center w-full">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1000"
+                        step="1"
+                        v-model="state.volume.remote"
+                        class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                      />
+                      <input
+                      type="number"
+                      min="0"
+                        max="1000"
+                        step="1"
+                        v-model="state.volume.remote"
+                        class="w-20 ml-2 text-center text-sm rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </MenuItems>
+            </Menu>
           </div>
         </div>
       </div>
