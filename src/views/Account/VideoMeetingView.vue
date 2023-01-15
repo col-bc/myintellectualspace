@@ -1,13 +1,13 @@
 <script setup>
-import AgoraRTC from 'agora-rtc-sdk-ng'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import useUserStore from '@/stores/user'
-import useInterface from '@/stores/interface'
-import LoaderComponent from '@/components/LoaderComponent.vue'
 import AlertComponent from '@/components/AlertComponent.vue'
-import { useRoute, useRouter } from 'vue-router'
-import { Menu, MenuButton, MenuItem, MenuItems, Dialog } from '@headlessui/vue'
+import LoaderComponent from '@/components/LoaderComponent.vue'
+import useInterface from '@/stores/interface'
+import useUserStore from '@/stores/user'
+import { Dialog, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
+import AgoraRTC from 'agora-rtc-sdk-ng'
 import { v4 as uuidv4 } from 'uuid'
+import { computed, onMounted, reactive, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const user = useUserStore()
 const ui = useInterface()
@@ -94,7 +94,7 @@ const resolveTimer = computed(() => {
 })
 
 async function getToken() {
-  const TOKEN_URL = `https://my-intellectual-space.ue.r.appspot.com/token/${options.channel}`
+  const TOKEN_URL = `https://my-intellectual-space.ue.r.appspot.com/token/${options.channel}?identity=${user.user.uid}`
   const { token } = await fetch(TOKEN_URL, {
     method: 'GET',
     headers: {
@@ -218,8 +218,7 @@ async function onLeaveMeeting() {
   removeVideoDiv(localPlayerContainer.id)
   // Leave the channel
   await agoraEngine.leave()
-  console.log('You left the channel')
-  router.push('/my-meetings')
+  window.close()
 }
 function removeVideoDiv(elementId) {
   // Remove the video stream from the container.
