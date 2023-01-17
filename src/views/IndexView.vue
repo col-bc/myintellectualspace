@@ -9,15 +9,17 @@ import usePostStore from '@/stores/post'
 const user = useUserStore()
 const post = usePostStore()
 
+const state = reactive({
+  posts: []
+})
+
 onMounted(async () => {
   const allPosts = await post.fetchAllPosts()
   const length = allPosts.length > 5 ? 5 : allPosts.length
-  for (let i = 0; i < length; i++) {
-    post.posts.push(allPosts[i])
-  }
-  post.posts.sort((a, b) => {
+  state.posts.sort((a, b) => {
     return b.createdAt.seconds - a.createdAt.seconds
   })
+  state.posts = allPosts.slice(0, length).reverse()
 })
 </script>
 
@@ -119,7 +121,7 @@ onMounted(async () => {
       </h2>
       <div class="max-w-screen-xl w-full mx-auto px-2 md:px-0 mb-12 sm:px-4">
         <div class="w-full max-w-2xl mx-auto flex flex-col gap-4 md:gap-12">
-          <PostComponent v-for="post of post.posts" :key="post" :post="post" />
+          <PostComponent v-for="post of state.posts" :key="post" :post="post" />
         </div>
       </div>
       <div>
