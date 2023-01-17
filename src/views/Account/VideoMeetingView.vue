@@ -300,6 +300,19 @@ async function copyLink() {
     console.error('Failed to copy: ', err)
   }
 }
+async function copyChannel() {
+  const text = options.channel
+  try {
+    await navigator.clipboard.writeText(text)
+    state.notifications.push({
+      id: uuidv4(),
+      type: 'default',
+      message: 'Meeting ID copied to clipboard'
+    })
+  } catch (err) {
+    console.error('Failed to copy: ', err)
+  }
+}
 
 function resolveQuality(q) {
   if (q === 1) return 'Excellent'
@@ -350,11 +363,11 @@ async function toggleScreenShare() {
         <button
           type="button"
           @click="state.showLeaveDialog = true"
-          class="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm p-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800"
+          class="flex items-center justify-center gap-2.5 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-6 h-6 fill-current"
+            class="w-5 h-5 fill-current"
             viewBox="0 0 24 24"
             width="24"
             height="24"
@@ -364,36 +377,32 @@ async function toggleScreenShare() {
               d="M4 18h2v2h12V4H6v2H4V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3zm2-7h7v2H6v3l-5-4 5-4v3z"
             />
           </svg>
+          LEAVE MEETING
         </button>
-        <h2
-          class="flex-1 md:flex-none flex items-center mr-auto md:mr-6 text-gray-900 dark:text-white"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="fill-current h-8 w-8 mr-3"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0H24V24H0z" />
-            <path
-              d="M11 2c4.068 0 7.426 3.036 7.934 6.965l2.25 3.539c.148.233.118.58-.225.728L19 14.07V17c0 1.105-.895 2-2 2h-1.999L15 22H6v-3.694c0-1.18-.436-2.297-1.244-3.305C3.657 13.631 3 11.892 3 10c0-4.418 3.582-8 8-8zm0 5c-.552 0-1 .448-1 1v.999L9 9c-.552 0-1 .448-1 1s.448 1 1 1l1-.001V12c0 .552.448 1 1 1s1-.448 1-1v-1h1c.552 0 1-.448 1-1s-.448-1-1-1h-1V8c0-.552-.448-1-1-1z"
-            />
-          </svg>
-          <span
-            class="hidden md:block self-center text-xl font-bold whitespace-nowrap"
-            >Intellectual Space</span
-          >
-          <span
-            class="block md:hidden self-center text-xl font-bold whitespace-nowrap"
-            >MIS</span
-          >
-        </h2>
         <h5
-          class="text-2xl tracking-widest uppercase text-gray-900 dark:text-white font-bold font-mono md:flex-1 md:text-center"
+          class="flex-1 flex items-center justify-start gap-2 text-2xl tracking-widest uppercase text-gray-900 dark:text-white font-bold font-mono md:flex-1 md:text-center border-l border-gray-300 dark:border-gray-700 pl-4"
         >
           {{ route.params.channel }}
+          <button
+            type="button"
+            @click="copyChannel"
+            class="text-gray-700 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 p-2 focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-lg"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4 fill-current"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M7 6V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1.001 1.001 0 0 1 3 21l.003-14c0-.552.45-1 1.007-1H7zM5.003 8L5 20h10V8H5.003zM9 6h8v10h2V4H9v2z"
+              />
+            </svg>
+          </button>
         </h5>
+
         <!-- End scree share -->
         <button
           v-if="state.isScreenShare"
@@ -422,10 +431,13 @@ async function toggleScreenShare() {
           {{ resolveTimer }}
         </div>
         <!-- Quality -->
-        <div
-          class="relative group border-r border-gray-200 dark:border-gray-700"
+        <Menu
+          as="div"
+          class="relative border-r border-gray-200 dark:border-gray-700"
         >
-          <div class="px-5 py-2.5 flex items-center">
+          <MenuButton
+            class="flex items-center justify-center mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="w-6 h-6 fill-gray-800 dark:fill-gray-100 mr-2.5"
@@ -443,8 +455,8 @@ async function toggleScreenShare() {
               class="w-6 h-6"
               :class="{
                 'fill-green-500': state.quality.up === 1,
-                'fill-yellow-500': state.quality.up === 2,
-                'fill-orange-500': state.quality.up === 3,
+                'fill-lime-500': state.quality.up === 2,
+                'fill-yellow-500': state.quality.up === 3,
                 'fill-red-500': state.quality.up === 4,
                 'fill-gray-500': state.quality.up === 0
               }"
@@ -460,8 +472,8 @@ async function toggleScreenShare() {
               class="w-6 h-6"
               :class="{
                 'fill-green-500': state.quality.down === 1,
-                'fill-yellow-500': state.quality.down === 2,
-                'fill-orange-500': state.quality.down === 3,
+                'fill-lime-500': state.quality.down === 2,
+                'fill-yellow-500': state.quality.down === 3,
                 'fill-red-500': state.quality.down === 4,
                 'fill-gray-500': state.quality.down === 0
               }"
@@ -472,9 +484,9 @@ async function toggleScreenShare() {
               <path fill="none" d="M0 0h24v24H0z" />
               <path d="M13 12v8h-2v-8H4l8-8 8 8z" />
             </svg>
-          </div>
-          <div
-            class="hidden group-hover:block absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 rounded shadow-lg dark:bg-gray-700 py-1 text-sm text-gray-700 dark:text-gray-200"
+          </MenuButton>
+          <MenuItems
+            class="absolute z-30 right-1/2 left-1/2 -translate-x-1/2 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
           >
             <h6 class="px-4 py-2 text-gray-900 dark:text-white font-bold">
               Stream Quality
@@ -488,8 +500,8 @@ async function toggleScreenShare() {
                   class="ml-2 font-normal"
                   :class="{
                     'text-green-500': state.quality.up === 1,
-                    'text-yellow-500': state.quality.up === 2,
-                    'text-orange-500': state.quality.up === 3,
+                    'text-lime-500': state.quality.up === 2,
+                    'text-yellow-500': state.quality.up === 3,
                     'text-red-500': state.quality.up === 4
                   }"
                   >{{ resolveQuality(state.quality.up) }}</span
@@ -501,16 +513,153 @@ async function toggleScreenShare() {
                   class="ml-2"
                   :class="{
                     'text-green-500': state.quality.down === 1,
-                    'text-yellow-500': state.quality.down === 2,
-                    'text-orange-500': state.quality.down === 3,
+                    'text-lime-500': state.quality.down === 2,
+                    'text-yellow-500': state.quality.down === 3,
                     'text-red-500': state.quality.down === 4
                   }"
                   >{{ resolveQuality(state.quality.down) }}</span
                 >
               </span>
             </div>
-          </div>
-        </div>
+          </MenuItems>
+        </Menu>
+        <!-- Tools -->
+        <Menu
+          as="div"
+          class="relative border-r border-gray-200 dark:border-gray-700"
+        >
+          <MenuButton
+            as="button"
+            type="button"
+            class="flex items-center justify-center gap-2.5 mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 fill-current"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M7.05 14.121L4.93 16.243l2.828 2.828L19.071 7.757 16.243 4.93 14.12 7.05l1.415 1.414L14.12 9.88l-1.414-1.415-1.414 1.415 1.414 1.414-1.414 1.414-1.414-1.414-1.415 1.414 1.415 1.414-1.415 1.415L7.05 14.12zm9.9-11.313l4.242 4.242a1 1 0 0 1 0 1.414L8.464 21.192a1 1 0 0 1-1.414 0L2.808 16.95a1 1 0 0 1 0-1.414L15.536 2.808a1 1 0 0 1 1.414 0zM14.12 18.363l1.415-1.414 2.242 2.243h1.414v-1.414l-2.242-2.243 1.414-1.414L21 16.757V21h-4.242l-2.637-2.637zM5.636 9.878L2.807 7.05a1 1 0 0 1 0-1.415l2.829-2.828a1 1 0 0 1 1.414 0L9.88 5.635 8.464 7.05 6.343 4.928 4.929 6.343l2.121 2.12-1.414 1.415z"
+              />
+            </svg>
+            TOOLS
+          </MenuButton>
+          <MenuItems
+            as="div"
+            class="absolute z-30 right-1/2 left-1/2 -translate-x-1/2 w-44 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
+          >
+            <div class="flex flex-col gp-4">
+              <div class="flex items-center justify-between px-4 py-2">
+                <!-- Screen share -->
+                <div class="relative group">
+                  <button
+                    type="button"
+                    @click="toggleScreenShare"
+                    class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-6 h-6 fill-current"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M8.586 17H3v-2h18v2h-5.586l3.243 3.243-1.414 1.414L13 17.414V20h-2v-2.586l-4.243 4.243-1.414-1.414L8.586 17zM5 3h14a1 1 0 0 1 1 1v10H4V4a1 1 0 0 1 1-1zm1 2v7h12V5H6z"
+                      />
+                    </svg>
+                  </button>
+                  <div
+                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-5 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                  >
+                    Share Screen
+                  </div>
+                </div>
+                <!-- Whiteboard -->
+                <div class="relative group">
+                  <button
+                    type="button"
+                    class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-6 h-6 fill-current"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M6.414 16L16.556 5.858l-1.414-1.414L5 14.586V16h1.414zm.829 2H3v-4.243L14.435 2.322a1 1 0 0 1 1.414 0l2.829 2.829a1 1 0 0 1 0 1.414L7.243 18zM3 20h18v2H3v-2z"
+                      />
+                    </svg>
+                  </button>
+                  <div
+                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-5 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                  >
+                    Whiteboard
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between px-4 py-2">
+                <!-- Share file -->
+                <div class="relative group">
+                  <button
+                    type="button"
+                    class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-6 h-6 fill-current"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M4 19h16v-7h2v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-8h2v7zm9-10v7h-2V9H6l6-6 6 6h-5z"
+                      />
+                    </svg>
+                  </button>
+                  <div
+                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-5 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                  >
+                    Share File
+                  </div>
+                </div>
+                <!-- Change view -->
+                <div class="relative group">
+                  <button
+                    type="button"
+                    class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-6 h-6 fill-current"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path
+                        d="M21 3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h18zM11 13H4v6h7v-6zm9 0h-7v6h7v-6zm-9-8H4v6h7V5zm9 0h-7v6h7V5z"
+                      />
+                    </svg>
+                  </button>
+                  <div
+                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-5 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                  >
+                    Change View
+                  </div>
+                </div>
+              </div>
+            </div>
+          </MenuItems>
+        </Menu>
         <Menu as="div" class="relative">
           <MenuButton
             as="button"
@@ -532,41 +681,8 @@ async function toggleScreenShare() {
           </MenuButton>
           <MenuItems
             as="div"
-            class="absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-700 py-1 text-sm text-gray-700 dark:text-gray-200"
+            class="absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
           >
-            <MenuItem
-              as="button"
-              @click="ui.toggleTheme"
-              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >
-              <svg
-                v-if="ui.getIsDark"
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"
-                />
-              </svg>
-              <svg
-                v-else
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"
-                />
-              </svg>
-              Change Theme
-            </MenuItem>
             <MenuItem
               as="button"
               @click="copyLink"
@@ -602,7 +718,7 @@ async function toggleScreenShare() {
                   d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
                 />
               </svg>
-              Manage participants
+              Manage Participants
             </MenuItem>
             <MenuItem
               as="button"
@@ -621,7 +737,40 @@ async function toggleScreenShare() {
                   d="M10 3v2H5v14h14v-5h2v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6zm7.586 2H13V3h8v8h-2V6.414l-7 7L10.586 12l7-7z"
                 />
               </svg>
-              Start Screen Share
+              Share Screen
+            </MenuItem>
+            <MenuItem
+              as="button"
+              @click="ui.toggleTheme"
+              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+              <svg
+                v-if="ui.getIsDark"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"
+                />
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"
+                />
+              </svg>
+              Change Theme
             </MenuItem>
           </MenuItems>
         </Menu>
@@ -644,7 +793,7 @@ async function toggleScreenShare() {
         </template>
         <!-- Local player -->
         <div
-          class="flex-1 flex items-center justify-center p-4 border-b md:border-b-0 md:border-r border-gray-300 dark:border-gray-700"
+          class="flex-1 flex items-center justify-center p-4 border-b md:border-b-0 md:border-r border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
           id="local-player"
         >
           <LoaderComponent v-if="state.loading" size="lg" />
@@ -797,8 +946,8 @@ async function toggleScreenShare() {
                         class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                       />
                       <input
-                      type="number"
-                      min="0"
+                        type="number"
+                        min="0"
                         max="1000"
                         step="1"
                         v-model="state.volume.remote"
