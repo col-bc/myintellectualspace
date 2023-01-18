@@ -5,6 +5,8 @@ import useInterface from '@/stores/interface'
 import useUserStore from '@/stores/user'
 import { Dialog, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import AgoraRTC from 'agora-rtc-sdk-ng'
+import IntroJs from 'intro.js'
+import 'intro.js/introjs.css'
 import { v4 as uuidv4 } from 'uuid'
 import { computed, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -75,6 +77,76 @@ onMounted(async () => {
   // Enable dual-stream mode.
   agoraEngine.enableDualStream()
   state.loading = false
+
+  // check if user has completed tutorial
+  if (localStorage.getItem('video-tutorial') != true) {
+    IntroJs()
+      .setOptions({
+        steps: [
+          {
+            intro:
+              'Welcome to the video meeting room! This is a quick tutorial to help you get started.'
+          },
+          {
+            element: '#meeting-id',
+            intro:
+              'This is the meeting ID. You can share this with others to invite them to the meeting.'
+          },
+          {
+            element: '#toggle-audio',
+            intro:
+              'Click here to toggle your audio on and off. You can also use the shortcut key "m".',
+            position: 'top'
+          },
+          {
+            element: '#toggle-video',
+            intro:
+              'Click here to toggle your video on and off. You can also use the shortcut key "v".'
+          },
+          {
+            element: '#volume-menu',
+            intro:
+              'Click here to adjust the volume of your audio and the remote audio.'
+          },
+          {
+            element: '#timer',
+            intro: 'This is the amount of time you have been in the meeting.'
+          },
+          {
+            element: '#quality',
+            intro:
+              'This is the quality of the connection to the streaming server. You can see the upload and download quality.'
+          },
+          {
+            element: '#tools-menu',
+            intro:
+              'Click here to access the tools menu. You can use this to share your screen, share files, or update your view.'
+          },
+          {
+            element: '#leave-meeting',
+            intro: 'When you are done, click here to leave the meeting.'
+          },
+          {
+            title: 'That is it!',
+            intro:
+              'You are now ready to use the video meeting room. If you need to see this tutorial again, you can access it from the vertical dots menu on the nav bar.'
+          }
+        ],
+        showStepNumbers: false,
+        dontShowAgain: true,
+        keyboardNavigation: true
+      })
+      .start()
+  }
+
+  // add event listeners
+  window.addEventListener('keydown', (e) => {
+    if (e.key == 'm') {
+      toggleAudio()
+    } else if (e.key == 'v') {
+      toggleVideo()
+    }
+  })
 })
 
 watch(
@@ -361,6 +433,7 @@ async function toggleScreenShare() {
         class="flex-none p-2 flex items-center flex-wrap gap-4 shadow-lg border-b border-gray-300 dark:border-gray-700"
       >
         <button
+          id="leave-meeting"
           type="button"
           @click="state.showLeaveDialog = true"
           class="flex items-center justify-center gap-2.5 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
@@ -380,6 +453,7 @@ async function toggleScreenShare() {
           LEAVE MEETING
         </button>
         <h5
+          id="meeting-id"
           class="flex-1 flex items-center justify-start gap-2 text-2xl tracking-widest uppercase text-gray-900 dark:text-white font-bold font-mono md:flex-1 md:text-center border-l border-gray-300 dark:border-gray-700 pl-4"
         >
           {{ route.params.channel }}
@@ -414,6 +488,7 @@ async function toggleScreenShare() {
         </button>
         <!-- Timer -->
         <div
+          id="timer"
           class="px-5 py-2.5 flex items-center text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700"
         >
           <svg
@@ -433,6 +508,7 @@ async function toggleScreenShare() {
         <!-- Quality -->
         <Menu
           as="div"
+          id="quality"
           class="relative border-r border-gray-200 dark:border-gray-700"
         >
           <MenuButton
@@ -530,6 +606,7 @@ async function toggleScreenShare() {
         >
           <MenuButton
             as="button"
+            id="tools-menu"
             type="button"
             class="flex items-center justify-center gap-2.5 mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
@@ -805,6 +882,7 @@ async function toggleScreenShare() {
         ></div>
         <!-- Toolbar -->
         <div
+          id="toolbar"
           class="absolute z-10 bottom-6 w-full left-0 right-0 flex items-center justify-center"
           role="group"
         >
@@ -812,6 +890,7 @@ async function toggleScreenShare() {
             class="inline-flex rounded-full shadow-lg items-center justify-center"
           >
             <button
+              id="toggle-audio"
               type="button"
               @click="toggleAudio"
               class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-full hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
@@ -848,6 +927,7 @@ async function toggleScreenShare() {
               </template>
             </button>
             <button
+              id="toggle-video"
               type="button"
               @click="toggleVideo"
               class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
@@ -886,6 +966,7 @@ async function toggleScreenShare() {
             <Menu as="div" class="relative">
               <MenuButton
                 as="button"
+                id="volume-menu"
                 type="button"
                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-full hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white"
               >
