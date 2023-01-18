@@ -158,7 +158,7 @@ async function reportPost() {
         >
           <img
             :src="props.post.author.avatarUrl"
-            class="h-10 w-10 rounded-full mr-4"
+            class="h-10 w-10 rounded-full mr-4 border border-gray-200 dark:border-gray-700"
           />
           <div>
             <h6 class="font-medium text-gray-900 dark:text-white">
@@ -405,7 +405,7 @@ async function reportPost() {
                   })
                 "
                 :src="comment.author.avatarUrl"
-                class="w-10 h-10 rounded-full cursor-pointer"
+                class="w-10 h-10 rounded-full cursor-pointer border border-gray-200 dark:border-gray-700"
               />
               <div class="ml-3">
                 <span

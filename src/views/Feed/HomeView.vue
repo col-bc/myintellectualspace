@@ -280,11 +280,14 @@ function scrollToTop() {
                     :to="`/social/@${user.handle}`"
                     class="flex items-center"
                   >
-                    <img :src="user.avatarUrl" class="w-10 h-10 rounded-full" />
+                    <img
+                      :src="user.avatarUrl"
+                      class="w-12 h-12 rounded-full border border-gray-200 dark:border-gray-700"
+                    />
 
                     <div class="ml-4">
                       <h6
-                        class="text-gray-800 dark:text-white text-lg font-medum"
+                        class="text-gray-800 dark:text-white text-lg font-medium"
                       >
                         @{{ user.handle }}
                       </h6>
