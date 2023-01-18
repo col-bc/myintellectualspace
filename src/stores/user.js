@@ -163,29 +163,60 @@ const useUserStore = defineStore({
     async uploadAvatar(file) {
       const storage = getStorage()
       const storageRef = ref(storage, `avatars/${this.user.uid}`)
-      if (!this.user.avatarUrl.includes('avatar.png'))
-        await deleteObject(storageRef)
+      // delete old avatar
+      if (!this.user.avatarUrl.includes('avatar.png')) {
+        try {
+          await deleteObject(storageRef)
+          console.log('Old avatar deleted')
+        } catch (error) {
+          console.log('Cannot delete old avatar from storage, ', error)
+        }
+      }
+      // upload new avatar
       const uploadTask = await uploadBytes(storageRef, file)
       const downloadUrl = await getDownloadURL(uploadTask.ref)
       this.user.avatarUrl = downloadUrl
-      // update user in firestore
+      console.log('Uploaded file. Available at ', downloadUrl)
+      // update user.avatarUrl in firestore
       const db = getFirestore()
       const docRef = doc(db, 'users', this.user.uid)
+      console.log('updating user avatarUrl in firestore...')
       await setDoc(docRef, { avatarUrl: downloadUrl }, { merge: true })
-      // update user in state
-      // change avatar in posts
+      // change avatar in posts collection
       const postsRef = collection(db, 'posts')
       const q = query(postsRef, where('author.handle', '==', this.user.handle))
       const posts = await getDocs(q)
+      console.log('changing avatarUrl in ', posts.size, ' posts...')
       posts.forEach(async (post) => {
         const postRef = doc(db, 'posts', post.id)
-        console.log(postRef.data().author)
         await setDoc(
           postRef,
-          { 'author.avatarUrl': downloadUrl },
+          { author: { ...this.user.author, avatarUrl: downloadUrl } },
           { merge: true }
         )
       })
+      // change avatar in comments
+      const allPosts = await getDocs(postsRef)
+      allPosts.forEach(async (post) => {
+        const data = post.data()
+        console.log(
+          'data',
+          data.comments?.forEach((comment) => {
+            console.log(comment.author.handle)
+          })
+        )
+        const comments = data.comments || []
+        var commentIndex = comments.findIndex((comment) => {
+          return comment.author.handle === this.user.handle
+        })
+        if (commentIndex !== -1) {
+          comments[commentIndex].author.avatarUrl = downloadUrl
+          const postRef = doc(db, 'posts', post.id)
+          await setDoc(postRef, { comments: comments }, { merge: true })
+        }
+      })
+      // TODO: change avatar in messages collection
+      console.log('done')
     },
     async getSuggestedUsers() {
       // get all users

@@ -12,8 +12,6 @@ import router from './router'
 import { initializeApp } from 'firebase/app'
 import { getAnalytics } from 'firebase/analytics'
 
-// TODO: Add SDKs for Firebase products that you want to use
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: 'AIzaSyCN5ebqn1T3Gcc-DAWS-oRRkCqRAnTrZwk',
   authDomain: 'my-intellectual-space.firebaseapp.com',
@@ -23,8 +21,6 @@ const firebaseConfig = {
   appId: '1:783506874330:web:094dc21867fe3e77c7eae3',
   measurementId: 'G-E8TRYHSK1Y'
 }
-
-// Initialize Firebase
 const fvApp = initializeApp(firebaseConfig)
 const analytics = getAnalytics(fvApp)
 

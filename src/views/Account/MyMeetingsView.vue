@@ -4,7 +4,7 @@ import LoaderComponent from '@/components/LoaderComponent.vue'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import useUserStore from '@/stores/user'
 import { useRouter } from 'vue-router'
-import { generate } from '@vue/compiler-core'
+import { Dialog } from '@headlessui/vue'
 
 const user = useUserStore()
 const router = useRouter()
@@ -12,7 +12,17 @@ const state = reactive({
   loading: false,
   meetingId: '',
   error: null,
-  recentMeetings: []
+  recentMeetings: [],
+  showScheduleDialog: false
+})
+const scheduleMeeting = reactive({
+  error: null,
+  id: '',
+  date: '',
+  time: '',
+  duration: 30,
+  notes: '',
+  invitees: []
 })
 
 watch(
@@ -169,9 +179,9 @@ function openMeeting(id) {
             </li>
           </ul>
         </div>
-        <div class="flex-1 flex items-center justify-center">
+        <div class="flex-1">
           <div
-            class="bg-white dark:bg-gray-800 border rounded-lg shadow-md border-gray-300 dark:border-gray-700 p-6 w-full max-w-lg mx-auto mb-12"
+            class="bg-white dark:bg-gray-800 border rounded-lg shadow-md border-gray-300 dark:border-gray-700 p-6 w-full max-w-lg  md:ml-auto mb-12"
           >
             <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-6">
               Join or Create a Video Meeting
@@ -231,6 +241,7 @@ function openMeeting(id) {
               </button>
               <button
                 type="button"
+                @click="state.showScheduleDialog = true"
                 class="w-full flex items-center justify-center gap-2.5 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
               >
                 <svg
@@ -253,4 +264,129 @@ function openMeeting(id) {
       </div>
     </div>
   </main>
+  <Dialog
+    :open="state.showScheduleDialog"
+    @close="state.showScheduleDialog = false"
+    class="relative z-10"
+  >
+    <div class="fixed inset-0 bg-black bg-opacity-60" />
+    <div class="fixed inset-0 overflow-y-auto">
+      <div class="flex min-h-full items-center justify-center p-4">
+        <div
+          class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+        >
+          <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+            Schedule a Meeting
+          </h2>
+
+          <form @submit.prevent class="flex flex-col gap-4 mb-6">
+            <div>
+              <label
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Meeting ID</label
+              >
+              <div class="relative w-full">
+                <input
+                  type="text"
+                  disabled
+                  :value="scheduleMeeting.id"
+                  class="uppercase font-mono bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  required
+                />
+                <button
+                  type="button"
+                  @click="scheduleMeeting.id = generateId()"
+                  class="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:text-gray-300 dark:focus:ring-blue-500 rounded-r-lg"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5 fill-current"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path
+                      d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Date</label
+              >
+              <input
+                type="date"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Time</label
+              >
+              <input
+                type="time"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Duration <small>(minutes)</small></label
+              >
+              <input
+                type="number"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Notes</label
+              >
+              <textarea
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                rows="5"
+              ></textarea>
+            </div>
+            <div>
+              <label
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Invite participants</label
+              >
+              <input
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              />
+            </div>
+          </form>
+
+          <div
+            class="flex flex-col-reverse md:flex-row items-center justify-center gap-4"
+          >
+            <button
+              type="submit"
+              @click="acceptBeta"
+              class="w-full text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg px-5 py-2.5 text-center mr-2"
+            >
+              Schedule Meeting
+            </button>
+            <button
+              type="reset"
+              @click="state.showScheduleDialog = false"
+              class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Dialog>
 </template>
