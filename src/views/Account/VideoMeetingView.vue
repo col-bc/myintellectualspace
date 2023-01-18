@@ -8,7 +8,7 @@ import AgoraRTC from 'agora-rtc-sdk-ng'
 import IntroJs from 'intro.js'
 import 'intro.js/introjs.css'
 import { v4 as uuidv4 } from 'uuid'
-import { computed, onMounted, reactive, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const user = useUserStore()
@@ -55,7 +55,8 @@ const state = reactive({
   },
   timer: 0,
   showLeaveDialog: false,
-  notifications: []
+  notifications: [],
+  view: 'split' // split, or stacked
 })
 
 const remotePlayerContainer = document.createElement('div')
@@ -145,6 +146,15 @@ onMounted(async () => {
       toggleAudio()
     } else if (e.key == 'v') {
       toggleVideo()
+    }
+  })
+
+  window.addEventListener('beforeunload', (e) => {
+    e.preventDefault()
+    e.returnValue = ''
+    const confirmExit = () => window.confirm('Are you sure you want to leave?')
+    if (confirmExit()) {
+      onLeaveMeeting()
     }
   })
 })
@@ -651,15 +661,16 @@ async function toggleScreenShare() {
                     </svg>
                   </button>
                   <div
-                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-5 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
                   >
                     Share Screen
                   </div>
                 </div>
-                <!-- Whiteboard -->
+                <!-- Share link -->
                 <div class="relative group">
                   <button
                     type="button"
+                    @click="copyLink"
                     class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
                     <svg
@@ -671,14 +682,14 @@ async function toggleScreenShare() {
                     >
                       <path fill="none" d="M0 0h24v24H0z" />
                       <path
-                        d="M6.414 16L16.556 5.858l-1.414-1.414L5 14.586V16h1.414zm.829 2H3v-4.243L14.435 2.322a1 1 0 0 1 1.414 0l2.829 2.829a1 1 0 0 1 0 1.414L7.243 18zM3 20h18v2H3v-2z"
+                        d="M13.06 8.11l1.415 1.415a7 7 0 0 1 0 9.9l-.354.353a7 7 0 0 1-9.9-9.9l1.415 1.415a5 5 0 1 0 7.071 7.071l.354-.354a5 5 0 0 0 0-7.07l-1.415-1.415 1.415-1.414zm6.718 6.011l-1.414-1.414a5 5 0 1 0-7.071-7.071l-.354.354a5 5 0 0 0 0 7.07l1.415 1.415-1.415 1.414-1.414-1.414a7 7 0 0 1 0-9.9l.354-.353a7 7 0 0 1 9.9 9.9z"
                       />
                     </svg>
                   </button>
                   <div
-                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-5 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-52 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
                   >
-                    Whiteboard
+                    Share meeting link
                   </div>
                 </div>
               </div>
@@ -703,7 +714,7 @@ async function toggleScreenShare() {
                     </svg>
                   </button>
                   <div
-                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-5 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
                   >
                     Share File
                   </div>
@@ -712,6 +723,7 @@ async function toggleScreenShare() {
                 <div class="relative group">
                   <button
                     type="button"
+                    @click="copyMeetingLink"
                     class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
                     <svg
@@ -728,7 +740,7 @@ async function toggleScreenShare() {
                     </svg>
                   </button>
                   <div
-                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-5 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
                   >
                     Change View
                   </div>
@@ -778,43 +790,6 @@ async function toggleScreenShare() {
                 />
               </svg>
               Copy Meeting Link
-            </MenuItem>
-            <MenuItem
-              as="button"
-              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
-                />
-              </svg>
-              Manage Participants
-            </MenuItem>
-            <MenuItem
-              as="button"
-              @click="toggleScreenShare"
-              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M10 3v2H5v14h14v-5h2v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6zm7.586 2H13V3h8v8h-2V6.414l-7 7L10.586 12l7-7z"
-                />
-              </svg>
-              Share Screen
             </MenuItem>
             <MenuItem
               as="button"

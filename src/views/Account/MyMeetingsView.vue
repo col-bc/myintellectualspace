@@ -3,20 +3,24 @@ import { ref, reactive, watch, onMounted } from 'vue'
 import LoaderComponent from '@/components/LoaderComponent.vue'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import useUserStore from '@/stores/user'
+import useMeetingStore from '../../stores/meeting'
 import { useRouter } from 'vue-router'
 import { Dialog } from '@headlessui/vue'
 
 const user = useUserStore()
+const meetingStore = useMeetingStore()
 const router = useRouter()
 const state = reactive({
   loading: false,
   meetingId: '',
   error: null,
   recentMeetings: [],
+  myMeetings: [],
   showScheduleDialog: false
 })
 const scheduleMeeting = reactive({
   error: null,
+  new: true,
   id: '',
   date: '',
   time: '',
@@ -56,13 +60,15 @@ watch(
   { deep: true }
 )
 
-onMounted(() => {
+onMounted(async () => {
   state.loading = true
   // get recent meetings from local storage
   const recentMeetings = localStorage.getItem('recentMeetings')
   if (recentMeetings) {
     state.recentMeetings = JSON.parse(recentMeetings)
   }
+  await meetingStore.fetchMeetings()
+  state.myMeetings = meetingStore.meetings
   state.loading = false
 })
 
@@ -120,6 +126,62 @@ function openMeeting(id) {
   })
   window.open(routeData.href, '_blank')
 }
+
+async function onScheduleMeeting() {
+  // validate form
+  if (!scheduleMeeting.id) {
+    scheduleMeeting.error = 'Meeting ID is required'
+    return
+  }
+  if (!scheduleMeeting.date) {
+    scheduleMeeting.error = 'Date is required'
+    return
+  }
+  if (!scheduleMeeting.time) {
+    scheduleMeeting.error = 'Time is required'
+    return
+  }
+  if (!scheduleMeeting.duration) {
+    scheduleMeeting.error = 'Duration is required'
+    return
+  }
+
+  if (scheduleMeeting.new) {
+    // create meeting
+    await meetingStore.addMeeting({
+      id: scheduleMeeting.id,
+      date: scheduleMeeting.date,
+      time: scheduleMeeting.time,
+      duration: scheduleMeeting.duration,
+      notes: scheduleMeeting.notes,
+      invitees: scheduleMeeting.invitees
+    })
+  } else {
+    // update meeting
+    await meetingStore.updateMeeting({
+      id: scheduleMeeting.id,
+      date: scheduleMeeting.date,
+      time: scheduleMeeting.time,
+      duration: scheduleMeeting.duration,
+      notes: scheduleMeeting.notes,
+      invitees: scheduleMeeting.invitees
+    })
+  }
+}
+
+async function modifyScheduledMeeting(m) {
+  state.showScheduleDialog = true
+  scheduleMeeting.new = false
+  scheduleMeeting.id = m.id
+  scheduleMeeting.date = m.date
+  scheduleMeeting.time = m.time
+  scheduleMeeting.duration = m.duration
+  scheduleMeeting.notes = m.notes
+  scheduleMeeting.invitees = m.invitees
+}
+async function deleteScheduledMeeting(id) {
+  await meetingStore.removeMeeting(id)
+}
 </script>
 
 <template>
@@ -146,9 +208,49 @@ function openMeeting(id) {
           <h6 class="text-xl font-bold text-gray-900 dark:text-white mb-6">
             Upcoming Meetings
           </h6>
-          <p class="text-gray-700 dark:text-gray-400 mb-12">
+          <p
+            v-if="!state.myMeetings"
+            class="text-gray-700 dark:text-gray-400 mb-12"
+          >
             You don't have any upcoming meetings.
           </p>
+          <ul
+            v-if="state.myMeetings"
+            class="divide-y divide-gray-300 dark:divide-gray-700 mb-12"
+          >
+            <li
+              v-for="m of state.myMeetings"
+              :key="m.id"
+              class="py-2 px-4 flex items-center gap-4 text-gray-700 dark:text-gray-400"
+            >
+              <strong
+                class="font-mono text-lg text-gray-800 dark:text-white font-medium uppercase"
+              >
+                {{ m.id }}
+              </strong>
+              <span class="text-gray-500 dark:text-gray-500">
+                {{ new Date(m.date).toLocaleString('en-us') }}
+                @ {{ m.time }}
+              </span>
+              <router-link
+                :to="{
+                  name: 'host-meeting',
+                  params: { channel: m.id }
+                }"
+                target="_blank"
+                class="ml-auto px-3 py-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+              >
+                Join
+              </router-link>
+              <button
+                type="button"
+                @click="modifyScheduledMeeting(m)"
+                class="px-3 py-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+              >
+                Modify
+              </button>
+            </li>
+          </ul>
           <h6 class="text-xl font-bold text-gray-900 dark:text-white mb-6">
             Recent Meetings
           </h6>
@@ -181,7 +283,7 @@ function openMeeting(id) {
         </div>
         <div class="flex-1">
           <div
-            class="bg-white dark:bg-gray-800 border rounded-lg shadow-md border-gray-300 dark:border-gray-700 p-6 w-full max-w-lg  md:ml-auto mb-12"
+            class="bg-white dark:bg-gray-800 border rounded-lg shadow-md border-gray-300 dark:border-gray-700 p-6 w-full max-w-lg md:ml-auto mb-12"
           >
             <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-6">
               Join or Create a Video Meeting
@@ -241,7 +343,12 @@ function openMeeting(id) {
               </button>
               <button
                 type="button"
-                @click="state.showScheduleDialog = true"
+                @click="
+                  () => {
+                    state.showScheduleDialog = true
+                    scheduleMeeting.new = true
+                  }
+                "
                 class="w-full flex items-center justify-center gap-2.5 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
               >
                 <svg
@@ -275,11 +382,36 @@ function openMeeting(id) {
         <div
           class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
         >
-          <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-            Schedule a Meeting
-          </h2>
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+              <template v-if="!scheduleMeeting.new"> Update Meeting </template>
+              <template v-else> Schedule a Meeting </template>
+            </h2>
+            <button
+              type="button"
+              v-if="!scheduleMeeting.new"
+              @click="deleteScheduledMeeting(scheduleMeeting.id)"
+              class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"
+                />
+              </svg>
+            </button>
+          </div>
 
-          <form @submit.prevent class="flex flex-col gap-4 mb-6">
+          <form
+            @submit.prevent="onScheduleMeeting"
+            class="flex flex-col gap-4 mb-6"
+          >
             <div>
               <label
                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -320,6 +452,7 @@ function openMeeting(id) {
               >
               <input
                 type="date"
+                v-model="scheduleMeeting.date"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required
               />
@@ -331,6 +464,7 @@ function openMeeting(id) {
               >
               <input
                 type="time"
+                v-model="scheduleMeeting.time"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required
               />
@@ -342,6 +476,7 @@ function openMeeting(id) {
               >
               <input
                 type="number"
+                v-model="scheduleMeeting.duration"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required
               />
@@ -352,6 +487,7 @@ function openMeeting(id) {
                 >Notes</label
               >
               <textarea
+                v-model="scheduleMeeting.notes"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 rows="5"
               ></textarea>
@@ -362,29 +498,32 @@ function openMeeting(id) {
                 >Invite participants</label
               >
               <input
+                type="text"
+                v-model="scheduleMeeting.participants"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
+            <div
+              class="flex flex-col-reverse md:flex-row items-center justify-center gap-4"
+            >
+              <button
+                type="submit"
+                class="w-full text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg px-5 py-2.5 text-center mr-2"
+              >
+                <template v-if="scheduleMeeting.new">
+                  Schedule Meeting
+                </template>
+                <template v-else> Update Meeting </template>
+              </button>
+              <button
+                type="reset"
+                @click="state.showScheduleDialog = false"
+                class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
+              >
+                Close
+              </button>
+            </div>
           </form>
-
-          <div
-            class="flex flex-col-reverse md:flex-row items-center justify-center gap-4"
-          >
-            <button
-              type="submit"
-              @click="acceptBeta"
-              class="w-full text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg px-5 py-2.5 text-center mr-2"
-            >
-              Schedule Meeting
-            </button>
-            <button
-              type="reset"
-              @click="state.showScheduleDialog = false"
-              class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
-            >
-              Close
-            </button>
-          </div>
         </div>
       </div>
     </div>
