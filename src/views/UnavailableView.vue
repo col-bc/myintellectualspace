@@ -24,7 +24,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
           <h1
             class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-6"
           >
-            This page is unavailable
+            This Page is Not Available
           </h1>
           <p
             class="leading-loose text-lg text-gray-700 dark:text-gray-300 mb-6"

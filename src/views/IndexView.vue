@@ -68,12 +68,12 @@ onMounted(async () => {
       >
         <div class="container mx-auto flex-1 flex flex-col gap-8 py-12">
           <h1
-            class="max-w-screen-xl text-4xl md:text-5xl font-black drop-shadow-xl md:leading-relaxed text-white"
+            class="max-w-screen-xl text-5xl md:text-5xl font-black drop-shadow-xl md:leading-relaxed text-white"
           >
-            Your space to learn, grow, share and connect.
+            Your Space to Learn, Grow, Share and Connect
           </h1>
           <p
-            class="max-w-screen-md text-lg md:text-xl drop-shadow text-gray-300 leading-normal md:leading-loose"
+            class="max-w-screen-md text-lg md:text-xl drop-shadow text-gray-200 leading-normal md:leading-loose"
           >
             Intellectual Space is a place for learning, networking, and
             innovation. Our mission is to give access and guidance to all
@@ -117,7 +117,7 @@ onMounted(async () => {
       <h2
         class="text-gray-900 text-center text-4xl font-black drop-shadow-xl leading-snug dark:text-white mb-12"
       >
-        Catch up on the latest posts
+        Catch Up on the Recent Posts
       </h2>
       <div class="max-w-screen-xl w-full mx-auto px-2 md:px-0 mb-12 sm:px-4">
         <div class="w-full max-w-2xl mx-auto flex flex-col gap-4 md:gap-12">
@@ -158,7 +158,7 @@ onMounted(async () => {
           <h1
             class="text-3xl md:text-5xl font-black drop-shadow-xl leading-loose text-white"
           >
-            Build your network and grow your career.
+            Build Your Network and Grow Your Career.
           </h1>
           <p
             class="text-lg md:text-lg drop-shadow text-gray-300 leading-normal md:leading-loose"

@@ -1,7 +1,6 @@
 <script setup>
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import PostComponent from '@/components/PostComponent.vue'
-import ModalComponent from '@/components/ModalComponent.vue'
 import NewPostComponent from '@/components/NewPostComponent.vue'
 import useUserStore from '@/stores/user'
 import usePostStore from '@/stores/post'

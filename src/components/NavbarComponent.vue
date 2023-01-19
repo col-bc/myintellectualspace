@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
                 />
               </svg>
             </div>
-            My Profile
+            Your Profile
           </router-link>
         </li>
         <li>
@@ -182,7 +182,7 @@ onBeforeUnmount(() => {
                 />
               </svg>
             </div>
-            My Courses
+            Your Courses
           </router-link>
         </li>
         <li>
