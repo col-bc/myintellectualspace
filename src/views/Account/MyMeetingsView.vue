@@ -6,6 +6,12 @@ import useUserStore from '@/stores/user'
 import useMeetingStore from '../../stores/meeting'
 import { useRouter } from 'vue-router'
 import { Dialog } from '@headlessui/vue'
+import {
+  mdiVideoPlusOutline,
+  mdiClockTimeFiveOutline,
+  mdiRefresh,
+  mdiTrashCanOutline
+} from '@mdi/js'
 
 const user = useUserStore()
 const meetingStore = useMeetingStore()
@@ -126,7 +132,6 @@ function openMeeting(id) {
   })
   window.open(routeData.href, '_blank')
 }
-
 async function onScheduleMeeting() {
   // validate form
   if (!scheduleMeeting.id) {
@@ -168,7 +173,6 @@ async function onScheduleMeeting() {
     })
   }
 }
-
 async function modifyScheduledMeeting(m) {
   state.showScheduleDialog = true
   scheduleMeeting.new = false
@@ -327,18 +331,7 @@ async function deleteScheduledMeeting(id) {
                 @click="createMeeting"
                 class="w-full flex items-center justify-center gap-2.5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0H24V24H0z" />
-                  <path
-                    d="M16 4c.552 0 1 .448 1 1v4.2l5.213-3.65c.226-.158.538-.103.697.124.058.084.09.184.09.286v12.08c0 .276-.224.5-.5.5-.103 0-.203-.032-.287-.09L17 14.8V19c0 .552-.448 1-1 1H2c-.552 0-1-.448-1-1V5c0-.552.448-1 1-1h14zm-1 2H3v12h12V6zM8 8h2v3h3v2H9.999L10 16H8l-.001-3H5v-2h3V8zm13 .841l-4 2.8v.718l4 2.8V8.84z"
-                  />
-                </svg>
+                <svg-icon :path="mdiVideoPlusOutline" type="mdi" />
                 Start a Meeting
               </button>
               <button
@@ -351,18 +344,11 @@ async function deleteScheduledMeeting(id) {
                 "
                 class="w-full flex items-center justify-center gap-2.5 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                <svg-icon
+                  :path="mdiClockTimeFiveOutline"
+                  type="mdi"
                   class="w-5 h-5 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z"
-                  />
-                </svg>
+                />
                 Schedule for Later
               </button>
             </div>
@@ -393,18 +379,7 @@ async function deleteScheduledMeeting(id) {
               @click="deleteScheduledMeeting(scheduleMeeting.id)"
               class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"
-                />
-              </svg>
+              <svg-icon :path="mdiTrashCanOutline" type="mdi" />
             </button>
           </div>
 
@@ -430,18 +405,11 @@ async function deleteScheduledMeeting(id) {
                   @click="scheduleMeeting.id = generateId()"
                   class="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:text-gray-300 dark:focus:ring-blue-500 rounded-r-lg"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
+                  <svg-icon
+                    :path="mdiRefresh"
+                    type="mdi"
                     class="w-5 h-5 fill-current"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                  >
-                    <path fill="none" d="M0 0h24v24H0z" />
-                    <path
-                      d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"
-                    />
-                  </svg>
+                  />
                 </button>
               </div>
             </div>

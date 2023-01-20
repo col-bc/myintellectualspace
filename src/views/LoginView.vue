@@ -11,6 +11,7 @@ import {
 import { getDoc, doc, getFirestore } from 'firebase/firestore'
 import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { mdiHeadCogOutline } from '@mdi/js'
 
 const provider = new GoogleAuthProvider()
 const auth = getAuth()
@@ -167,26 +168,19 @@ function declineBeta() {
   <main class="min-h-screen flex items-stretch bg-white dark:bg-slate-800">
     <div class="flex-1 max-w-md mx-auto flex flex-col justify-center px-4">
       <h1
-        class="text-3xl font-bold text-center text-gray-900 mb-4 dark:text-white"
+        class="text-3xl font-bold text-center text-gray-900 mb-6 dark:text-white"
       >
-        Welcome back to
+        Welcome Back to
       </h1>
       <router-link
         to="/"
         class="flex items-center justify-center mb-12 text-gray-900 dark:text-white"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
+        <svg-icon
+          :path="mdiHeadCogOutline"
+          type="mdi"
           class="fill-current h-8 w-8 mr-3"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-        >
-          <path fill="none" d="M0 0H24V24H0z" />
-          <path
-            d="M11 2c4.068 0 7.426 3.036 7.934 6.965l2.25 3.539c.148.233.118.58-.225.728L19 14.07V17c0 1.105-.895 2-2 2h-1.999L15 22H6v-3.694c0-1.18-.436-2.297-1.244-3.305C3.657 13.631 3 11.892 3 10c0-4.418 3.582-8 8-8zm0 5c-.552 0-1 .448-1 1v.999L9 9c-.552 0-1 .448-1 1s.448 1 1 1l1-.001V12c0 .552.448 1 1 1s1-.448 1-1v-1h1c.552 0 1-.448 1-1s-.448-1-1-1h-1V8c0-.552-.448-1-1-1z"
-          />
-        </svg>
+        />
         <span class="self-center text-2xl font-bold whitespace-nowrap"
           >Intellectual Space</span
         >
@@ -296,15 +290,20 @@ function declineBeta() {
           <span v-else> Continue </span>
         </button>
       </form>
-
-      <p class="mb-8 dark:text-white">
-        Need an account?
+      <div
+        class="flex items-center justify-between divide-x dark:divide-gray-600"
+      >
         <router-link
           to="/register"
-          class="text-blue-600 hover:underline dark:text-blue-400"
-          >Create one here.</router-link
+          class="text-blue-600 hover:underline dark:text-blue-400 flex-1 text-center"
+          >Create Account</router-link
         >
-      </p>
+        <router-link
+          to="/forgot-password"
+          class="text-blue-600 hover:underline dark:text-blue-400 flex-1 text-center"
+          >Forgot Password?</router-link
+        >
+      </div>
     </div>
   </main>
 

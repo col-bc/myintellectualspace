@@ -2,11 +2,22 @@
 import AlertComponent from '@/components/AlertComponent.vue'
 import usePostStore from '@/stores/post'
 import useUserStore from '@/stores/user'
-import { Timestamp } from '@firebase/firestore'
+import { serverTimestamp, Timestamp } from '@firebase/firestore'
 import { Dialog, Menu, MenuButton, MenuItems } from '@headlessui/vue'
 import { computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import LightboxComponent from './LightboxComponent.vue'
+import {
+  mdiMapMarkerOutline,
+  mdiTrashCanOutline,
+  mdiFlagOutline,
+  mdiCommentOutline,
+  mdiHeart,
+  mdiHeartOutline,
+  mdiSend,
+  mdiClose,
+  mdiDeleteOutline
+} from '@mdi/js'
 
 const emit = defineEmits(['delete', 'comment'])
 const user = useUserStore()
@@ -28,14 +39,16 @@ const state = reactive({
   comments: props.post.comments,
   comment: '',
   showReportDialog: false,
-  isRecentlyActive: false
+  isRecentlyActive: false,
+  reportSubmitted: false
 })
 const reportForm = reactive({
   error: '',
   postId: props.post?.id,
   userId: user.user?.uid,
   reason: 'default',
-  details: ''
+  details: '',
+  status: 'pending'
 })
 
 onMounted(async () => {
@@ -138,7 +151,10 @@ async function reportPost() {
       'Please provide more details about why you are reporting this post'
     return
   }
+  reportForm.timestamp = serverTimestamp()
   // send report
+  await post.reportPost(reportForm)
+  state.reportSubmitted = true
 }
 </script>
 
@@ -211,18 +227,11 @@ async function reportPost() {
         v-if="!!props.post.location"
         class="flex items-center gap-2 mr-auto text-xs text-gray-700 dark:text-gray-300"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          class="w-4 h-4 fill-current"
-          width="24"
-          height="24"
-        >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zm4.95-7.778a7 7 0 1 0-9.9 0L12 20.9l4.95-4.95zM12 13a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
-          />
-        </svg>
+        <svg-icon
+          :path="mdiMapMarkerOutline"
+          type="mdi"
+          class="w-5 h-5 fill-current"
+        />
         {{ props.post.location }}
       </p>
       <!-- Delete btn -->
@@ -231,18 +240,11 @@ async function reportPost() {
           type="button"
           class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
+          <svg-icon
+            :path="mdiTrashCanOutline"
+            type="mdi"
             class="w-5 h-5 fill-current"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path
-              d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
-            />
-          </svg>
+          />
         </MenuButton>
         <MenuItems
           class="flex flex-col absolute top-0 right-full w-64 mr-2 max-w-sm p-4 text-gray-800 bg-white border border-gray-300 rounded-lg shadow-md dark:text-white dark:bg-gray-800 dark:border-gray-600"
@@ -257,18 +259,11 @@ async function reportPost() {
             @click="deletePost"
             class="flex items-center justify-center gap-2.5 w-full focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
+            <svg-icon
+              :path="mdiTrashCanOutline"
+              type="mdi"
               class="flex-shrink-0 w-5 h-5 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
-              />
-            </svg>
+            />
             Yes, delete post.
           </button>
         </MenuItems>
@@ -280,18 +275,11 @@ async function reportPost() {
         @click="state.showReportDialog = true"
         class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
+        <svg-icon
+          :path="mdiFlagOutline"
+          type="mdi"
           class="w-5 h-5 fill-current"
-          width="24"
-          height="24"
-        >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M5 16v6H3V3h9.382a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5zM5 5v9h8.236l1 2H19V7h-6.236l-1-2H5z"
-          />
-        </svg>
+        />
       </button>
       <!-- Comment counter -->
       <button
@@ -304,18 +292,11 @@ async function reportPost() {
         >
           {{ props.post.comments ? props.post.comments.length : '0' }}
         </span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
+        <svg-icon
+          :path="mdiCommentOutline"
+          type="mdi"
           class="w-5 h-5 fill-current"
-          width="24"
-          height="24"
-        >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M10 3h4a8 8 0 1 1 0 16v3.5c-5-2-12-5-12-11.5a8 8 0 0 1 8-8zm2 14h2a6 6 0 1 0 0-12h-4a6 6 0 0 0-6 6c0 3.61 2.462 5.966 8 8.48V17z"
-          />
-        </svg>
+        />
       </button>
       <!-- Like btn -->
       <button
@@ -328,32 +309,18 @@ async function reportPost() {
         >
           {{ props.post.likes ? props.post.likes.length : '0' }}
         </span>
-        <svg
+        <svg-icon
           v-if="!isLiked"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
+          :path="mdiHeartOutline"
+          type="mdi"
           class="w-5 h-5 fill-current"
-          width="24"
-          height="24"
-        >
-          <path fill="none" d="M0 0H24V24H0z" />
-          <path
-            d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
-          />
-        </svg>
-        <svg
+        />
+        <svg-icon
           v-else
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          class="w-5 h-5 fill-red-500"
-          width="24"
-          height="24"
-        >
-          <path fill="none" d="M0 0H24V24H0z" />
-          <path
-            d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228z"
-          />
-        </svg>
+          :path="mdiHeart"
+          type="mdi"
+          class="w-5 h-5 text-red-500"
+        />
       </button>
     </div>
 
@@ -371,17 +338,7 @@ async function reportPost() {
           @click="addComment"
           class="inline-flex justify-center p-2 text-blue-600 rounded-full cursor-pointer hover:bg-blue-100 dark:text-blue-500 dark:hover:bg-gray-600"
         >
-          <svg
-            aria-hidden="true"
-            class="w-6 h-6 rotate-90"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"
-            ></path>
-          </svg>
+          <svg-icon :path="mdiSend" type="mdi" />
           <span class="sr-only">Send message</span>
         </button>
       </div>
@@ -427,18 +384,11 @@ async function reportPost() {
               "
               class="p-1.5 text-xs rounded-md bg-white text-red-500 hover:bg-red-500 hover:text-white dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-400 dark:hover:text-gray-900 transition-colors duration-200 ease-in-out"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
+              <svg-icon
+                :path="mdiTrashCanOutline"
+                type="mdi"
                 class="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
-                />
-              </svg>
+              />
             </button>
           </div>
         </template>
@@ -455,30 +405,24 @@ async function reportPost() {
     <div class="fixed inset-0 overflow-y-auto">
       <div class="flex min-h-full items-center justify-center p-4">
         <div
+          v-if="!state.reportSubmitted"
           class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
         >
           <div
             class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 dark:text-gray-800"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
+            <svg-icon
+              :path="mdiFlagOutline"
+              type="mdi"
               class="w-24 h-24 fill-current"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M5 16v6H3V3h9.382a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5zM5 5v9h8.236l1 2H19V7h-6.236l-1-2H5z"
-              />
-            </svg>
+            />
           </div>
           <h2
             class="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white"
           >
-            Report post
+            Report Post
           </h2>
-          <p class="text-gray-700 dark:text-gray-300 mb-6">
+          <p class="text-gray-700 dark:text-gray-300 mb-6 leading-loose">
             You should report this post if it violates the
             <router-link
               to="/community-guidelines"
@@ -573,6 +517,41 @@ async function reportPost() {
               </button>
             </div>
           </form>
+        </div>
+        <div
+          v-else
+          class="w-full max-w-lg flex flex-col p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+        >
+          <div
+            class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 dark:text-gray-800"
+          >
+            <svg-icon
+              :path="mdiFlagOutline"
+              type="mdi"
+              class="w-24 h-24 fill-current"
+            />
+          </div>
+          <h2
+            class="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white"
+          >
+            We have received your report
+          </h2>
+          <p class="text-gray-700 dark:text-gray-300 leading-loose mb-6">
+            You post will be reviewed by our team within 48 hours and we will
+            take appropriate action. If you have any questions, please
+            <router-link
+              to="/support"
+              class="text-blue-700 dark:text-blue-400 hover:underline"
+              >contact us</router-link
+            >. Thanks for helping us keep the community safe.
+          </p>
+          <button
+            type="reset"
+            @click="state.showReportDialog = false"
+            class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

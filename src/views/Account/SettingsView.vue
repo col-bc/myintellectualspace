@@ -10,6 +10,7 @@ import {
   EmailAuthProvider,
   updatePassword
 } from 'firebase/auth'
+import { mdiLoginVariant, mdiTrashCanOutline, mdiOpenInNew } from '@mdi/js'
 
 const user = useUserStore()
 const auth = getAuth()
@@ -33,7 +34,6 @@ onMounted(async () => {
   state.isGoogle = auth.currentUser.providerData[0].providerId === 'google.com'
   state.loading = false
 })
-
 watch(
   () => state.showDeactivateDialog,
   (val) => {
@@ -48,7 +48,6 @@ watch(
 async function updateUser() {
   await user.updateUser(state.user)
 }
-
 async function changePassword() {
   state.error = null
   if (state.isGoogle) {
@@ -144,7 +143,6 @@ async function changePassword() {
     return
   }
 }
-
 async function deactivateAccount() {}
 </script>
 
@@ -295,18 +293,11 @@ async function deactivateAccount() {}
                 class="p-4 flex items-center gap-2.5 text-sm text-blue-700 bg-blue-100 rounded-lg dark:bg-blue-200 dark:text-blue-800"
                 role="alert"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
+                <svg-icon
+                  :path="mdiLoginVariant"
+                  type="mdi"
                   class="w-5 h-5 fill-current"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M4 15h2v5h12V4H6v5H4V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6zm6-4V8l5 4-5 4v-3H2v-2h8z"
-                  />
-                </svg>
+                />
                 <div>
                   <span class="font-medium">Last login: </span>
                   {{
@@ -382,18 +373,11 @@ async function deactivateAccount() {}
                   class="flex items-center gap-2.5 text-blue-700 hover:underline dark:text-blue-400"
                 >
                   Change your password on Google
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
+                  <svg-icon
+                    :path="mdiOpenInNew"
+                    type="mdi"
                     class="w-5 h-5 fill-current"
-                    width="24"
-                    height="24"
-                  >
-                    <path fill="none" d="M0 0h24v24H0z" />
-                    <path
-                      d="M10 6v2H5v11h11v-5h2v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6zm11-3v8h-2V6.413l-7.793 7.794-1.414-1.414L17.585 5H13V3h8z"
-                    />
-                  </svg>
+                  />
                 </a>
               </template>
             </div>
@@ -500,18 +484,11 @@ async function deactivateAccount() {}
                     <div
                       class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 dark:text-gray-800"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
+                      <svg-icon
+                        :path="mdiTrashCanOutline"
+                        type="mdi"
                         class="w-24 h-24 fill-current"
-                        width="24"
-                        height="24"
-                      >
-                        <path fill="none" d="M0 0h24v24H0z" />
-                        <path
-                          d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
-                        />
-                      </svg>
+                      />
                     </div>
                     <h2
                       class="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white"

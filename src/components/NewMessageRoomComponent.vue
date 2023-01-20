@@ -4,6 +4,7 @@ import useMessageStore from '@/stores/message'
 import LoaderComponent from '@/components/LoaderComponent.vue'
 import AlertComponent from '@/components/AlertComponent.vue'
 import { reactive, onMounted } from 'vue'
+import { mdiChatPlusOutline, mdiMagnify } from '@mdi/js'
 
 const user = useUserStore()
 const message = useMessageStore()
@@ -100,18 +101,11 @@ async function createRoom() {
   <div
     class="text-white mb-6 block w-auto mx-auto p-4 rounded-full shadow-lg shadow-purple-400/30 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 dark:text-gray-800"
   >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
+    <svg-icon
+      :path="mdiChatPlusOutline"
       class="w-24 h-24 fill-current"
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-    >
-      <path fill="none" d="M0 0h24v24H0z" />
-      <path
-        d="M14 3v2H4v13.385L5.763 17H20v-7h2v8a1 1 0 0 1-1 1H6.455L2 22.5V4a1 1 0 0 1 1-1h11zm5 0V0h2v3h3v2h-3v3h-2V5h-3V3h3z"
-      />
-    </svg>
+      type="mdi"
+    />
   </div>
   <h2 class="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
     Create a new message room
@@ -140,18 +134,11 @@ async function createRoom() {
         >Recipients</label
       >
       <div class="group relative">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="w-5 h-5 absolute top-1/2 left-2 transform -translate-y-1/2 text-gray-700 dark:text-gray-400 fill-current"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-        >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0 1 11 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 0 1-1.969 5.617zm-2.006-.742A6.977 6.977 0 0 0 18 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 0 0 4.875-1.975l.15-.15z"
-          />
-        </svg>
+        <svg-icon
+          :path="mdiMagnify"
+          type="mdi"
+          class="absolute top-2 left-3 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"
+        />
         <input
           type="text"
           v-model="state.recipientSearch"

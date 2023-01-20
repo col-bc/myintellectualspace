@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, onMounted, onUpdated } from 'vue'
+import { mdiAlertCircleOutline, mdiClose } from '@mdi/js'
 
 const props = defineProps({
   type: {
@@ -58,8 +59,9 @@ onUpdated(() => {
         alert.type === 'primary'
     }"
   >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
+    <svg-icon
+      :path="mdiAlertCircleOutline"
+      type="mdi"
       v-if="alert.showIcon"
       class="w-5 h-5"
       :class="{
@@ -68,15 +70,7 @@ onUpdated(() => {
         'fill-green-700 dark:fill-green-800': alert.type === 'success',
         'fill-blue-700 dark:fill-blue-800': alert.type === 'primary'
       }"
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-    >
-      <path fill="none" d="M0 0h24v24H0z" />
-      <path
-        d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
-      />
-    </svg>
+    />
     <span
       class="flex-1 text-sm font-medium"
       :class="{ 'ml-3': props.showIcon }"
@@ -100,18 +94,7 @@ onUpdated(() => {
       }"
     >
       <span class="sr-only">Close</span>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5"
-        viewBox="0 0 24 24"
-        width="24"
-        height="24"
-      >
-        <path fill="none" d="M0 0h24v24H0z" />
-        <path
-          d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"
-        />
-      </svg>
+      <svg-icon :path="mdiClose" type="mdi" class="w-5 h-5" />
     </button>
   </div>
 </template>

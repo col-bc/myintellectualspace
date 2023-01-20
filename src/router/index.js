@@ -102,8 +102,14 @@ const router = createRouter({
     },
     {
       path: '/not-found',
-      name: 'not-found',
-      component: () => import('@/views/Account/UserNotFoundView.vue')
+      name: 'user-not-found',
+      component: () => import('@/views/Account/UserNotFoundView.vue'),
+      query: {
+        handle: {
+          type: String,
+          required: true
+        }
+      }
     },
     // /messages
     {
@@ -225,24 +231,10 @@ const router = createRouter({
 
     // # Learn Routes - TODO
     // /learn
-    //  - /learn/:id
     {
       path: '/learn',
       name: 'learn-home',
-      redirect: '/unavailable'
-      // component: () => import('@/views/Learn/HomeView.vue')
-    },
-    {
-      path: '/learn/:id',
-      name: 'learn-course',
-      params: {
-        name: {
-          type: Number,
-          required: true
-        }
-      },
-      redirect: '/unavailable'
-      // component: () => import('@/views/Learn/CourseView.vue')
+      component: () => import('@/views/Learn/HomeView.vue')
     },
 
     // # Teach Routes - TODO

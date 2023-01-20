@@ -6,6 +6,14 @@ import useMessageStore from '@/stores/message.js'
 import useUserStore from '@/stores/user.js'
 import { onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import {
+  mdiChatPlusOutline,
+  mdiTrashCanOutline,
+  mdiAccountGroupOutline,
+  mdiCogOutline,
+  mdiClose,
+  mdiSend
+} from '@mdi/js'
 
 const user = useUserStore()
 const message = useMessageStore()
@@ -109,18 +117,11 @@ function getAvatarByUid(uid) {
             @click="state.showNewMessageDialog = true"
             class="inline-flex items-center justify-center w-auto gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg p-4 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 focus:shadow-sm focus:translate-y-0.5 transition transform duration-200 ease-in-out"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
+            <svg-icon
+              :path="mdiChatPlusOutline"
+              type="mdi"
               class="w-8 h-8 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M14 3v2H4v13.385L5.763 17H20v-7h2v8a1 1 0 0 1-1 1H6.455L2 22.5V4a1 1 0 0 1 1-1h11zm5 0V0h2v3h3v2h-3v3h-2V5h-3V3h3z"
-              />
-            </svg>
+            />
           </button>
         </div>
 
@@ -201,18 +202,11 @@ function getAvatarByUid(uid) {
                 @click="deleteRoom"
                 class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                <svg-icon
+                  :path="mdiTrashCanOutline"
+                  type="mdi"
                   class="w-5 h-5 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-4.586 6l1.768 1.768-1.414 1.414L12 15.414l-1.768 1.768-1.414-1.414L10.586 14l-1.768-1.768 1.414-1.414L12 12.586l1.768-1.768 1.414 1.414L13.414 14zM9 4v2h6V4H9z"
-                  />
-                </svg>
+                />
               </button>
               <button
                 v-if="!!state.activeRoom"
@@ -220,18 +214,11 @@ function getAvatarByUid(uid) {
                 @click="updateRecipients"
                 class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                <svg-icon
+                  :path="mdiAccountGroupOutline"
+                  type="mdi"
                   class="w-5 h-5 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
-                  />
-                </svg>
+                />
               </button>
               <button
                 v-if="!!state.activeRoom"
@@ -239,18 +226,11 @@ function getAvatarByUid(uid) {
                 @click="updateSettings"
                 class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                <svg-icon
+                  :path="mdiCogOutline"
+                  type="mdi"
                   class="w-5 h-5 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M8.686 4l2.607-2.607a1 1 0 0 1 1.414 0L15.314 4H19a1 1 0 0 1 1 1v3.686l2.607 2.607a1 1 0 0 1 0 1.414L20 15.314V19a1 1 0 0 1-1 1h-3.686l-2.607 2.607a1 1 0 0 1-1.414 0L8.686 20H5a1 1 0 0 1-1-1v-3.686l-2.607-2.607a1 1 0 0 1 0-1.414L4 8.686V5a1 1 0 0 1 1-1h3.686zM6 6v3.515L3.515 12 6 14.485V18h3.515L12 20.485 14.485 18H18v-3.515L20.485 12 18 9.515V6h-3.515L12 3.515 9.515 6H6zm6 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
-                  />
-                </svg>
+                />
               </button>
               <button
                 v-if="!!state.activeRoom"
@@ -258,18 +238,7 @@ function getAvatarByUid(uid) {
                 @click="router.push({ name: 'messages-home' })"
                 class="text-gray-900 bg-white focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"
-                  />
-                </svg>
+                <svg-icon :path="mdiClose" type="mdi" />
               </button>
             </div>
             <template v-if="state.activeRoom">
@@ -322,18 +291,11 @@ function getAvatarByUid(uid) {
                   @click="sendMessage"
                   class="inline-flex justify-center p-2 text-blue-600 rounded-full cursor-pointer hover:bg-blue-100 dark:text-blue-500 dark:hover:bg-gray-600"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6 fill-current"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                  >
-                    <path fill="none" d="M0 0h24v24H0z" />
-                    <path
-                      d="M3 13h6v-2H3V1.846a.5.5 0 0 1 .741-.438l18.462 10.154a.5.5 0 0 1 0 .876L3.741 22.592A.5.5 0 0 1 3 22.154V13z"
-                    />
-                  </svg>
+                  <svg-icon
+                    :path="mdiSend"
+                    type="mdi"
+                    class="w-6 h-6 text-current"
+                  />
                   <span class="sr-only">Send message</span>
                 </button>
               </div>

@@ -5,6 +5,7 @@ import PostComponent from '@/components/PostComponent.vue'
 import { onMounted, reactive } from 'vue'
 import useUserStore from '@/stores/user'
 import usePostStore from '@/stores/post'
+import { mdiArrowRightThin, mdiBellOutline } from '@mdi/js'
 
 const user = useUserStore()
 const post = usePostStore()
@@ -89,22 +90,7 @@ onMounted(async () => {
               @click="$router.push('/register')"
               class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
             >
-              Get Started Now
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 ml-3"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
+              Get Started Now <svg-icon :path="mdiArrowRightThin" type="mdi" />
             </button>
           </div>
         </div>
@@ -130,22 +116,7 @@ onMounted(async () => {
           @click="$router.push('/feed/all')"
           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base mx-auto px-6 py-3.5 text-center flex items-center shadow-lg"
         >
-          Explore All Content
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5 ml-3"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
+          Explore All Content <svg-icon :path="mdiArrowRightThin" type="mdi" />
         </button>
       </div>
     </div>
@@ -175,20 +146,9 @@ onMounted(async () => {
             <button
               type="button"
               @click="$router.push('/learn')"
-              class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
+              class="inline-flex items-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                class="w-5 h-5 mr-3 fill-current"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M5 18h14v-6.969C19 7.148 15.866 4 12 4s-7 3.148-7 7.031V18zm7-16c4.97 0 9 4.043 9 9.031V20H3v-8.969C3 6.043 7.03 2 12 2zM9.5 21h5a2.5 2.5 0 1 1-5 0z"
-                />
-              </svg>
+              <svg-icon :path="mdiBellOutline" type="mdi" />
               Get Notified
             </button>
           </div>

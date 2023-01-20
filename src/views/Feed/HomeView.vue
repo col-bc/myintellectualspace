@@ -8,6 +8,16 @@ import { onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LoaderComponent from '../../components/LoaderComponent.vue'
 import useInterface from '@/stores/interface'
+import {
+  mdiSquareEditOutline,
+  mdiFilterOutline,
+  mdiChevronDown,
+  mdiAccountGroupOutline,
+  mdiArrowUpThin,
+  mdiArrowRightThin,
+  mdiArrowLeftThin,
+  mdiClose
+} from '@mdi/js'
 
 const ui = useInterface()
 const route = useRoute()
@@ -23,7 +33,6 @@ const state = reactive({
   collapseFilters: false,
   collapseSuggestions: false
 })
-
 const filters = reactive({
   showMyPosts: true,
   showNewPostDialog: false,
@@ -40,7 +49,6 @@ onMounted(async () => {
 
   state.loading = false
 })
-
 watch(
   () => route.name,
   async () => {
@@ -91,7 +99,6 @@ async function followUser(userData) {
   await user.toggleFollowUser(userData)
   state.suggestedUsers = await user.getSuggestedUsers()
 }
-
 function nextPage() {
   if (filters.page < filters.total) {
     filters.page++
@@ -102,7 +109,6 @@ function prevPage() {
     filters.page--
   }
 }
-
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -125,18 +131,7 @@ function scrollToTop() {
             @click="state.showNewPostDialog = true"
             class="inline-flex w-full items-center gap-4 justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 focus:shadow-sm focus:translate-y-0.5 transition duration-200 ease-in-out"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-6 h-6 fill-current"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
-              />
-            </svg>
+            <svg-icon :path="mdiSquareEditOutline" type="mdi" />
             New Post
           </button>
 
@@ -151,18 +146,7 @@ function scrollToTop() {
               <h4
                 class="flex items-center gap-3 text-gray-800 dark:text-white text-xl font-bold"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0H24V24H0z" />
-                  <path
-                    d="M21 4v2h-1l-5 7.5V22H9v-8.5L4 6H3V4h18zM6.404 6L11 12.894V20h2v-7.106L17.596 6H6.404z"
-                  />
-                </svg>
+                <svg-icon :path="mdiFilterOutline" type="mdi" />
                 Filters
               </h4>
               <button
@@ -171,18 +155,7 @@ function scrollToTop() {
                 class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
                 :class="{ 'rotate-180': state.collapseFilters }"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M12 13.172l4.95-4.95 1.414 1.414L12 16 5.636 9.636 7.05 8.222z"
-                  />
-                </svg>
+                <svg-icon :path="mdiChevronDown" type="mdi" />
               </button>
             </div>
             <div
@@ -230,18 +203,7 @@ function scrollToTop() {
               <h4
                 class="flex items-center gap-3 text-gray-800 dark:text-white text-xl font-bold"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
-                  />
-                </svg>
+                <svg-icon :path="mdiAccountGroupOutline" type="mdi" />
                 Suggestions for you
               </h4>
               <button
@@ -250,18 +212,7 @@ function scrollToTop() {
                 class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
                 :class="{ 'rotate-180': state.collapseSuggestions }"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 fill-current"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M12 13.172l4.95-4.95 1.414 1.414L12 16 5.636 9.636 7.05 8.222z"
-                  />
-                </svg>
+                <svg-icon :path="mdiChevronDown" type="mdi" />
               </button>
             </div>
             <div
@@ -298,7 +249,7 @@ function scrollToTop() {
                   <button
                     type="button"
                     @click="followUser(user)"
-                    class="ml-auto py-2 px-3 text-xs font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    class="ml-auto py-2 px-3 text-xs font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
                     Follow
                   </button>
@@ -311,16 +262,7 @@ function scrollToTop() {
             @click="scrollToTop"
             class="md:sticky md:top-6 hidden w-full md:flex items-center justify-center gap-3 text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 hover:shadow transition-all duration-300"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path d="M13 12v8h-2v-8H4l8-8 8 8z" />
-            </svg>
+            <svg-icon :path="mdiArrowUpThin" type="mdi" />
             Back to top
           </button>
         </div>
@@ -328,60 +270,62 @@ function scrollToTop() {
         <!-- Content -->
         <div class="flex-1 max-h-full">
           <!-- Tabs -->
-          <div
-            class="mb-9 text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700"
-          >
-            <ul class="w-full flex flex-wrap -mb-px">
-              <li class="mr-2">
-                <router-link
-                  to="/feed/all"
-                  class="whitespace-nowrap"
-                  :class="
-                    route.name === 'feed-all'
-                      ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-                      : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-                  "
-                  >Everything</router-link
-                >
-              </li>
-              <li class="mr-2">
-                <router-link
-                  to="/feed/network"
-                  class="whitespace-nowrap"
-                  :class="
-                    route.name === 'feed-network'
-                      ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-                      : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-                  "
-                >
-                  Network</router-link
-                >
-              </li>
-              <li class="mr-2">
-                <router-link
-                  to="/feed/education"
-                  class="whitespace-nowrap"
-                  :class="
-                    route.name === 'feed-education'
-                      ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-                      : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-                  "
-                  >Similar Education</router-link
-                >
-              </li>
-              <li class="mr-2">
-                <router-link
-                  to="/feed/interests"
-                  class="whitespace-nowrap"
-                  :class="
-                    route.name === 'feed-interests'
-                      ? 'inline-block p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500'
-                      : 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'
-                  "
-                  >Similar Interests</router-link
-                >
-              </li>
-            </ul>
+          <div class="relative w-full overflow-x-scroll">
+            <div class="mb-12 text-sm font-medium text-center text-gray-500">
+              <ul
+                class="flex text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+              >
+                <li class="mr-2">
+                  <router-link
+                    to="/feed/all"
+                    class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
+                    :class="
+                      route.name === 'feed-all'
+                        ? 'text-white bg-blue-600 active'
+                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+                    "
+                    >Everything</router-link
+                  >
+                </li>
+                <li class="mr-2">
+                  <router-link
+                    to="/feed/network"
+                    class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
+                    :class="
+                      route.name === 'feed-network'
+                        ? 'text-white bg-blue-600 active'
+                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+                    "
+                  >
+                    Network</router-link
+                  >
+                </li>
+                <li class="mr-2">
+                  <router-link
+                    to="/feed/education"
+                    class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
+                    :class="
+                      route.name === 'feed-education'
+                        ? 'text-white bg-blue-600 active'
+                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+                    "
+                    >Similar Education</router-link
+                  >
+                </li>
+                <li class="mr-2">
+                  <router-link
+                    to="/feed/interests"
+                    class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
+                    :class="
+                      route.name === 'feed-interests'
+                        ? 'text-white bg-blue-600 active'
+                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+                    "
+                    >Similar Interests</router-link
+                  >
+                </li>
+              </ul>
+            </div>
           </div>
           <div
             v-if="state.loading"
@@ -417,18 +361,8 @@ function scrollToTop() {
                   v-if="filters.page > 1"
                   class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm shadow font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6 fill-current"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                  >
-                    <path fill="none" d="M0 0h24v24H0z" />
-                    <path
-                      d="M7.828 11H20v2H7.828l5.364 5.364-1.414 1.414L4 12l7.778-7.778 1.414 1.414z"
-                    /></svg
-                  >Previous
+                  <svg-icon :path="mdiArrowLeftThin" type="mdi" />
+                  Previous
                 </button>
 
                 <!-- Next Button -->
@@ -439,18 +373,7 @@ function scrollToTop() {
                   class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium shadow text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   Next
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6 fill-current"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                  >
-                    <path fill="none" d="M0 0h24v24H0z" />
-                    <path
-                      d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
-                    />
-                  </svg>
+                  <svg-icon :path="mdiArrowRightThin" type="mdi" />
                 </button>
               </div>
             </div>
@@ -481,18 +404,7 @@ function scrollToTop() {
                   @click="state.showNewPostDialog = false"
                   class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-300 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6 fill-current"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                  >
-                    <path fill="none" d="M0 0h24v24H0z" />
-                    <path
-                      d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"
-                    />
-                  </svg>
+                  <svg-icon :path="mdiClose" type="mdi" />
                 </button>
               </div>
               <NewPostComponent

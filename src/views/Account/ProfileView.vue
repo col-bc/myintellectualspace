@@ -9,6 +9,20 @@ import usePostStore from '@/stores/post'
 import { computed, onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Timestamp } from 'firebase/firestore'
+import {
+  mdiAccountPlusOutline,
+  mdiAccountMinusOutline,
+  mdiChatPlusOutline,
+  mdiAt,
+  mdiMapMarkerOutline,
+  mdiTextBoxMultipleOutline,
+  mdiHeartMultipleOutline,
+  mdiAccountGroupOutline,
+  mdiInformationVariant,
+  mdiEyeOffOutline,
+  mdiHomeOffOutline,
+  mdiContentSaveOutline
+} from '@mdi/js'
 
 const user = useUserStore()
 const post = usePostStore()
@@ -56,7 +70,10 @@ onMounted(async () => {
     state.profileData = await user.fetchUserByHandle(route.params.handle)
     if (!state.profileData.uid) {
       // user not found - redirect to social 404 page
-      router.push('/social/not-found')
+      router.push({
+        name: 'user-not-found',
+        query: { handle: route.params.handle }
+      })
       return
     }
     // fetch posts and likes
@@ -229,18 +246,11 @@ async function changeAvatar() {
                 Unfollow @{{ state.profileData.handle }}
               </template>
               <template v-else>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
+                <svg-icon
+                  :path="mdiAccountPlusOutline"
+                  type="mdi"
                   class="h-6 w-6 fill-current"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm6 6v-3h2v3h3v2h-3v3h-2v-3h-3v-2h3z"
-                  />
-                </svg>
+                />
                 Follow @{{ state.profileData.handle }}
               </template>
             </button>
@@ -271,71 +281,29 @@ async function changeAvatar() {
                         "
                         class="p-3 text-blue-700 dark:text-blue-400 dark:hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-200 rounded-full"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6 fill-current"
-                          viewBox="0 0 24 24"
-                          width="24"
-                          height="24"
-                        >
-                          <path fill="none" d="M0 0h24v24H0z" />
-                          <path
-                            d="M2 8.994A5.99 5.99 0 0 1 8 3h8c3.313 0 6 2.695 6 5.994V21H8c-3.313 0-6-2.695-6-5.994V8.994zM20 19V8.994A4.004 4.004 0 0 0 16 5H8a3.99 3.99 0 0 0-4 3.994v6.012A4.004 4.004 0 0 0 8 19h12zm-6-8h2v2h-2v-2zm-6 0h2v2H8v-2z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        class="p-3 text-blue-700 dark:text-blue-400 dark:hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-200 rounded-full"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6 fill-current"
-                          viewBox="0 0 24 24"
-                          width="24"
-                          height="24"
-                        >
-                          <path fill="none" d="M0 0h24v24H0z" />
-                          <path
-                            d="M17 9.2l5.213-3.65a.5.5 0 0 1 .787.41v12.08a.5.5 0 0 1-.787.41L17 14.8V19a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v4.2zm0 3.159l4 2.8V8.84l-4 2.8v.718zM3 6v12h12V6H3zm2 2h2v2H5V8z"
-                          />
-                        </svg>
+                        <svg-icon :path="mdiChatPlusOutline" type="mdi" />
                       </button>
                     </div>
                   </div>
                   <h5
                     class="flex items-center gap-2 text-xl text-gray-700 dark:text-gray-300 mb-2"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                    <svg-icon
+                      :path="mdiAt"
+                      type="mdi"
                       class="h-5 w-5 fill-current"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M20 12a8 8 0 1 0-3.562 6.657l1.11 1.664A9.953 9.953 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10v1.5a3.5 3.5 0 0 1-6.396 1.966A5 5 0 1 1 15 8H17v5.5a1.5 1.5 0 0 0 3 0V12zm-8-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
-                      />
-                    </svg>
+                    />
                     {{ state.profileData.handle }}
                   </h5>
                   <!-- Location -->
                   <p
                     class="flex items-center gap-2 mb-2 text-gray-700 dark:text-gray-300"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                    <svg-icon
+                      :path="mdiMapMarkerOutline"
+                      type="mdi"
                       class="h-5 w-5 fill-current"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M11 19.945A9.001 9.001 0 0 1 12 2a9 9 0 0 1 1 17.945V24h-2v-4.055zM12 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"
-                      />
-                    </svg>
+                    />
                     <span v-if="state.profileData.location">
                       {{ state.profileData.location }}
                     </span>
@@ -372,18 +340,11 @@ async function changeAvatar() {
                         : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
                     ]"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      class="h-6 w-6 fill-current mr-3"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
-                      />
-                    </svg>
+                    <svg-icon
+                      :path="mdiTextBoxMultipleOutline"
+                      type="mdi"
+                      class="h-6 w-6 text-current mr-3"
+                    />
                     Posts
                   </router-link>
                   <router-link
@@ -395,18 +356,11 @@ async function changeAvatar() {
                         : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
                     ]"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
+                    <svg-icon
+                      :path="mdiHeartMultipleOutline"
+                      type="mdi"
                       class="h-6 w-6 fill-current mr-3"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0H24V24H0z" />
-                      <path
-                        d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
-                      />
-                    </svg>
+                    />
                     Likes
                   </router-link>
                   <router-link
@@ -418,18 +372,11 @@ async function changeAvatar() {
                         : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
                     ]"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
+                    <svg-icon
+                      :path="mdiAccountGroupOutline"
+                      type="mdi"
                       class="h-6 w-6 fill-current mr-3"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
-                      />
-                    </svg>
+                    />
                     Connections
                   </router-link>
                   <router-link
@@ -441,18 +388,11 @@ async function changeAvatar() {
                         : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
                     ]"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
+                    <svg-icon
+                      :path="mdiInformationVariant"
+                      type="mdi"
                       class="h-6 w-6 fill-current mr-3"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
-                      />
-                    </svg>
+                    />
                     About
                   </router-link>
                 </div>
@@ -479,18 +419,11 @@ async function changeAvatar() {
           <h2
             class="flex items-center text-3xl font-bold text-gray-800 dark:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
+            <svg-icon
+              :path="mdiTextBoxMultipleOutline"
+              type="mdi"
               class="h-10 w-10 fill-current mr-4"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M16.757 3l-2 2H5v14h14V9.243l2-2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h12.757zm3.728-.9L21.9 3.516l-9.192 9.192-1.412.003-.002-1.417L20.485 2.1z"
-              />
-            </svg>
+            />
             Posts
           </h2>
           <div
@@ -527,19 +460,12 @@ async function changeAvatar() {
             <h2
               class="flex items-center text-3xl font-bold text-gray-800 dark:text-white"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
+              <svg-icon
+                :path="mdiInformationVariant"
+                type="mdi"
                 class="h-10 w-10 fill-current mr-4"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
-                />
-              </svg>
-              Update your profile
+              />
+              Update Your Profile
             </h2>
             <!-- Handle -->
             <div>
@@ -582,18 +508,11 @@ async function changeAvatar() {
               <span
                 class="flex items-center gap-2 text-gray-500 text-sm mt-1 dark:text-gray-400"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                <svg-icon
+                  :path="mdiEyeOffOutline"
+                  type="mdi"
                   class="h-4 w-4 fill-current flex-shrink-0"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M17.882 19.297A10.949 10.949 0 0 1 12 21c-5.392 0-9.878-3.88-10.819-9a10.982 10.982 0 0 1 3.34-6.066L1.392 2.808l1.415-1.415 19.799 19.8-1.415 1.414-3.31-3.31zM5.935 7.35A8.965 8.965 0 0 0 3.223 12a9.005 9.005 0 0 0 13.201 5.838l-2.028-2.028A4.5 4.5 0 0 1 8.19 9.604L5.935 7.35zm6.979 6.978l-3.242-3.242a2.5 2.5 0 0 0 3.241 3.241zm7.893 2.264l-1.431-1.43A8.935 8.935 0 0 0 20.777 12 9.005 9.005 0 0 0 9.552 5.338L7.974 3.76C9.221 3.27 10.58 3 12 3c5.392 0 9.878 3.88 10.819 9a10.947 10.947 0 0 1-2.012 4.592zm-9.084-9.084a4.5 4.5 0 0 1 4.769 4.769l-4.77-4.769z"
-                  />
-                </svg>
+                />
                 Your phone number is always private</span
               >
             </div>
@@ -613,18 +532,12 @@ async function changeAvatar() {
                 <span
                   class="flex items-center gap-2 text-gray-500 text-sm mt-1 dark:text-gray-400"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
+                  <svg-icon
+                    :path="mdiHomeOffOutline"
+                    type="mdi"
                     class="h-4 w-4 fill-current flex-shrink-0"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                  >
-                    <path fill="none" d="M0 0h24v24H0z" />
-                    <path
-                      d="M17.882 19.297A10.949 10.949 0 0 1 12 21c-5.392 0-9.878-3.88-10.819-9a10.982 10.982 0 0 1 3.34-6.066L1.392 2.808l1.415-1.415 19.799 19.8-1.415 1.414-3.31-3.31zM5.935 7.35A8.965 8.965 0 0 0 3.223 12a9.005 9.005 0 0 0 13.201 5.838l-2.028-2.028A4.5 4.5 0 0 1 8.19 9.604L5.935 7.35zm6.979 6.978l-3.242-3.242a2.5 2.5 0 0 0 3.241 3.241zm7.893 2.264l-1.431-1.43A8.935 8.935 0 0 0 20.777 12 9.005 9.005 0 0 0 9.552 5.338L7.974 3.76C9.221 3.27 10.58 3 12 3c5.392 0 9.878 3.88 10.819 9a10.947 10.947 0 0 1-2.012 4.592zm-9.084-9.084a4.5 4.5 0 0 1 4.769 4.769l-4.77-4.769z"
-                    /></svg
-                  >Eg. Atlanta, Georgia. Never share your full address</span
+                  />
+                  Eg. Atlanta, Georgia. Never share your full address</span
                 >
               </div>
             </div>
@@ -731,18 +644,7 @@ async function changeAvatar() {
                 class="ml-auto flex items-center gap-2.5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                 @click="saveUser"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                  class="h-6 w-6 fill-current"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M5 5v14h14V7.828L16.172 5H5zM4 3h13l3.707 3.707a1 1 0 0 1 .293.707V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm8 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 6h9v4H6V6z"
-                  />
-                </svg>
+                <svg-icon :path="mdiContentSaveOutline" type="mdi" />
                 Save Changes
               </button>
             </div>
@@ -756,18 +658,11 @@ async function changeAvatar() {
               <h2
                 class="flex items-center text-3xl font-bold text-gray-800 dark:text-white"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
+                <svg-icon
+                  :path="mdiInformationVariant"
+                  type="mdi"
                   class="h-10 w-10 fill-current mr-4"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"
-                  />
-                </svg>
+                />
                 About
               </h2>
             </div>
@@ -872,18 +767,11 @@ async function changeAvatar() {
           <h2
             class="flex items-center text-3xl font-bold text-gray-800 dark:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
+            <svg-icon
+              :path="mdiHeartMultipleOutline"
+              type="mdi"
               class="h-10 w-10 fill-current mr-4"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0H24V24H0z" />
-              <path
-                d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228zm6.826 1.641c-1.5-1.502-3.92-1.563-5.49-.153l-1.335 1.198-1.336-1.197c-1.575-1.412-3.99-1.35-5.494.154-1.49 1.49-1.565 3.875-.192 5.451L12 18.654l7.02-7.03c1.374-1.577 1.299-3.959-.193-5.454z"
-              />
-            </svg>
+            />
             Likes
           </h2>
           <AlertComponent
@@ -912,18 +800,11 @@ async function changeAvatar() {
           <h2
             class="w-full flex items-center text-3xl font-bold text-gray-800 dark:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="h-10 w-10 fill-current mr-4"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M2 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H2zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.284 3.703A8.002 8.002 0 0 1 23 22h-2a6.001 6.001 0 0 0-3.537-5.473l.82-1.824zm-.688-11.29A5.5 5.5 0 0 1 21 8.5a5.499 5.499 0 0 1-5 5.478v-2.013a3.5 3.5 0 0 0 1.041-6.609l.555-1.943z"
-              />
-            </svg>
+            <svg-icon
+              :path="mdiAccountGroupOutline"
+              type="mdi"
+              class="h-10 w-10 mr-4"
+            />
             Connections
           </h2>
           <AlertComponent

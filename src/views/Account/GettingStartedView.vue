@@ -10,6 +10,8 @@ import {
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AlertComponent from '@/components/AlertComponent.vue'
+import { v4 as uuidv4 } from 'uuid'
+import { mdiEyeOffOutline, mdiHomeOffOutline, mdiArrowRightThin } from '@mdi/js'
 
 const db = getFirestore()
 const router = useRouter()
@@ -22,6 +24,8 @@ const EDUCATION_LEVELS = [
   'Master Degree',
   'Doctorate Degree'
 ]
+const DEFAULT_AVATAR =
+  'https://firebasestorage.googleapis.com/v0/b/my-intellectual-space.appspot.com/o/avatars%2Favatar.png?alt=media&token=de2d4a8a-ae3e-48f1-b8c7-3620b1eb3b69'
 
 const form = reactive({
   error: null,
@@ -49,7 +53,6 @@ onMounted(() => {
     form.educationMajor = user.user.educationMajor
   }
 })
-
 watch(
   () => form.error,
   (error) => {
@@ -114,6 +117,36 @@ async function saveUser() {
   router.push({ name: 'profile', params: { handle: user.user.handle } })
   return
 }
+async function changeAvatar() {
+  // show file picker
+  const fileInput = document.createElement('input')
+  fileInput.type = 'file'
+  fileInput.accept = 'image/*'
+  fileInput.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) {
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      const result = e.target.result
+      const blob = await fetch(result).then((r) => r.blob())
+      const file = new File([blob], uuidv4(), {
+        type: 'image/png'
+      })
+      // upload file
+      await user.uploadAvatar(file)
+      // refresh user data
+      state.profileData = await user.fetchUserByHandle(route.params.handle)
+      state.profileAlert = {
+        type: 'success',
+        message: 'Avatar updated successfully'
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+  fileInput.click()
+}
 </script>
 
 <template>
@@ -132,15 +165,32 @@ async function saveUser() {
           class="max-w-lg mx-auto flex flex-col gap-6"
         >
           <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300">
-            Welcome toIntellectual Space. Help other's get tp know you by adding
-            information to your profile. You can update or remove these details
-            at any time by visiting your profile page.
+            Welcome to My Intellectual Space. Help other's get tp know you by
+            adding information to your profile. You can update or remove these
+            details at any time by visiting your profile page.
           </p>
           <AlertComponent
             v-if="!!form.error"
             :message="form.error.message"
             :type="form.error.type"
           />
+          <!-- Avatar -->
+          <div
+            @click="changeAvatar"
+            class="cursor-pointer sm:flex-1 w-full max-w-sm mx-auto relative group bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+            <img
+              :src="user.user.avatarUrl || DEFAULT_AVATAR"
+              class="rounded-lg w-full h-auto md:max-w-sm aspect-square object-fit"
+            />
+            <button
+              type="button"
+              @click="changeAvatar"
+              class="w-full text-center hover:underline mt-1"
+            >
+              Change Avatar
+            </button>
+          </div>
           <!-- Handle -->
           <div>
             <span
@@ -177,10 +227,20 @@ async function saveUser() {
             >
             <input
               type="text"
-              v-model="form.phone"
+              v-model="form.phoneNumber"
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder=""
             />
+            <span
+              class="flex items-center gap-2 text-gray-500 text-sm mt-1 dark:text-gray-400"
+            >
+              <svg-icon
+                :path="mdiEyeOffOutline"
+                type="mdi"
+                class="h-4 w-4 fill-current flex-shrink-0"
+              />
+              Your phone number is always private</span
+            >
           </div>
           <!-- Location -->
           <div>
@@ -195,8 +255,15 @@ async function saveUser() {
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder=""
               />
-              <span class="text-gray-500 text-sm mt-2 dark:text-gray-400"
-                >Eg. Atlanta, Georgia. Never share your full address</span
+              <span
+                class="flex items-center gap-2 text-gray-500 text-sm mt-1 dark:text-gray-400"
+              >
+                <svg-icon
+                  :path="mdiHomeOffOutline"
+                  type="mdi"
+                  class="h-4 w-4 fill-current flex-shrink-0"
+                />
+                Eg. Atlanta, Georgia. Never share your full address</span
               >
             </div>
           </div>
@@ -287,7 +354,7 @@ async function saveUser() {
             <button
               type="submit"
               :disabled="loading"
-              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
             >
               <div v-if="loading" role="status">
                 <svg
@@ -307,7 +374,14 @@ async function saveUser() {
                 </svg>
                 <span class="sr-only">Loading...</span>
               </div>
-              <span v-else>Save and Continue</span>
+              <span v-else>
+                Save and Continue
+                <svg-icon
+                  :path="mdiArrowRightThin"
+                  type="mdi"
+                  class="inline mr-2 w-6 h-6 text-gray-200 dark:text-gray-600 fill-blue-600"
+                />
+              </span>
             </button>
           </div>
         </form>

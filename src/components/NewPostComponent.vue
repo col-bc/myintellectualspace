@@ -6,6 +6,7 @@ import usePostStore from '@/stores/post'
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 import { reactive, watch } from 'vue'
 import LoaderComponent from './LoaderComponent.vue'
+import { mdiSendOutline, mdiMapMarkerOutline, mdiImageOutline } from '@mdi/js'
 
 const user = useUserStore()
 const post = usePostStore()
@@ -160,23 +161,16 @@ async function getGeolocation() {
           type="submit"
           @click="createPost()"
           :disabled="state.loading"
-          class="inline-flex items-center gap-2.5 py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
+          class="inline-flex items-center gap-2.5 py-2.5 px-4 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
         >
           <LoaderComponent v-if="state.loading" />
           <template v-else>
-            Submit Post
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              class="w-4 h-4 fill-current"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M3.741 1.408l18.462 10.154a.5.5 0 0 1 0 .876L3.741 22.592A.5.5 0 0 1 3 22.154V1.846a.5.5 0 0 1 .741-.438zM5 13v6.617L18.85 12 5 4.383V11h5v2H5z"
-              />
-            </svg>
+            Share Post
+            <svg-icon
+              :path="mdiSendOutline"
+              type="mdi"
+              class="w-5 h-5 fill-current"
+            />
           </template>
         </button>
         <div class="flex pl-0 space-x-1 sm:pl-2 items-center">
@@ -186,19 +180,12 @@ async function getGeolocation() {
             @click="getGeolocation"
             class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
+            <svg-icon
               v-if="!state.locationLoading"
+              :path="mdiMapMarkerOutline"
+              type="mdi"
               class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zm4.95-7.778a7 7 0 1 0-9.9 0L12 20.9l4.95-4.95zM12 13a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
-              />
-            </svg>
+            />
             <LoaderComponent v-else size="sm" />
             <span class="sr-only">Set location</span>
           </button>
@@ -207,18 +194,11 @@ async function getGeolocation() {
             @click="selectPostImage"
             class="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-white dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
+            <svg-icon
+              :path="mdiImageOutline"
+              type="mdi"
               class="w-5 h-5 fill-current"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M4.828 21l-.02.02-.021-.02H2.992A.993.993 0 0 1 2 20.007V3.993A1 1 0 0 1 2.992 3h18.016c.548 0 .992.445.992.993v16.014a1 1 0 0 1-.992.993H4.828zM20 15V5H4v14L14 9l6 6zm0 2.828l-6-6L6.828 19H20v-1.172zM8 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
-              />
-            </svg>
+            />
             <span class="sr-only">Upload image</span>
           </button>
         </div>

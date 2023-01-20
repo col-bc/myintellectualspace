@@ -280,6 +280,12 @@ const usePostStore = defineStore({
       return posts.docs.map((doc) => {
         return { ...doc.data(), id: doc.id }
       })
+    },
+    async reportPost(report) {
+      const user = useUserStore()
+      const db = getFirestore()
+      const docRef = doc(db, 'posts', report.postId)
+      await setDoc(docRef, { report: report }, { merge: true })
     }
   }
 })
