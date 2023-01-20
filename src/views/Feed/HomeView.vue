@@ -123,7 +123,7 @@ function scrollToTop() {
         class="container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap:12 lg:gap-16 py-12 mb-12 px-2 md:px-4"
       >
         <div
-          class="flex flex-col items-start gap-12 w-full md:max-w-xs lg:max-w-sm"
+          class="flex flex-col items-start gap-12 mb-6 w-full md:max-w-xs lg:max-w-sm"
         >
           <!-- Open new post modal -->
           <button
@@ -270,152 +270,138 @@ function scrollToTop() {
         <!-- Content -->
         <div class="flex-1 max-h-full">
           <!-- Tabs -->
-          <div class="relative w-full overflow-x-scroll">
-            <div class="mb-12 text-sm font-medium text-center text-gray-500">
-              <ul
-                class="flex text-sm font-medium text-center text-gray-500 dark:text-gray-400"
-              >
-                <li class="mr-2">
-                  <router-link
-                    to="/feed/all"
-                    class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
-                    :class="
-                      route.name === 'feed-all'
-                        ? 'text-white bg-blue-600 active'
-                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-                    "
-                    >Everything</router-link
-                  >
-                </li>
-                <li class="mr-2">
-                  <router-link
-                    to="/feed/network"
-                    class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
-                    :class="
-                      route.name === 'feed-network'
-                        ? 'text-white bg-blue-600 active'
-                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-                    "
-                  >
-                    Network</router-link
-                  >
-                </li>
-                <li class="mr-2">
-                  <router-link
-                    to="/feed/education"
-                    class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
-                    :class="
-                      route.name === 'feed-education'
-                        ? 'text-white bg-blue-600 active'
-                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-                    "
-                    >Similar Education</router-link
-                  >
-                </li>
-                <li class="mr-2">
-                  <router-link
-                    to="/feed/interests"
-                    class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
-                    :class="
-                      route.name === 'feed-interests'
-                        ? 'text-white bg-blue-600 active'
-                        : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-                    "
-                    >Similar Interests</router-link
-                  >
-                </li>
-              </ul>
-            </div>
-          </div>
           <div
-            v-if="state.loading"
-            class="flex items-center justify-center text-gray-900 dark:text-white"
+            class="mb-12 font-medium text-center flex flex-wrap text-sm text-gray-500 dark:text-gray-400"
           >
-            <LoaderComponent size="lg" />
+            <router-link
+              to="/feed/all"
+              class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
+              :class="
+                route.name === 'feed-all'
+                  ? 'text-white bg-blue-600 active'
+                  : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              "
+              >Everything</router-link
+            >
+            <router-link
+              to="/feed/network"
+              class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
+              :class="
+                route.name === 'feed-network'
+                  ? 'text-white bg-blue-600 active'
+                  : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              "
+            >
+              Network</router-link
+            >
+            <router-link
+              to="/feed/education"
+              class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
+              :class="
+                route.name === 'feed-education'
+                  ? 'text-white bg-blue-600 active'
+                  : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              "
+              >Similar Education</router-link
+            >
+            <router-link
+              to="/feed/interests"
+              class="inline-block px-4 py-3 whitespace-nowrap rounded-lg"
+              :class="
+                route.name === 'feed-interests'
+                  ? 'text-white bg-blue-600 active'
+                  : ' hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              "
+              >Similar Interests</router-link
+            >
           </div>
-          <div v-else class="w-full flex flex-col gap-12">
-            <template v-if="state.posts.length > 0">
-              <PostComponent
-                v-for="p in state.posts"
-                @delete="refreshPosts"
-                :key="p.id"
-                :post="p"
-                class="shadow-sm"
-              />
-            </template>
-            <template v-else>
-              <p class="text-gray-500 dark:text-gray-400">No posts to show.</p>
-            </template>
+        </div>
+        <div
+          v-if="state.loading"
+          class="flex items-center justify-center text-gray-900 dark:text-white"
+        >
+          <LoaderComponent size="lg" />
+        </div>
+        <div v-else class="w-full flex flex-col gap-12">
+          <template v-if="state.posts.length > 0">
+            <PostComponent
+              v-for="p in state.posts"
+              @delete="refreshPosts"
+              :key="p.id"
+              :post="p"
+              class="shadow-sm"
+            />
+          </template>
+          <template v-else>
+            <p class="text-gray-500 dark:text-gray-400">No posts to show.</p>
+          </template>
 
-            <!-- Paginate -->
-            <div class="flex flex-col gap-4">
-              <p class="text-base text-center text-gray-500 dark:text-gray-400">
-                Page <span class="font-medium">{{ filters.page }}</span> of
-                <span class="font-medium">{{ filters.total }}</span>
-              </p>
-              <div class="flex items-center justify-center gap-3">
-                <!-- Previous Button -->
-                <button
-                  type="button"
-                  @click="prevPage"
-                  v-if="filters.page > 1"
-                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm shadow font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <svg-icon :path="mdiArrowLeftThin" type="mdi" />
-                  Previous
-                </button>
+          <!-- Paginate -->
+          <div class="flex flex-col gap-4">
+            <p class="text-base text-center text-gray-500 dark:text-gray-400">
+              Page <span class="font-medium">{{ filters.page }}</span> of
+              <span class="font-medium">{{ filters.total }}</span>
+            </p>
+            <div class="flex items-center justify-center gap-3">
+              <!-- Previous Button -->
+              <button
+                type="button"
+                @click="prevPage"
+                v-if="filters.page > 1"
+                class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm shadow font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                <svg-icon :path="mdiArrowLeftThin" type="mdi" />
+                Previous
+              </button>
 
-                <!-- Next Button -->
-                <button
-                  type="button"
-                  @click="nextPage"
-                  v-if="filters.page < filters.total"
-                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium shadow text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  Next
-                  <svg-icon :path="mdiArrowRightThin" type="mdi" />
-                </button>
-              </div>
+              <!-- Next Button -->
+              <button
+                type="button"
+                @click="nextPage"
+                v-if="filters.page < filters.total"
+                class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium shadow text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                Next
+                <svg-icon :path="mdiArrowRightThin" type="mdi" />
+              </button>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <Dialog
-        :open="state.showNewPostDialog"
-        @close="state.showNewPostDialog = false"
-        @keydown.escape="state.showNewPostDialog = false"
-        class="relative z-10"
-      >
-        <div class="fixed inset-0 bg-black bg-opacity-60" />
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <div
-              class="w-full max-w-2xl flex flex-col gap-6 p-6 bg-white rounded-lg shadow dark:bg-gray-700"
-            >
-              <div class="flex items-center justify-between">
-                <h2
-                  class="text-2xl font-semibold text-gray-900 dark:text-white"
-                >
-                  New Post
-                </h2>
-                <button
-                  type="button"
-                  @click="state.showNewPostDialog = false"
-                  class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-300 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
-                >
-                  <svg-icon :path="mdiClose" type="mdi" />
-                </button>
-              </div>
-              <NewPostComponent
-                @post-created="
-                  () => (refreshPosts(), (state.showNewPostDialog = false))
-                "
-              />
+    <Dialog
+      :open="state.showNewPostDialog"
+      @close="state.showNewPostDialog = false"
+      @keydown.escape="state.showNewPostDialog = false"
+      class="relative z-10"
+    >
+      <div class="fixed inset-0 bg-black bg-opacity-60" />
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <div
+            class="w-full max-w-2xl flex flex-col gap-6 p-6 bg-white rounded-lg shadow dark:bg-gray-700"
+          >
+            <div class="flex items-center justify-between">
+              <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
+                New Post
+              </h2>
+              <button
+                type="button"
+                @click="state.showNewPostDialog = false"
+                class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-300 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
+              >
+                <svg-icon :path="mdiClose" type="mdi" />
+              </button>
             </div>
+            <NewPostComponent
+              @post-created="
+                () => (refreshPosts(), (state.showNewPostDialog = false))
+              "
+            />
           </div>
         </div>
-      </Dialog>
-    </div>
+      </div>
+    </Dialog>
   </main>
 </template>
