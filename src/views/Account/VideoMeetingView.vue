@@ -10,6 +10,22 @@ import 'intro.js/introjs.css'
 import { v4 as uuidv4 } from 'uuid'
 import { computed, onBeforeUnmount, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import {
+  mdiLogoutVariant,
+  mdiContentCopy,
+  mdiTimerOutline,
+  mdiSignal,
+  mdiArrowUpThin,
+  mdiArrowDownThin,
+  mdiToolboxOutline,
+  mdiPresentation,
+  mdiLinkVariant,
+  mdiUploadOutline,
+  mdiGridLarge,
+  mdiDotsVertical,
+  mdiWeatherSunny,
+  mdiWeatherNight
+} from '@mdi/js'
 
 const user = useUserStore()
 const ui = useInterface()
@@ -158,7 +174,6 @@ onMounted(async () => {
     }
   })
 })
-
 watch(
   () => state.notifications,
   (notifications) => {
@@ -170,7 +185,6 @@ watch(
   },
   { deep: true }
 )
-
 watch(
   () => state.volume,
   (volume) => {
@@ -339,11 +353,9 @@ function removeVideoDiv(elementId) {
     Div.remove()
   }
 }
-
 function reset() {
   window.location.reload()
 }
-
 function toggleAudio() {
   state.enableAudio = !state.enableAudio
   channelParameters.localAudioTrack.setEnabled(state.enableAudio)
@@ -368,7 +380,6 @@ function toggleVideo() {
       : 'You have turned off your camera'
   })
 }
-
 async function copyLink() {
   const text = `https://my-intellectual-space.web.app/meeting/join/${options.channel}`
   try {
@@ -395,7 +406,6 @@ async function copyChannel() {
     console.error('Failed to copy: ', err)
   }
 }
-
 function resolveQuality(q) {
   if (q === 1) return 'Excellent'
   if (q === 2) return 'Good'
@@ -403,7 +413,6 @@ function resolveQuality(q) {
   if (q === 4) return 'Bad'
   return 'Unknown'
 }
-
 async function toggleScreenShare() {
   if (state.isScreenShare == false) {
     // Create a screen track for screen sharing.
@@ -440,7 +449,7 @@ async function toggleScreenShare() {
       class="min-h-screen flex flex-col container max-w-screen-xl mx-auto"
     >
       <nav
-        class="flex-none p-2 flex items-center flex-wrap gap-4 shadow-lg border-b border-gray-300 dark:border-gray-700"
+        class="flex-none p-2 flex items-center flex-wrap gap-2 md:gap-4 shadow-lg border-b border-gray-300 dark:border-gray-700"
       >
         <button
           id="leave-meeting"
@@ -448,19 +457,8 @@ async function toggleScreenShare() {
           @click="state.showLeaveDialog = true"
           class="flex items-center justify-center gap-2.5 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5 fill-current"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path
-              d="M4 18h2v2h12V4H6v2H4V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3zm2-7h7v2H6v3l-5-4 5-4v3z"
-            />
-          </svg>
-          LEAVE MEETING
+          <svg-icon :path="mdiLogoutVariant" type="mdi" />
+          <span class="hidden md:block">LEAVE MEETING</span>
         </button>
         <h5
           id="meeting-id"
@@ -472,18 +470,11 @@ async function toggleScreenShare() {
             @click="copyChannel"
             class="text-gray-700 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 p-2 focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-lg"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
+            <svg-icon
+              :path="mdiContentCopy"
+              type="mdi"
               class="w-4 h-4 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M7 6V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1.001 1.001 0 0 1 3 21l.003-14c0-.552.45-1 1.007-1H7zM5.003 8L5 20h10V8H5.003zM9 6h8v10h2V4H9v2z"
-              />
-            </svg>
+            />
           </button>
         </h5>
 
@@ -501,18 +492,11 @@ async function toggleScreenShare() {
           id="timer"
           class="px-5 py-2.5 flex items-center text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-6 h-6 fill-gray-800 dark:fill-gray-100 mr-2.5"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path
-              d="M17.618 5.968l1.453-1.453 1.414 1.414-1.453 1.453a9 9 0 1 1-1.414-1.414zM12 20a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM11 8h2v6h-2V8zM8 1h8v2H8V1z"
-            />
-          </svg>
+          <svg-icon
+            :path="mdiTimerOutline"
+            type="mdi"
+            class="hidden md:block"
+          />
           {{ resolveTimer }}
         </div>
         <!-- Quality -->
@@ -522,23 +506,17 @@ async function toggleScreenShare() {
           class="relative border-r border-gray-200 dark:border-gray-700"
         >
           <MenuButton
-            class="flex items-center justify-center mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            class="flex items-center justify-center mr-2 md:mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
+            <svg-icon
+              :path="mdiSignal"
+              type="mdi"
               class="w-6 h-6 fill-gray-800 dark:fill-gray-100 mr-2.5"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0L24 0 24 24 0 24z" />
-              <path
-                d="M3.929 4.929l1.414 1.414C3.895 7.791 3 9.791 3 12c0 2.21.895 4.21 2.343 5.657L3.93 19.07C2.119 17.261 1 14.761 1 12s1.12-5.261 2.929-7.071zm16.142 0C21.881 6.739 23 9.239 23 12s-1.12 5.262-2.929 7.071l-1.414-1.414C20.105 16.209 21 14.209 21 12s-.895-4.208-2.342-5.656L20.07 4.93zM13 5v6h3l-5 8v-6H8l5-8zM6.757 7.757l1.415 1.415C7.448 9.895 7 10.895 7 12c0 1.105.448 2.105 1.172 2.828l-1.415 1.415C5.672 15.157 5 13.657 5 12c0-1.657.672-3.157 1.757-4.243zm10.487.001C18.329 8.844 19 10.344 19 12c0 1.657-.672 3.157-1.757 4.243l-1.415-1.415C16.552 14.105 17 13.105 17 12c0-1.104-.447-2.104-1.17-2.827l1.414-1.415z"
-              />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
+            />
+            <svg-icon
+              :path="mdiArrowUpThin"
+              type="mdi"
+              class="w-6 h-6 hidden md:block"
               :class="{
                 'fill-green-500': state.quality.up === 1,
                 'fill-lime-500': state.quality.up === 2,
@@ -546,16 +524,11 @@ async function toggleScreenShare() {
                 'fill-red-500': state.quality.up === 4,
                 'fill-gray-500': state.quality.up === 0
               }"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path d="M13 12h7l-8 8-8-8h7V4h2z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
+            />
+            <svg-icon
+              :path="mdiArrowDownThin"
+              type="mdi"
+              class="w-6 h-6 hidden md:block"
               :class="{
                 'fill-green-500': state.quality.down === 1,
                 'fill-lime-500': state.quality.down === 2,
@@ -563,13 +536,7 @@ async function toggleScreenShare() {
                 'fill-red-500': state.quality.down === 4,
                 'fill-gray-500': state.quality.down === 0
               }"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path d="M13 12v8h-2v-8H4l8-8 8 8z" />
-            </svg>
+            />
           </MenuButton>
           <MenuItems
             class="absolute z-30 right-1/2 left-1/2 -translate-x-1/2 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
@@ -618,21 +585,14 @@ async function toggleScreenShare() {
             as="button"
             id="tools-menu"
             type="button"
-            class="flex items-center justify-center gap-2.5 mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            class="flex items-center justify-center gap-2.5 mr-2 md:mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M7.05 14.121L4.93 16.243l2.828 2.828L19.071 7.757 16.243 4.93 14.12 7.05l1.415 1.414L14.12 9.88l-1.414-1.415-1.414 1.415 1.414 1.414-1.414 1.414-1.414-1.414-1.415 1.414 1.415 1.414-1.415 1.415L7.05 14.12zm9.9-11.313l4.242 4.242a1 1 0 0 1 0 1.414L8.464 21.192a1 1 0 0 1-1.414 0L2.808 16.95a1 1 0 0 1 0-1.414L15.536 2.808a1 1 0 0 1 1.414 0zM14.12 18.363l1.415-1.414 2.242 2.243h1.414v-1.414l-2.242-2.243 1.414-1.414L21 16.757V21h-4.242l-2.637-2.637zM5.636 9.878L2.807 7.05a1 1 0 0 1 0-1.415l2.829-2.828a1 1 0 0 1 1.414 0L9.88 5.635 8.464 7.05 6.343 4.928 4.929 6.343l2.121 2.12-1.414 1.415z"
-              />
-            </svg>
-            TOOLS
+            <svg-icon
+              :path="mdiToolboxOutline"
+              type="mdi"
+              class="w-6 h-6 fill-gray-800 dark:fill-gray-100"
+            />
+            <span class="hidden md:block"> TOOLS </span>
           </MenuButton>
           <MenuItems
             as="div"
@@ -647,18 +607,7 @@ async function toggleScreenShare() {
                     @click="toggleScreenShare"
                     class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-6 h-6 fill-current"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M8.586 17H3v-2h18v2h-5.586l3.243 3.243-1.414 1.414L13 17.414V20h-2v-2.586l-4.243 4.243-1.414-1.414L8.586 17zM5 3h14a1 1 0 0 1 1 1v10H4V4a1 1 0 0 1 1-1zm1 2v7h12V5H6z"
-                      />
-                    </svg>
+                    <svg-icon :path="mdiPresentation" type="mdi" />
                   </button>
                   <div
                     class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
@@ -673,18 +622,7 @@ async function toggleScreenShare() {
                     @click="copyLink"
                     class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-6 h-6 fill-current"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M13.06 8.11l1.415 1.415a7 7 0 0 1 0 9.9l-.354.353a7 7 0 0 1-9.9-9.9l1.415 1.415a5 5 0 1 0 7.071 7.071l.354-.354a5 5 0 0 0 0-7.07l-1.415-1.415 1.415-1.414zm6.718 6.011l-1.414-1.414a5 5 0 1 0-7.071-7.071l-.354.354a5 5 0 0 0 0 7.07l1.415 1.415-1.415 1.414-1.414-1.414a7 7 0 0 1 0-9.9l.354-.353a7 7 0 0 1 9.9 9.9z"
-                      />
-                    </svg>
+                    <svg-icon :path="mdiLinkVariant" type="mdi" />
                   </button>
                   <div
                     class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-52 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
@@ -700,18 +638,7 @@ async function toggleScreenShare() {
                     type="button"
                     class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-6 h-6 fill-current"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M4 19h16v-7h2v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-8h2v7zm9-10v7h-2V9H6l6-6 6 6h-5z"
-                      />
-                    </svg>
+                    <svg-icon :path="mdiUploadOutline" type="mdi" />
                   </button>
                   <div
                     class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
@@ -726,18 +653,7 @@ async function toggleScreenShare() {
                     @click="copyMeetingLink"
                     class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-6 h-6 fill-current"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                    >
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path
-                        d="M21 3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h18zM11 13H4v6h7v-6zm9 0h-7v6h7v-6zm-9-8H4v6h7V5zm9 0h-7v6h7V5z"
-                      />
-                    </svg>
+                    <svg-icon :path="mdiGridLarge" type="mdi" />
                   </button>
                   <div
                     class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
@@ -755,18 +671,7 @@ async function toggleScreenShare() {
             type="button"
             class="text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm p-2.5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M12 3c-.825 0-1.5.675-1.5 1.5S11.175 6 12 6s1.5-.675 1.5-1.5S12.825 3 12 3zm0 15c-.825 0-1.5.675-1.5 1.5S11.175 21 12 21s1.5-.675 1.5-1.5S12.825 18 12 18zm0-7.5c-.825 0-1.5.675-1.5 1.5s.675 1.5 1.5 1.5 1.5-.675 1.5-1.5-.675-1.5-1.5-1.5z"
-              />
-            </svg>
+            <svg-icon :path="mdiDotsVertical" type="mdi" />
           </MenuButton>
           <MenuItems
             as="div"
@@ -777,18 +682,7 @@ async function toggleScreenShare() {
               @click="copyLink"
               class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M7 6V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1.001 1.001 0 0 1 3 21l.003-14c0-.552.45-1 1.007-1H7zM5.003 8L5 20h10V8H5.003zM9 6h8v10h2V4H9v2z"
-                />
-              </svg>
+              <svg-icon :path="mdiLinkVariant" type="mdi" />
               Copy Meeting Link
             </MenuItem>
             <MenuItem
@@ -796,32 +690,12 @@ async function toggleScreenShare() {
               @click="ui.toggleTheme"
               class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
             >
-              <svg
-                v-if="ui.getIsDark"
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"
-                />
-              </svg>
-              <svg
-                v-else
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"
-                />
-              </svg>
+              <svg-icon
+                v-if="!ui.getIsDark"
+                type="mdi"
+                :path="mdiWeatherNight"
+              />
+              <svg-icon v-else type="mdi" :path="mdiWeatherSunny" />
               Change Theme
             </MenuItem>
           </MenuItems>

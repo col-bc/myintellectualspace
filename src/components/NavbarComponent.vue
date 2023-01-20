@@ -7,6 +7,7 @@ import { Menu, MenuButton, MenuItems } from '@headlessui/vue'
 import { Timestamp } from '@firebase/firestore'
 import {
   mdiHeadCogOutline,
+  mdiLoginVariant,
   mdiWeatherSunny,
   mdiWeatherNight,
   mdiBellOutline,
@@ -475,18 +476,7 @@ onBeforeUnmount(() => {
         class="p-2.5 flex items-center gap-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <template v-if="!user.isAuthenticated">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            class="w-6 h-6 fill-current"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path
-              d="M4 15h2v5h12V4H6v5H4V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6zm6-4V8l5 4-5 4v-3H2v-2h8z"
-            />
-          </svg>
+          <svg-icon :path="mdiLoginVariant" type="mdi" />
           <span class="hidden md:inline-flex">Login</span>
         </template>
         <template v-else>
