@@ -6,6 +6,8 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import 'flowbite'
 import '@/assets/flowbite.css'
 
+import SvgIcon from '@jamescoyle/vue-icon'
+
 import App from './App.vue'
 import router from './router'
 
@@ -28,4 +30,8 @@ const analytics = getAnalytics(fvApp)
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
-createApp(App).use(router).use(pinia).mount('#app')
+createApp(App)
+  .component('svg-icon', SvgIcon)
+  .use(router)
+  .use(pinia)
+  .mount('#app')
