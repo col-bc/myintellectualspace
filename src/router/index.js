@@ -187,7 +187,9 @@ const router = createRouter({
     },
 
     // # Meeting Routes
-    // /meeting/:channel
+    // /meeting/host/:channel
+    // /meeting/join/:channel
+    // /my-meetings
     {
       path: '/meeting',
       name: 'meeting',
@@ -228,64 +230,28 @@ const router = createRouter({
       ],
       meta: { requiresAuth: true }
     },
+    {
+      path: '/my-meetings',
+      name: 'my-meetings',
+      component: () => import('@/views/Account/MyMeetingsView.vue')
+    },
 
     // # Learn Routes - TODO
     // /learn
     {
       path: '/learn',
       name: 'learn-home',
-      component: () => import('@/views/Learn/HomeView.vue')
+      // component: () => import('@/views/Learn/HomeView.vue')
+      redirect: '/unavailable'
     },
 
     // # Teach Routes - TODO
     // /teach
-    // /teach/new-course
-    // /teach/:id/dashboard
-    // /teach/:id/create-assessment
     {
       path: '/teach',
       name: 'teach-home',
-      redirect: '/unavailable'
       // component: () => import('@/views/Teach/HomeView.vue')
-    },
-    {
-      path: '/teach/new-course',
-      name: 'teach-new-course',
-      redirect: '/unavailable',
-      // component: () => import('@/views/Teach/NewCourseView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/teach/:id/dashboard',
-      name: 'teach-course-dashboard',
-      params: {
-        id: {
-          type: String,
-          required: true
-        }
-      },
-      redirect: '/unavailable',
-      // component: () => import('@/views/Teach/CourseDashboardView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/teach/:id/create-assessment',
-      name: 'teach-create-assessment',
-      params: {
-        id: {
-          type: String,
-          required: true
-        }
-      },
       redirect: '/unavailable'
-      // component: () => import('@/views/Teach/CreateAssessmentView.vue')
-    },
-
-    // # Meeting Routes - TODO
-    {
-      path: '/my-meetings',
-      name: 'my-meetings',
-      component: () => import('@/views/Account/MyMeetingsView.vue')
     },
 
     // # Other Routes
