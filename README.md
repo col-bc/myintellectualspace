@@ -6,9 +6,9 @@ Intellectual Space is a place for learning, networking, and innovation. Our miss
 ### Built with
 - [Vite](https://vitejs.dev/) + [VueJs 3](https://vuejs.org/)
 - [Firebase](https://firebase.google.com/)
-- [Tailwindcss](https://tailwindcss.com/) + [Flowbite](https://flowbite.com/) Components
-- [VideoSDK](https://videosdk.live/)
-- [Remix Icons](https://remixicon.com/)
+- [Tailwind CSS](https://tailwindcss.com/) + [Flowbite](https://flowbite.com/) Components
+- [Agora Real Time Video](https://www.agora.io/en/)
+- [Material Design Icons](https://pictogrammers.com/library/mdi/)
 
 ### Report a bug or issue
 Click [here](https://github.com/col-bc/myintellectualspace/issues/new?assignees=&labels=bug&template=bug_report.md&title=) to submit a bug report. Or visit the issue section on this repository.
