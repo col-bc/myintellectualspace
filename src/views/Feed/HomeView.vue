@@ -315,55 +315,56 @@ function scrollToTop() {
               >Similar Interests</router-link
             >
           </div>
-        </div>
-        <div
-          v-if="state.loading"
-          class="flex items-center justify-center text-gray-900 dark:text-white"
-        >
-          <LoaderComponent size="lg" />
-        </div>
-        <div v-else class="w-full flex flex-col gap-12">
-          <template v-if="state.posts.length > 0">
-            <PostComponent
-              v-for="p in state.posts"
-              @delete="refreshPosts"
-              :key="p.id"
-              :post="p"
-              class="shadow-sm"
-            />
-          </template>
-          <template v-else>
-            <p class="text-gray-500 dark:text-gray-400">No posts to show.</p>
-          </template>
 
-          <!-- Paginate -->
-          <div class="flex flex-col gap-4">
-            <p class="text-base text-center text-gray-500 dark:text-gray-400">
-              Page <span class="font-medium">{{ filters.page }}</span> of
-              <span class="font-medium">{{ filters.total }}</span>
-            </p>
-            <div class="flex items-center justify-center gap-3">
-              <!-- Previous Button -->
-              <button
-                type="button"
-                @click="prevPage"
-                v-if="filters.page > 1"
-                class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm shadow font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-              >
-                <svg-icon :path="mdiArrowLeftThin" type="mdi" />
-                Previous
-              </button>
+          <div
+            v-if="state.loading"
+            class="flex items-center justify-center text-gray-900 dark:text-white"
+          >
+            <LoaderComponent size="lg" />
+          </div>
+          <div v-else class="w-full flex flex-col gap-12">
+            <template v-if="state.posts.length > 0">
+              <PostComponent
+                v-for="p in state.posts"
+                @delete="refreshPosts"
+                :key="p.id"
+                :post="p"
+                class="shadow-sm"
+              />
+            </template>
+            <template v-else>
+              <p class="text-gray-500 dark:text-gray-400">No posts to show.</p>
+            </template>
 
-              <!-- Next Button -->
-              <button
-                type="button"
-                @click="nextPage"
-                v-if="filters.page < filters.total"
-                class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium shadow text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-              >
-                Next
-                <svg-icon :path="mdiArrowRightThin" type="mdi" />
-              </button>
+            <!-- Paginate -->
+            <div class="flex flex-col gap-4">
+              <p class="text-base text-center text-gray-500 dark:text-gray-400">
+                Page <span class="font-medium">{{ filters.page }}</span> of
+                <span class="font-medium">{{ filters.total }}</span>
+              </p>
+              <div class="flex items-center justify-center gap-3">
+                <!-- Previous Button -->
+                <button
+                  type="button"
+                  @click="prevPage"
+                  v-if="filters.page > 1"
+                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm shadow font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  <svg-icon :path="mdiArrowLeftThin" type="mdi" />
+                  Previous
+                </button>
+
+                <!-- Next Button -->
+                <button
+                  type="button"
+                  @click="nextPage"
+                  v-if="filters.page < filters.total"
+                  class="inline-flex items-center justify-center gap-4 px-4 py-2 text-sm font-medium shadow text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  Next
+                  <svg-icon :path="mdiArrowRightThin" type="mdi" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
