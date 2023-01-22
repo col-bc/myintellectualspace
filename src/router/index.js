@@ -241,8 +241,7 @@ const router = createRouter({
     {
       path: '/learn',
       name: 'learn-home',
-      // component: () => import('@/views/Learn/HomeView.vue')
-      redirect: '/unavailable'
+      component: () => import('@/views/Learn/HomeView.vue')
     },
 
     // # Teach Routes - TODO
@@ -250,8 +249,7 @@ const router = createRouter({
     {
       path: '/teach',
       name: 'teach-home',
-      // component: () => import('@/views/Teach/HomeView.vue')
-      redirect: '/unavailable'
+      component: () => import('@/views/Teach/HomeView.vue')
     },
 
     // # Other Routes

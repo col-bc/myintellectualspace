@@ -1,5 +1,43 @@
 <script setup>
 import NavbarComponent from '@/components/NavbarComponent.vue'
+import { reactive } from '@vue/reactivity'
+import {
+  mdiMagnify,
+  mdiStar,
+  mdiAccountGroupOutline,
+  mdiClockOutline,
+  mdiCurrencyUsd,
+  mdiArrowRightThin
+} from '@mdi/js'
+
+const state = reactive({
+  searchQuery: '',
+  results: [],
+  loading: false,
+  courses: [
+    {
+      id: 1,
+      title: 'Introduction to Web Development',
+      description:
+        'Learn to build a website from scratch using HTML, CSS, and JavaScript. No prior experience required. ',
+      image:
+        'https://assets.justinmind.com/wp-content/uploads/2019/10/best-20-web-development-blogs.png',
+      tags: ['computer science', 'web development', 'programming'],
+      price: 0,
+      rating: 4.5,
+      students: 1000,
+      lessons: 5,
+      duration: 60
+    }
+  ],
+  filters: {
+    sorting: 'featured',
+    category: 'all',
+    price: 'all',
+    rating: 'all',
+    duration: 'all'
+  }
+})
 </script>
 
 <template>
@@ -7,21 +45,18 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div
-        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap*12 lg:gap-16 py-12 px-2 md:px-4"
+        class="h-full container mx-auto flex flex-col lg:flex-row items-start gap-6 md:gap-12 lg:gap-16 py-12 px-2 md:px-4 mb-12"
       >
-        <div class="w-full md:w-auto flex justify-center mb-12">
-          <lottie-player
-            src="https://assets1.lottiefiles.com/packages/lf20_7z8wtyb0.json"
-            background="transparent"
-            speed="1"
-            class="w-full max-w-sm md:max-w-md lg:max-w-lg"
-            loop
-            autoplay
-          ></lottie-player>
+        <div class="w-full lg:w-auto flex justify-center">
+          <img
+            src="@/assets/images/learn-illustration.svg"
+            alt="Learn Illustration"
+            class="w-full max-w-sm md:max-w-xs lg:max-w-lg"
+          />
         </div>
         <div class="flex-1 flex flex-col">
           <h1
-            class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-12"
+            class="text-5xl font-black leading-normal text-gray-900 dark:text-white mb-12"
           >
             Find a Course that Interests You
           </h1>
@@ -57,108 +92,138 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
         </div>
       </div>
       <div
-        class="flex flex-col md:flex-row md:justify-between w-full gap-6 mb-12 px-2 md:px-4"
+        class="h-full container mx-auto flex flex-col lg:flex-row items-start gap-6 md:gap-12 mb-12 px-2 md:px-4"
       >
         <div
-          class="w-full max-w-sm p-6 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-lg dark:bg-gray-800 dark:border-gray-700 transition-all duration-100 ease-linear"
+          class="flex flex-col p-4 w-full max-w-xs bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-12 w-12 text-gray-700 dark:text-gray-300 fill-current mb-4 mx-auto"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path
-              d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm2-1.645V14h-2v-1.5a1 1 0 0 1 1-1 1.5 1.5 0 1 0-1.471-1.794l-1.962-.393A3.501 3.501 0 1 1 13 13.355z"
-            />
-          </svg>
-          <router-link
-            to="/support/faq"
-            class="flex items-center justify-center gap-3 text-xl font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-20 dark:hover:text-blue-700 rounded-md px-5 py-2.5"
-            >FAQ
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
+          <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            Filter
+          </h4>
+          <div>
+            <label
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >Category</label
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
-              /></svg
-          ></router-link>
+            <select
+              v-model="state.filters.sorting"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            >
+              <option value="featured">Featured</option>
+              <option value="popular">Popular</option>
+              <option value="new">New</option>
+              <option value="updated">Recently Updated</option>
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
         </div>
-        <div
-          class="w-full max-w-sm p-6 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-lg dark:bg-gray-800 dark:border-gray-700 transition-all duration-100 ease-linear"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-12 w-12 text-gray-700 dark:text-gray-300 fill-current mb-4 mx-auto"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path
-              d="M13 19.9a5.002 5.002 0 0 0 4-4.9v-3a4.98 4.98 0 0 0-.415-2h-9.17A4.98 4.98 0 0 0 7 12v3a5.002 5.002 0 0 0 4 4.9V14h2v5.9zm-7.464-2.21A6.979 6.979 0 0 1 5 15H2v-2h3v-1c0-.643.087-1.265.249-1.856L3.036 8.866l1-1.732L6.056 8.3a7.01 7.01 0 0 1 .199-.3h11.49c.069.098.135.199.199.3l2.02-1.166 1 1.732-2.213 1.278c.162.59.249 1.213.249 1.856v1h3v2h-3c0 .953-.19 1.862-.536 2.69l2.5 1.444-1 1.732-2.526-1.458A6.986 6.986 0 0 1 12 22a6.986 6.986 0 0 1-5.438-2.592l-2.526 1.458-1-1.732 2.5-1.443zM8 6a4 4 0 1 1 8 0H8z"
-            />
-          </svg>
-          <a
-            href="https://github.com/col-bc/myintellectualspace/issues/new?assignees=&labels=bug&template=bug_report.md&title="
-            target="_blank"
-            rel="noopener noreferrer"
-            class="flex items-center justify-center gap-3 text-xl font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-20 dark:hover:text-blue-700 rounded-md px-5 py-2.5"
-          >
-            Bug Report
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
+        <div class="flex-1 flex flex-col gap-6 md:gap-12">
+          <div class="flex items-center">
+            <label
+              class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
+              >Search</label
             >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
+            <div class="relative w-full shadow-sm rounded-lg">
+              <div
+                class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+              >
+                <svg-icon
+                  :path="mdiMagnify"
+                  type="mdi"
+                  class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                />
+              </div>
+              <input
+                type="search"
+                id="default-search"
+                class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Search Subjects, Keywords..."
+                required
               />
-            </svg>
-          </a>
-        </div>
-        <div
-          class="w-full max-w-sm p-6 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-lg dark:bg-gray-800 dark:border-gray-700 transition-all duration-100 ease-linear"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-12 w-12 text-gray-700 dark:text-gray-300 fill-current mb-4 mx-auto"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
+              <button
+                type="submit"
+                class="text-white absolute right-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              >
+                Search
+              </button>
+            </div>
+          </div>
+          <div
+            v-for="course of state.courses"
+            :key="course.id"
+            class="flex flex-col md:flex-row items-stretch p-4 gap-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow-md"
           >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path
-              d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 15a4.987 4.987 0 0 1-1.828-.345l-2.236 2.237A7.963 7.963 0 0 0 12 20a7.963 7.963 0 0 0 4.064-1.108l-2.236-2.237A4.987 4.987 0 0 1 12 17zm-8-5c0 1.484.404 2.873 1.108 4.064l2.237-2.236A4.987 4.987 0 0 1 7 12c0-.645.122-1.261.345-1.828L5.108 7.936A7.963 7.963 0 0 0 4 12zm14.892-4.064l-2.237 2.236c.223.567.345 1.183.345 1.828s-.122 1.261-.345 1.828l2.237 2.236A7.963 7.963 0 0 0 20 12a7.963 7.963 0 0 0-1.108-4.064zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0-5a7.963 7.963 0 0 0-4.064 1.108l2.236 2.237A4.987 4.987 0 0 1 12 7c.645 0 1.261.122 1.828.345l2.236-2.237A7.963 7.963 0 0 0 12 4z"
-            />
-          </svg>
-          <router-link
-            to="/support/contact"
-            class="flex items-center justify-center gap-3 text-xl font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-20 dark:hover:text-blue-700 rounded-md px-5 py-2.5"
-            >Contact Us
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 fill-current"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path fill="none" d="M0 0h24v24H0z" />
-              <path
-                d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
+            <div class="w-auto md:max-w-sm h-full flex-shrink-0">
+              <img
+                :src="course.image"
+                alt="Course Image"
+                class="w-full h-full object-center object-cover rounded-lg"
               />
-            </svg>
-          </router-link>
+            </div>
+            <div class="flex flex-col">
+              <h3
+                class="flex-1 text-2xl font-bold text-gray-900 dark:text-white mb-4"
+              >
+                {{ course.title }}
+              </h3>
+              <div class="flex items-center gap-4 mb-4">
+                <span
+                  class="flex items-center gap-2 text-lg font-medium text-gray-700 dark:text-gray-300"
+                >
+                  <svg-icon
+                    :path="mdiStar"
+                    type="mdi"
+                    class="text-yellow-500"
+                  />
+                  {{ course.rating }}
+                </span>
+                <span
+                  class="flex items-center gap-2 text-lg font-medium text-gray-700 dark:text-gray-300"
+                >
+                  <svg-icon
+                    :path="mdiClockOutline"
+                    type="mdi"
+                    class="text-gray-800 dark:text-gray-300"
+                  />
+                  {{ course.duration }} min
+                </span>
+                <span
+                  class="flex items-center gap-2 text-lg font-medium text-gray-700 dark:text-gray-300"
+                >
+                  <svg-icon
+                    :path="mdiCurrencyUsd"
+                    type="mdi"
+                    class="text-gray-800 dark:text-gray-300"
+                  />
+                  {{ course.price || 'Free' }}
+                </span>
+              </div>
+              <div class="flex items-center flex-wrap gap-2 mb-4">
+                <div
+                  v-for="tag in course.tags"
+                  :key="tag"
+                  class="bg-gray-100 text-gray-800 font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300"
+                >
+                  {{ tag }}
+                </div>
+              </div>
+              <p
+                class="text-lg leading-loose text-gray-700 dark:text-gray-300 mb-4"
+              >
+                {{ course.description }}
+              </p>
+              <div class="flex md:justify-end">
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                >
+                  View Course Details
+                  <svg-icon :path="mdiArrowRightThin" type="mdi" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

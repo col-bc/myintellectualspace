@@ -40,7 +40,6 @@ window.addEventListener('resize', () => {
       </transition>
     </router-view>
     <FooterComponent />
-    <div id="modals-root"></div>
   </div>
 </template>
 
