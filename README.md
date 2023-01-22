@@ -3,9 +3,9 @@
 Intellectual Space is a place for learning, networking, and innovation. Our mission is to give access and guidance to all communities, regardless of fiscal or social capital. We present the tools and resources to allow our users to connect with other members with a variety of skills, knowledge, trades, and interests, so that they may develop a strong network and community, presenting job opportunities, networking opportunities, and much more! 
 
 
-### Built with
+### Tech Stack
 - [Vite](https://vitejs.dev/) + [VueJs 3](https://vuejs.org/)
-- [Firebase](https://firebase.google.com/)
+- [Firebase](https://firebase.google.com/) + [GCP App Engine](https://cloud.google.com/appengine)
 - [Tailwind CSS](https://tailwindcss.com/) + [Flowbite](https://flowbite.com/) Components
 - [Agora Real Time Video](https://www.agora.io/en/)
 - [Material Design Icons](https://pictogrammers.com/library/mdi/)
