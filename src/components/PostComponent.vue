@@ -204,7 +204,7 @@ async function reportPost() {
     </div>
     <!-- Body -->
     <div class="flex flex-col gap-4 px-4 py-4">
-      <p class="flex-1 mb-4 text-gray-800 dark:text-white">
+      <p class="flex-1 mb-4 leading-relaxed text-gray-900 dark:text-white">
         {{ props.post.content }}
       </p>
       <div v-if="!!props.post.image" class="w-full">
@@ -216,7 +216,7 @@ async function reportPost() {
     </div>
     <!-- Action bar -->
     <div
-      class="flex items-center justify-end py-2 px-3 bg-gray-50 border-y dark:border-gray-600 dark:bg-gray-700"
+      class="flex items-center justify-end py-2 px-3"
       :class="{
         'rounded-b-lg':
           (!props.post.comments || props.post.comments.length === 0) &&
@@ -238,7 +238,7 @@ async function reportPost() {
       <Menu as="div" class="relative" v-if="isOwnPost">
         <MenuButton
           type="button"
-          class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+          class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-7010"
         >
           <svg-icon
             :path="mdiTrashCanOutline"
@@ -273,7 +273,7 @@ async function reportPost() {
         type="button"
         v-if="!isOwnPost"
         @click="state.showReportDialog = true"
-        class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-7010"
       >
         <svg-icon
           :path="mdiFlagOutline"
@@ -285,7 +285,7 @@ async function reportPost() {
       <button
         type="button"
         @click="state.showComments = !state.showComments"
-        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <span
           class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
@@ -302,7 +302,7 @@ async function reportPost() {
       <button
         type="button"
         @click="toggleLike"
-        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600"
+        class="inline-flex items-center justify-center gap-2 p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <span
           class="inline-flex justify-center items-center ml-2 w-4 h-4 text-xs font-semibold"
@@ -370,7 +370,7 @@ async function reportPost() {
                 >
                   @{{ comment.author.handle }}
                 </span>
-                <p class="text-gray-900 dark:text-white">
+                <p class="text-gray-700 text-sm dark:text-white">
                   {{ comment.content }}
                 </p>
               </div>

@@ -7,90 +7,81 @@ const props = defineProps({
     type: String,
     default: 'default' // default, primary, error, success
   },
-  showIcon: {
-    type: Boolean,
-    default: true
+  message: {
+    type: String,
+    required: true
+  },
+  icon: {
+    type: String,
+    default: mdiAlertCircleOutline
   },
   dismissible: {
     type: Boolean,
     default: false
-  },
-  message: {
-    type: String,
-    required: true
   }
 })
-const alert = reactive({
+const state = reactive({
   type: 'default',
+  message: '',
   show: true,
-  showIcon: true,
-  dismissible: true,
-  message: ''
+  icon: mdiAlertCircleOutline,
+  dismissible: true
 })
 onMounted(() => {
-  alert.show = true
-  alert.type = props.type
-  alert.showIcon = props.showIcon
-  alert.dismissible = props.dismissible
-  alert.message = props.message
+  state.show = true
+  state.type = props.type
+  state.message = props.message
+  state.icon = props.icon
+  state.dismissible = props.dismissible
 })
 onUpdated(() => {
-  alert.show = true
-  alert.type = props.type
-  alert.showIcon = props.showIcon
-  alert.dismissible = props.dismissible
-  alert.message = props.message
+  state.show = true
+  state.type = props.type
+  state.message = props.message
+  state.icon = props.icon
+  state.dismissible = props.dismissible
 })
 </script>
 
 <template>
   <div
-    v-if="alert.show"
+    v-if="state.show"
     role="alert"
-    class="flex items-start p-2.5 rounded-lg border-l-8"
+    class="flex p-4 text-sm border rounded-lg dark:bg-gray-800"
     :class="{
-      'text-gray-700 bg-gray-200 border-gray-700 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-800':
-        alert.type === 'default',
-      'text-red-700 bg-red-200 border-red-700 dark:bg-red-200 dark:text-red-800 dark:border-red-800':
-        alert.type === 'error',
-      'text-green-700 bg-green-200 border-green-700 dark:bg-green-200 dark:text-green-800 dark:border-green-800':
-        alert.type === 'success',
-      'text-blue-700 bg-blue-200 border-blue-700 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800':
-        alert.type === 'primary'
+      'text-gray-800 border-gray-300 bg-gray-50 dark:text-gray-400 dark:border-gray-800':
+        state.type === 'default',
+      'text-red-800 border-red-300 bg-red-50 dark:text-red-400 dark:border-red-800':
+        state.type === 'error',
+      'text-green-800 border-green-300 bg-green-50 dark:text-green-400 dark:border-green-800':
+        state.type === 'success',
+      'text-blue-800 border-blue-300 bg-blue-50 dark:text-blue-400 dark:border-blue-800':
+        state.type === 'primary'
     }"
   >
     <svg-icon
-      :path="mdiAlertCircleOutline"
+      v-if="state.icon"
+      :path="state.icon"
       type="mdi"
-      v-if="alert.showIcon"
-      class="w-5 h-5"
-      :class="{
-        'fill-gray-700 dark:fill-gray-300': alert.type === 'default',
-        'fill-red-700 dark:fill-red-800': alert.type === 'error',
-        'fill-green-700 dark:fill-green-800': alert.type === 'success',
-        'fill-blue-700 dark:fill-blue-800': alert.type === 'primary'
-      }"
+      class="flex-shrink-0 inline w-5 h-5"
     />
-    <span
-      class="flex-1 text-sm font-medium"
-      :class="{ 'ml-3': props.showIcon }"
-    >
+    <span class="flex-1 text-sm font-medium" :class="{ 'ml-3': props.icon }">
       {{ props.message }}
     </span>
     <button
       type="button"
-      v-if="alert.dismissible"
-      @click="alert.show = false"
-      class="ml-auto rounded-lg focus:ring-2 p-1.5 inline-flex h-8 w-8"
+      v-if="state.dismissible"
+      @click="state.show = false"
+      class="ml-auto -mx-1.5 -my-1.5 rounded-lg focus:ring-2 p-1.5 inline-flex h-8 w-8 dark:bg-gray-800 dark:hover:bg-gray-700"
       :class="{
-        'bg-gray-200 text-gray-500 focus:ring-gray-400 hover:bg-gray-200 dark:bg-gray-200 dark:text-gray-600 dark:hover:bg-gray-300':
-          alert.type === 'default',
-        'bg-green-200 text-green-500 focus:ring-green-400 hover:bg-green-200 dark:bg-green-200 dark:text-green-600 dark:hover:bg-green-300':
-          alert.type === 'success',
-        'bg-red-200 text-red-500 focus:ring-red-400 hover:bg-red-200 dark:bg-red-200 dark:text-red-600 dark:hover:bg-red-300':
-          alert.type === 'error',
-        'bg-blue-200 text-blue-500 focus:ring-blue-400 hover:bg-blue-200 dark:bg-blue-200 dark:text-blue-600 dark:hover:bg-blue-300':
-          alert.type === 'primary'
+        'bg-gray-50 text-gray-500 focus:ring-gray-400 hover:bg-gray-200 dark:text-gray-400':
+          state.type === 'default',
+        'bg-green-50 text-green-500 focus:ring-green-400 hover:bg-green-200 dark:text-green-400':
+          state.type === 'success',
+        'bg-red-50 text-red-500 focus:ring-red-400 hover:bg-red-200 dark:text-red-400':
+          state.type === 'error',
+        'bg-blue-50 text-blue-500 focus:ring-blue-400 hover:bg-blue-200 dark:text-blue-400':
+          state.type === 'primary'
       }"
     >
       <span class="sr-only">Close</span>

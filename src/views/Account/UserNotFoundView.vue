@@ -20,7 +20,7 @@ import {
       />
     </div>
     <h1
-      class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-6"
+      class="text-5xl font-black leading-normal text-gray-900 dark:text-white mb-6"
     >
       404 - User Not Found
     </h1>
