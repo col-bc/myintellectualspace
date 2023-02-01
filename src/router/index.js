@@ -272,7 +272,7 @@ const router = createRouter({
           component: () => import('@/views/Jobs/HomeView.vue')
         },
         {
-          path: '/new',
+          path: 'new',
           name: 'jobs-new',
           component: () => import('@/views/Jobs/JobView.vue'),
           meta: { requiresAuth: true }
