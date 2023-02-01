@@ -254,6 +254,80 @@ const router = createRouter({
       redirect: '/unavailable'
     },
 
+    // # Jobs Routes
+    // /jobs
+    // - /
+    // - /new
+    // - /:jobId/apply
+    // - /:jobId/manage
+    // - /:jobId/candidates
+    // - /resume
+    // - /hiring
+    {
+      path: '/jobs',
+      children: [
+        {
+          path: '',
+          name: 'jobs-home',
+          component: () => import('@/views/Jobs/HomeView.vue')
+        },
+        {
+          path: '/new',
+          name: 'jobs-new',
+          component: () => import('@/views/Jobs/JobView.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: ':jobId/apply',
+          name: 'jobs-apply',
+          component: () => import('@/views/Jobs/JobView.vue'),
+          params: {
+            jobId: {
+              type: String,
+              required: true
+            }
+          },
+          meta: { requiresAuth: true }
+        },
+        {
+          path: ':jobId/manage',
+          name: 'jobs-manage',
+          component: () => import('@/views/Jobs/JobView.vue'),
+          params: {
+            jobId: {
+              type: String,
+              required: true
+            }
+          },
+          meta: { requiresAuth: true }
+        },
+        {
+          path: ':jobId/candidates',
+          name: 'jobs-candidates',
+          component: () => import('@/views/Jobs/CandidatesView,.vue'),
+          params: {
+            jobId: {
+              type: String,
+              required: true
+            }
+          },
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'resume',
+          name: 'jobs-resume',
+          component: () => import('@/views/Jobs/JobView.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'hiring',
+          name: 'jobs-hiring',
+          component: () => import('@/views/Jobs/HiringView.vue'),
+          meta: { requiresAuth: true }
+        }
+      ]
+    },
+
     // # Other Routes
     // /getting-started
     {
@@ -328,7 +402,7 @@ router.beforeEach((to, from, next) => {
       next()
       return
     }
-    next(`/login?next=${to.path}`)
+    next(`/login?redirect=${to.path}`)
   }
   next()
 })
