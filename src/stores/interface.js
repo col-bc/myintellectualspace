@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 const useInterface = defineStore('interface', {
   state: () => ({
     isDark: false,
-    viewportWidth: undefined
+    viewportWidth: undefined,
+    showSearch: false
   }),
   getters: {
     getIsDark: (state) => state.isDark,
@@ -14,7 +15,11 @@ const useInterface = defineStore('interface', {
       if (state.viewportWidth < 1280) return 'xl'
       return '2xl'
     },
-    isMobile: (state) => state.viewportWidth < 640
+    isMobile: (state) => state.viewportWidth < 640,
+    isTablet: (state) =>
+      state.viewportWidth >= 640 && state.viewportWidth < 1024,
+    isDesktop: (state) => state.viewportWidth >= 1024,
+    getShowSearch: (state) => state.showSearch
   },
   actions: {
     toggleTheme() {
@@ -29,6 +34,9 @@ const useInterface = defineStore('interface', {
     },
     setViewportWidth(width) {
       this.viewportWidth = width
+    },
+    toggleSearch() {
+      this.showSearch = !this.showSearch
     }
   }
 })
