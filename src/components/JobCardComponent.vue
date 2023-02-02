@@ -37,7 +37,7 @@ const state = reactive({
 })
 
 onMounted(async () => {
-  if (props.job.ownerUid === user.user.uid) {
+  if (props.job.ownerUid === user.user?.uid) {
     state.candidateLength = await job.fetchJobApplicationCount(props.job.id)
   }
   state.loading = false

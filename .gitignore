@@ -29,3 +29,4 @@ coverage
 
 src/secrets.js
 meeting notes.md
+.firebase/*

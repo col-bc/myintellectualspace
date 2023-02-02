@@ -184,21 +184,23 @@ async function getGeolocation() {
           </div>
         </div>
         <!-- Search / jobs -->
-        <div class="flex-col gap-6 md:gap-12">
+        <div class="flex-col gap-6 md:gap-12 w-full">
           <div
-            class="sticky top-6 z-30 w-full flex items-center bg-white dark:bg-gray-800 rounded-full p-2 border border-gray-300 dark:border-gray-700 shadow-lg"
+            class="sticky top-6 z-30 w-full flex flex-col md:flex-row md:items-center bg-white gap-2 md:gap-0 dark:bg-gray-800 rounded-lg md:rounded-full p-2 border border-gray-300 dark:border-gray-700 shadow-lg group"
           >
             <input
               type="text"
               v-model="state.keyword"
-              class="flex-1 p-4 text-gray-900 border border-gray-300 rounded-l-full bg-gray-50 sm:text-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              class="flex-1 p-4 text-gray-900 border border-gray-300 rounded-full md:rounded-r-none bg-gray-50 sm:text-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="Search keywords"
             />
-            <div class="relative flex-1">
+            <div
+              class="relative w-full flex-1 hidden group-focus-within:inline-flex md:inline-flex"
+            >
               <input
                 type="text"
                 v-model="state.location"
-                class="p-4 w-full text-gray-900 border border-gray-300 rounded-r-full bg-gray-50 sm:text-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                class="p-4 w-full text-gray-900 border border-gray-300 rounded-full md:rounded-l-none bg-gray-50 sm:text-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder="Location"
               />
               <button
@@ -211,9 +213,10 @@ async function getGeolocation() {
             </div>
             <button
               type="button"
-              class="ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-base p-4 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              class="md:ml-2 hidden group-focus-within:flex md:flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-base p-4 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             >
               <svg-icon :path="mdiMagnify" type="mdi" />
+              <span class="md:hidden ml-3">Search</span>
             </button>
           </div>
 

@@ -43,7 +43,7 @@ const useUserStore = defineStore({
   actions: {
     async setUser(user) {
       this.user = user
-      console.log(this.user.uid)
+      console.log('Updating user document ', this.user.uid)
       // fetch posts
       const post = usePostStore()
       await post.fetchPosts()
@@ -123,6 +123,18 @@ const useUserStore = defineStore({
       const docRef = doc(db, 'users', this.user.uid)
       await setDoc(docRef, filteredData, { merge: true })
       this.setUser({ ...this.user, ...filteredData })
+    },
+    async dropField(field) {
+      // remove field from user doc in firestore
+      const db = getFirestore()
+      const docRef = doc(db, 'users', this.user.uid)
+      const fieldExists = this.user[field] !== undefined
+      if (fieldExists) {
+        await setDoc(docRef, { [field]: null }, { merge: true })
+        this.setUser({ ...this.user, [field]: null })
+      } else {
+        throw new Error(`Field does not exist on user's document`)
+      }
     },
     clearUser() {
       this.user = undefined
