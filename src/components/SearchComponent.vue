@@ -1,12 +1,14 @@
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch, onMounted } from 'vue'
 import useUserStore from '@/stores/user'
+import useInterfaceStore from '@/stores/interface'
 import { useRouter } from 'vue-router'
 import { mdiMagnify } from '@mdi/js'
 
 const user = useUserStore()
+const ui = useInterfaceStore()
 const router = useRouter()
-
+const emit = defineEmits(['close'])
 const state = reactive({
   query: '',
   results: [],
@@ -56,5 +58,12 @@ watch(
     <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">
       Search Results
     </p>
+    <button
+      type="reset"
+      @click="ui.toggleSearch"
+      class="text-gray-500 dark:text-gray-400 text-sm font-medium"
+    >
+      Close
+    </button>
   </div>
 </template>

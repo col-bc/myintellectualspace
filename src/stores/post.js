@@ -181,7 +181,7 @@ const usePostStore = defineStore({
         // user has not liked post, append handle
         likes.push(user.user.handle)
         const uid = await user.getUserUidByHandle(post.author.handle)
-        user.createNotification(
+        await user.createNotification(
           {
             message: `@${user.user.handle} liked your post`,
             created: new Date().toISOString('en-US'),

@@ -81,6 +81,7 @@ async function apply() {
     resume: state.resume,
     coverLetter: state.coverLetter
   })
+  window.location.reload()
 }
 </script>
 

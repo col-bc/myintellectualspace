@@ -113,6 +113,14 @@ const useJobStore = defineStore({
             { jobId: jobId, date: new Date().toISOString() }
           ]
         })
+        const data = await this.fetchJob(jobId)
+        await user.createNotification(
+          {
+            type: 'job_application',
+            message: 'You have a new application to review for ' + data.title
+          },
+          data.ownerUid
+        )
       } else {
         throw new Error('Job application already exists')
       }

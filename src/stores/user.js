@@ -276,13 +276,15 @@ const useUserStore = defineStore({
     },
     async createNotification(notification, uid) {
       const db = getFirestore()
-      console.log(uid)
       const docRef = doc(db, 'notifications', uid)
 
       const docSnap = await getDoc(docRef)
       if (docSnap.exists()) {
         const notifications = docSnap.data().notifications
-        notifications.push(notification)
+        notifications.push({
+          ...notification,
+          created: new Date().toISOString('en-US')
+        })
         await setDoc(docRef, { notifications }, { merge: true })
       } else {
         await setDoc(docRef, { notifications: [notification] })
