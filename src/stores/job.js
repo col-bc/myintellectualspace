@@ -113,7 +113,7 @@ const useJobStore = defineStore({
             { jobId: jobId, date: new Date().toISOString() }
           ]
         })
-        const data = await this.fetchJob(jobId)
+        const data = await this.fetchJob(jobId)w
         await user.createNotification(
           {
             type: 'job_application',

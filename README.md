@@ -8,6 +8,7 @@ Intellectual Space is a place for learning, networking, and innovation. Our miss
 - [Firebase](https://firebase.google.com/) + [GCP App Engine](https://cloud.google.com/appengine)
 - [Tailwind CSS](https://tailwindcss.com/) + [Flowbite](https://flowbite.com/) Components
 - [Agora Real Time Video](https://www.agora.io/en/)
+- [TinyMCE](https://www.tiny.cloud/)
 - [Material Design Icons](https://pictogrammers.com/library/mdi/)
 
 ### Report a bug or issue
@@ -18,4 +19,11 @@ Click [here](https://github.com/col-bc/myintellectualspace/issues/new?assignees=
 cd .../myintellectualspace
 npm install
 npm run dev
+```
+You must also create a `secrets.js` file in the `src` directory that contains your API keys. The file should look like this:
+```js
+export const MAPS_API_KEY = 'YOUR GOOGLE MAPS API KEY HERE'
+export const VIDEOSDK_API_KEY = 'YOUR AGORA SDK API KEY HERE'
+export const VIDEOSDK_SECRET = 'YOUR AGORA SDK SECRET HERE'
+export const TINYMCE_API_KEY = 'YOUR TINYMCE API KEY HERE'
 ```
