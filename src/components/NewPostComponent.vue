@@ -154,9 +154,7 @@ async function getGeolocation() {
         />
       </div>
 
-      <div
-        class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-b-lg border-t dark:border-gray-600 dark:bg-gray-700"
-      >
+      <div class="flex justify-between items-center py-2 px-3">
         <button
           type="submit"
           @click="createPost()"

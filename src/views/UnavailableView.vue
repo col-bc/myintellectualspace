@@ -22,9 +22,9 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
         </div>
         <div class="flex-1 flex flex-col">
           <h1
-            class="text-5xl font-black leading-loose text-gray-900 dark:text-white mb-6"
+            class="text-5xl font-black leading-normal text-gray-900 dark:text-white mb-6"
           >
-            This Page is Not Available
+            This Page is Not Available Yet
           </h1>
           <p
             class="leading-loose text-lg text-gray-700 dark:text-gray-300 mb-6"

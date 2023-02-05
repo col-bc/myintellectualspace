@@ -1,83 +1,53 @@
 <script setup>
 import NavbarComponent from '@/components/NavbarComponent.vue'
+import { mdiArrowRightThin } from '@mdi/js'
 </script>
 
 <template>
-  <main class="bg-white dark:bg-slate-800">
-    <div class="min-h-screen max-w-screen-xl mx-auto">
+  <main class="bg-white min-h-screen dark:bg-slate-800">
+    <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div
-        class="container mx-auto flex flex-col md:flex-row items-center gap-16 px-4 md:py-12"
+        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap*12 lg:gap-16 py-12 px-2 md:px-4"
       >
-        <div class="flex-1 flex flex-col gap-12">
+        <div class="w-full md:w-auto flex justify-center mb-12">
+          <img
+            src="@/assets/images/teach-illustration.svg"
+            alt="Teach Illustration"
+            class="w-full max-w-sm md:max-w-md lg:max-w-lg"
+          />
+        </div>
+        <div class="flex-1 flex flex-col">
           <h1
-            class="text-3xl md:text-5xl font-black drop-shadow-xl leading-loose text-gray-900 dark:text-white"
+            class="text-5xl font-black leading-normal text-gray-900 dark:text-white mb-12"
           >
-            Share your knowledge with the world
+            Share Your Expertise with Others
           </h1>
-          <p class="leading-loose text-gray-700 dark:text-gray-300">
-            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Et
-            exercitationem iure, fugit fugiat, aperiam dignissimos dolorum,
-            molestiae placeat libero cupiditate odit? Eveniet quibusdam
-            molestiae, rerum error ad adipisci voluptas corrupti.
+
+          <p
+            class="text-lg leading-loose text-gray-700 dark:text-gray-300 mb-12"
+          >
+            Create a course and share your knowledge with others. We'll give you
+            the tools to make it happen. You'll be able to create a course,
+            manage your students, and track their progress. You can even charge
+            for your course if you wish. Get started today!
           </p>
-          <div class="flex items-center gap-6">
+
+          <div>
             <button
               type="button"
-              @click="$router.push('/teach/new-course')"
-              class="flex-1 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+              class="inline-flex items-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-7 py-3.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-80"
             >
-              Create New Course
-            </button>
-            <button
-              type="button"
-              @click="$router.push('/my-courses')"
-              class="flex-1 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-            >
-              View My Courses
+              Create a Course
+              <svg-icon
+                :path="mdiArrowRightThin"
+                type="mdi"
+                class="w-6 h-6 fill-current"
+              />
             </button>
           </div>
         </div>
-        <lottie-player
-          src="https://assets9.lottiefiles.com/packages/lf20_gjtpn03m.json"
-          background="transparent"
-          class="flex-shrink-0 md:max-w-sm lg:max-w-lg"
-          speed="1"
-          loop
-          autoplay
-        ></lottie-player>
       </div>
-    </div>
-    <div class="min-h-screen max-w-screen-md mx-auto">
-      <h2
-        class="text-center text-4xl font-bold leading-relaxed mb-12 dark:text-white px-2"
-      >
-        How to get started
-      </h2>
-      <p class="leading-loose mb-6 dark:text-gray-300">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat
-        consequuntur commodi fugit laboriosam explicabo recusandae sequi in
-        praesentium assumenda et, unde officia repudiandae ab alias adipisci.
-        Et, amet! Suscipit, totam. Lorem ipsum dolor sit amet consectetur
-        adipisicing elit. Error illum aspernatur labore. Repellendus repellat
-        unde labore maiores libero sint porro voluptates aliquid cupiditate
-        pariatur suscipit vero, quas nobis iure est. Lorem ipsum dolor sit, amet
-        consectetur adipisicing elit. Numquam perspiciatis molestiae accusamus
-        iure. Necessitatibus ipsum modi fugiat deserunt, porro, excepturi itaque
-        quia debitis corrupti obcaecati dicta praesentium impedit ipsam odio?
-      </p>
-      <p class="leading-loose dark:text-gray-300">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat
-        consequuntur commodi fugit laboriosam explicabo recusandae sequi in
-        praesentium assumenda et, unde officia repudiandae ab alias adipisci.
-        Et, amet! Suscipit, totam. Lorem ipsum dolor sit amet consectetur
-        adipisicing elit. Error illum aspernatur labore. Repellendus repellat
-        unde labore maiores libero sint porro voluptates aliquid cupiditate
-        pariatur suscipit vero, quas nobis iure est. Lorem ipsum dolor sit, amet
-        consectetur adipisicing elit. Numquam perspiciatis molestiae accusamus
-        iure. Necessitatibus ipsum modi fugiat deserunt, porro, excepturi itaque
-        quia debitis corrupti obcaecati dicta praesentium impedit ipsam odio?
-      </p>
     </div>
   </main>
 </template>

@@ -187,7 +187,9 @@ const router = createRouter({
     },
 
     // # Meeting Routes
-    // /meeting/:channel
+    // /meeting/host/:channel
+    // /meeting/join/:channel
+    // /my-meetings
     {
       path: '/meeting',
       name: 'meeting',
@@ -228,64 +230,102 @@ const router = createRouter({
       ],
       meta: { requiresAuth: true }
     },
+    {
+      path: '/my-meetings',
+      name: 'my-meetings',
+      component: () => import('@/views/Account/MyMeetingsView.vue')
+    },
 
     // # Learn Routes - TODO
     // /learn
     {
       path: '/learn',
       name: 'learn-home',
-      component: () => import('@/views/Learn/HomeView.vue')
+      // component: () => import('@/views/Learn/HomeView.vue')
+      redirect: '/unavailable'
     },
 
     // # Teach Routes - TODO
     // /teach
-    // /teach/new-course
-    // /teach/:id/dashboard
-    // /teach/:id/create-assessment
     {
       path: '/teach',
       name: 'teach-home',
-      redirect: '/unavailable'
       // component: () => import('@/views/Teach/HomeView.vue')
-    },
-    {
-      path: '/teach/new-course',
-      name: 'teach-new-course',
-      redirect: '/unavailable',
-      // component: () => import('@/views/Teach/NewCourseView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/teach/:id/dashboard',
-      name: 'teach-course-dashboard',
-      params: {
-        id: {
-          type: String,
-          required: true
-        }
-      },
-      redirect: '/unavailable',
-      // component: () => import('@/views/Teach/CourseDashboardView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/teach/:id/create-assessment',
-      name: 'teach-create-assessment',
-      params: {
-        id: {
-          type: String,
-          required: true
-        }
-      },
       redirect: '/unavailable'
-      // component: () => import('@/views/Teach/CreateAssessmentView.vue')
     },
 
-    // # Meeting Routes - TODO
+    // # Jobs Routes
+    // /jobs
+    // - /
+    // - /new
+    // - /:jobId/apply
+    // - /:jobId/manage
+    // - /:jobId/candidates
+    // - /resume
+    // - /hiring
     {
-      path: '/my-meetings',
-      name: 'my-meetings',
-      component: () => import('@/views/Account/MyMeetingsView.vue')
+      path: '/jobs',
+      children: [
+        {
+          path: '',
+          name: 'jobs-home',
+          component: () => import('@/views/Jobs/HomeView.vue')
+        },
+        {
+          path: 'new',
+          name: 'jobs-new',
+          component: () => import('@/views/Jobs/JobView.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: ':jobId/apply',
+          name: 'jobs-apply',
+          component: () => import('@/views/Jobs/JobView.vue'),
+          params: {
+            jobId: {
+              type: String,
+              required: true
+            }
+          },
+          meta: { requiresAuth: true }
+        },
+        {
+          path: ':jobId/manage',
+          name: 'jobs-manage',
+          component: () => import('@/views/Jobs/JobView.vue'),
+          params: {
+            jobId: {
+              type: String,
+              required: true
+            }
+          },
+          meta: { requiresAuth: true }
+        },
+        {
+          path: ':jobId/candidates',
+          name: 'jobs-candidates',
+          component: () => import('@/views/Jobs/CandidatesView,.vue'),
+          params: {
+            jobId: {
+              type: String,
+              required: true
+            }
+          },
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'resume',
+          name: 'jobs-resume',
+          component: () => import('@/views/Jobs/JobView.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'hiring',
+          name: 'jobs-hiring',
+          component: () => import('@/views/Jobs/HiringView.vue'),
+          meta: { requiresAuth: true }
+        }
+      ]
     },
 
     // # Other Routes
@@ -362,7 +402,7 @@ router.beforeEach((to, from, next) => {
       next()
       return
     }
-    next(`/login?next=${to.path}`)
+    next(`/login?redirect=${to.path}`)
   }
   next()
 })

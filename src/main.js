@@ -13,7 +13,6 @@ import router from './router'
 
 import { initializeApp } from 'firebase/app'
 import { getAnalytics } from 'firebase/analytics'
-
 const firebaseConfig = {
   apiKey: 'AIzaSyCN5ebqn1T3Gcc-DAWS-oRRkCqRAnTrZwk',
   authDomain: 'my-intellectual-space.firebaseapp.com',

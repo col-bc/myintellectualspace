@@ -1,9 +1,10 @@
 <script setup>
 import useInterface from '@/stores/interface'
 import useUserStore from '@/stores/user'
+import SearchComponent from '@/components/SearchComponent.vue'
 import { onBeforeUnmount, onMounted, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Menu, MenuButton, MenuItems } from '@headlessui/vue'
+import { Menu, MenuButton, MenuItems, Dialog } from '@headlessui/vue'
 import { Timestamp } from '@firebase/firestore'
 import {
   mdiHeadCogOutline,
@@ -23,21 +24,22 @@ import {
   mdiAccountPlusOutline,
   mdiHeartPlusOutline,
   mdiMessagePlusOutline,
-  mdiChatPlusOutline
+  mdiChatPlusOutline,
+  mdiBriefcaseOutline,
+  mdiMagnify,
+  mdiCheck,
+  mdiCheckAll
 } from '@mdi/js'
 
 const user = useUserStore()
 const router = useRouter()
 const route = useRoute()
 const ui = useInterface()
-
 const state = reactive({
   showLinks: false,
-  showUserMenu: false,
+  showUserDrawer: false,
   showDrawer: false,
   showNotifications: false,
-  searchQuery: '',
-  searchResults: [],
   notifications: []
 })
 
@@ -116,7 +118,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    v-if="state.showDrawer || state.showNotifications"
+    v-if="state.showDrawer || state.showNotifications || ui.getShowSearch"
     @click="closeDrawer"
     class="cursor-pointer absolute z-40 top-0 right-0 w-full h-full bg-black bg-opacity-60 transition-all duration-200"
   ></div>
@@ -285,24 +287,34 @@ onBeforeUnmount(() => {
             <div
               class="flex-shrink-0 flex items-center justify-center p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 text-white dark:text-gray-900 bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400"
             >
+              <!-- Follow -->
               <svg-icon
                 v-if="notification.type === 'follow'"
                 :path="mdiAccountPlusOutline"
                 type="mdi"
               />
+              <!-- Like -->
               <svg-icon
-                v-else-if="notification.type === 'like'"
-                :path="mdiHeartOutline"
+                v-if="notification.type === 'like'"
+                :path="mdiHeartPlusOutline"
                 type="mdi"
               />
+              <!-- Comment -->
               <svg-icon
-                v-else-if="notification.type === 'comment'"
+                v-if="notification.type === 'comment'"
                 :path="mdiMessagePlusOutline"
                 type="mdi"
               />
+              <!-- Message -->
               <svg-icon
-                v--else-if="notification.type === 'message'"
+                v-if="notification.type === 'message'"
                 :path="mdiChatPlusOutline"
+                type="mdi"
+              />
+              <!-- Job application -->
+              <svg-icon
+                v-if="notification.type === 'job_application'"
+                :path="mdiBriefcaseOutline"
                 type="mdi"
               />
             </div>
@@ -322,18 +334,7 @@ onBeforeUnmount(() => {
               @click="user.dismissNotification(idx)"
               class="p-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="fill-current h-4 w-4 text-gray-700 dark:text-gray-300"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path
-                  d="M10 15.172l9.192-9.193 1.415 1.414L10 18l-6.364-6.364 1.414-1.414z"
-                />
-              </svg>
+              <svg-icon :path="mdiCheck" type="mdi" />
             </button>
           </div>
         </li>
@@ -344,18 +345,7 @@ onBeforeUnmount(() => {
         @click="dismissAllNotifications"
         class="py-2.5 px-5 text-sm w-full flex items-center justify-center gap-2.5 font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="fill-current w-6 h-6"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-        >
-          <path fill="none" d="M0 0h24v24H0z" />
-          <path
-            d="M11.602 13.76l1.412 1.412 8.466-8.466 1.414 1.414-9.88 9.88-6.364-6.364 1.414-1.414 2.125 2.125 1.413 1.412zm.002-2.828l4.952-4.953 1.41 1.41-4.952 4.953-1.41-1.41zm-2.827 5.655L7.364 18 1 11.636l1.414-1.414 1.413 1.413-.001.001 4.951 4.951z"
-          />
-        </svg>
+        <svg-icon :path="mdiCheckAll" type="mdi" />
         Clear all notifications
       </button>
     </div>
@@ -366,7 +356,7 @@ onBeforeUnmount(() => {
   >
     <router-link
       to="/"
-      class="flex items-center mr-auto md:mr-6 text-gray-900 dark:text-white"
+      class="flex items-center mr-auto text-gray-900 dark:text-white"
     >
       <svg-icon :path="mdiHeadCogOutline" class="h-8 w-8 mr-3" type="mdi" />
       <span
@@ -381,64 +371,22 @@ onBeforeUnmount(() => {
     <!-- Actions -->
     <div class="flex flex-shrink items-center gap-2 md:order-2">
       <!-- Search -->
-      <div class="relative hidden lg:inline-flex">
-        <input
-          type="text"
-          v-model="searchText"
-          class="bg-gray-50 w-full max-w-xm border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Search"
-        />
-        <div
-          v-if="searchText"
-          class="absolute z-10 w-full bg-white border border-gray-200 rounded divide-y divide-gray-100 shadow-xl dark:bg-gray-700 mt-2"
+      <div class="flex-1">
+        <button
+          type="button"
+          @click="ui.toggleSearch"
+          class="p-2.5 flex items-center gap-2.5 w-auto md:w-full md:max-w-lg text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
         >
-          <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-            <li>
-              <router-link
-                :to="{ name: 'profile', params: { handle: searchText } }"
-                class="inline-flex items-center gap-4 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                {{ searchText }}
-              </router-link>
-            </li>
-            <li>
-              <router-link
-                :to="''"
-                class="inline-flex items-center gap-4 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-                {{ searchText }}
-              </router-link>
-            </li>
-          </ul>
-        </div>
+          <svg-icon
+            :path="mdiMagnify"
+            type="mdi"
+            class="text-gray-900 dark:text-white"
+          />
+          <span
+            class="hidden lg:inline-flex text-gray-500 dark:text-gray-400 pr-2.5"
+            >Search</span
+          >
+        </button>
       </div>
       <!-- Toggle theme -->
       <button
@@ -473,7 +421,7 @@ onBeforeUnmount(() => {
             ? (state.showDrawer = !state.showDrawer)
             : $router.push('/login')
         "
-        class="p-2.5 flex items-center gap-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+        class="flex-shrink-0 p-2.5 flex items-center gap-2.5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
       >
         <template v-if="!user.isAuthenticated">
           <svg-icon :path="mdiLoginVariant" type="mdi" />
@@ -505,7 +453,7 @@ onBeforeUnmount(() => {
         class="w-full md:flex-1"
       >
         <ul
-          class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:mx-4 md:text-sm md:font-medium"
+          class="flex flex-col mt-4 md:flex-row md:gap-x-8 md:mt-0 md:text-sm md:font-medium md:px-6"
         >
           <li>
             <router-link
@@ -551,10 +499,38 @@ onBeforeUnmount(() => {
               >Feed</router-link
             >
           </li>
+          <li>
+            <router-link
+              :to="{ name: 'jobs-home' }"
+              :class="[
+                $route.path.startsWith('/jobs')
+                  ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
+                  : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
+              ]"
+              >Jobs</router-link
+            >
+          </li>
         </ul>
       </div>
     </Transition>
   </nav>
+
+  <!-- Search Dialog -->
+  <Dialog
+    :open="ui.getShowSearch"
+    @close="ui.toggleSearch"
+    class="relative z-50"
+  >
+    <div class="fixed inset-0 overflow-y-auto">
+      <div class="flex min-h-full items-center justify-center p-4">
+        <div
+          class="w-full max-w-lg flex flex-col bg-white rounded-lg shadow dark:bg-gray-700"
+        >
+          <SearchComponent />
+        </div>
+      </div>
+    </div>
+  </Dialog>
 </template>
 
 <style scoped>
