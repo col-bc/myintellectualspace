@@ -449,257 +449,260 @@ async function toggleScreenShare() {
       class="min-h-screen flex flex-col container max-w-screen-xl mx-auto"
     >
       <nav
-        class="flex-none p-2 flex items-center flex-wrap gap-2 md:gap-4 shadow-lg border-b border-gray-300 dark:border-gray-700"
+        class="flex-none p-2 flex flex-col md:flex-row items-center gap-2 md:gap-4 shadow-lg border-b border-gray-300 dark:border-gray-700"
       >
-        <button
-          id="leave-meeting"
-          type="button"
-          @click="state.showLeaveDialog = true"
-          class="flex items-center justify-center gap-2.5 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-        >
-          <svg-icon :path="mdiLogoutVariant" type="mdi" />
-          <span class="hidden md:block">LEAVE MEETING</span>
-        </button>
-        <h5
-          id="meeting-id"
-          class="flex-1 flex items-center justify-start gap-2 text-2xl tracking-widest uppercase text-gray-900 dark:text-white font-bold font-mono md:flex-1 md:text-center border-l border-gray-300 dark:border-gray-700 pl-4"
-        >
-          {{ route.params.channel }}
+        <div class="w-full md:w-auto flex flex-1 items-center">
           <button
+            id="leave-meeting"
             type="button"
-            @click="copyChannel"
-            class="text-gray-700 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 p-2 focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-lg"
+            @click="state.showLeaveDialog = true"
+            class="flex items-center justify-center gap-2.5 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
           >
-            <svg-icon
-              :path="mdiContentCopy"
-              type="mdi"
-              class="w-4 h-4 fill-current"
-            />
+            <svg-icon :path="mdiLogoutVariant" type="mdi" />
+            <span class="hidden md:block">LEAVE MEETING</span>
           </button>
-        </h5>
-
-        <!-- End scree share -->
-        <button
-          v-if="state.isScreenShare"
-          type="button"
-          @click="toggleScreenShare"
-          class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
-        >
-          End Screen Share
-        </button>
-        <!-- Timer -->
-        <div
-          id="timer"
-          class="px-5 py-2.5 flex items-center text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700"
-        >
-          <svg-icon
-            :path="mdiTimerOutline"
-            type="mdi"
-            class="hidden md:block"
-          />
-          {{ resolveTimer }}
-        </div>
-        <!-- Quality -->
-        <Menu
-          as="div"
-          id="quality"
-          class="relative border-r border-gray-200 dark:border-gray-700"
-        >
-          <MenuButton
-            class="flex items-center justify-center mr-2 md:mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+          <h5
+            id="meeting-id"
+            class="flex-1 mr-auto flex items-center justify-start gap-2 text-2xl tracking-widest uppercase text-gray-900 dark:text-white font-bold font-mono md:flex-1 md:text-center border-l border-gray-300 dark:border-gray-700 pl-4"
           >
-            <svg-icon
-              :path="mdiSignal"
-              type="mdi"
-              class="w-6 h-6 fill-gray-800 dark:fill-gray-100 mr-2.5"
-            />
-            <svg-icon
-              :path="mdiArrowUpThin"
-              type="mdi"
-              class="w-6 h-6 hidden md:block"
-              :class="{
-                'fill-green-500': state.quality.up === 1,
-                'fill-lime-500': state.quality.up === 2,
-                'fill-yellow-500': state.quality.up === 3,
-                'fill-red-500': state.quality.up === 4,
-                'fill-gray-500': state.quality.up === 0
-              }"
-            />
-            <svg-icon
-              :path="mdiArrowDownThin"
-              type="mdi"
-              class="w-6 h-6 hidden md:block"
-              :class="{
-                'fill-green-500': state.quality.down === 1,
-                'fill-lime-500': state.quality.down === 2,
-                'fill-yellow-500': state.quality.down === 3,
-                'fill-red-500': state.quality.down === 4,
-                'fill-gray-500': state.quality.down === 0
-              }"
-            />
-          </MenuButton>
-          <MenuItems
-            class="absolute z-30 right-1/2 left-1/2 -translate-x-1/2 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
-          >
-            <h6 class="px-4 py-2 text-gray-900 dark:text-white font-bold">
-              Stream Quality
-            </h6>
-            <div
-              class="flex flex-col text-gray-700 dark:text-gray-400 px-4 py-2 gap-2"
-            >
-              <span class="font-bold">
-                Upload:
-                <span
-                  class="ml-2 font-normal"
-                  :class="{
-                    'text-green-500': state.quality.up === 1,
-                    'text-lime-500': state.quality.up === 2,
-                    'text-yellow-500': state.quality.up === 3,
-                    'text-red-500': state.quality.up === 4
-                  }"
-                  >{{ resolveQuality(state.quality.up) }}</span
-                >
-              </span>
-              <span class="font-bold">
-                Download:
-                <span
-                  class="ml-2"
-                  :class="{
-                    'text-green-500': state.quality.down === 1,
-                    'text-lime-500': state.quality.down === 2,
-                    'text-yellow-500': state.quality.down === 3,
-                    'text-red-500': state.quality.down === 4
-                  }"
-                  >{{ resolveQuality(state.quality.down) }}</span
-                >
-              </span>
-            </div>
-          </MenuItems>
-        </Menu>
-        <!-- Tools -->
-        <Menu
-          as="div"
-          class="relative border-r border-gray-200 dark:border-gray-700"
-        >
-          <MenuButton
-            as="button"
-            id="tools-menu"
-            type="button"
-            class="flex items-center justify-center gap-2.5 mr-2 md:mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-          >
-            <svg-icon
-              :path="mdiToolboxOutline"
-              type="mdi"
-              class="w-6 h-6 fill-gray-800 dark:fill-gray-100"
-            />
-            <span class="hidden md:block"> TOOLS </span>
-          </MenuButton>
-          <MenuItems
-            as="div"
-            class="absolute z-30 right-1/2 left-1/2 -translate-x-1/2 w-44 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
-          >
-            <div class="flex flex-col gp-4">
-              <div class="flex items-center justify-between px-4 py-2">
-                <!-- Screen share -->
-                <div class="relative group">
-                  <button
-                    type="button"
-                    @click="toggleScreenShare"
-                    class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                  >
-                    <svg-icon :path="mdiPresentation" type="mdi" />
-                  </button>
-                  <div
-                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
-                  >
-                    Share Screen
-                  </div>
-                </div>
-                <!-- Share link -->
-                <div class="relative group">
-                  <button
-                    type="button"
-                    @click="copyLink"
-                    class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                  >
-                    <svg-icon :path="mdiLinkVariant" type="mdi" />
-                  </button>
-                  <div
-                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-52 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
-                  >
-                    Share meeting link
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center justify-between px-4 py-2">
-                <!-- Share file -->
-                <div class="relative group">
-                  <button
-                    type="button"
-                    class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                  >
-                    <svg-icon :path="mdiUploadOutline" type="mdi" />
-                  </button>
-                  <div
-                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
-                  >
-                    Share File
-                  </div>
-                </div>
-                <!-- Change view -->
-                <div class="relative group">
-                  <button
-                    type="button"
-                    @click="copyMeetingLink"
-                    class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                  >
-                    <svg-icon :path="mdiGridLarge" type="mdi" />
-                  </button>
-                  <div
-                    class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
-                  >
-                    Change View
-                  </div>
-                </div>
-              </div>
-            </div>
-          </MenuItems>
-        </Menu>
-        <Menu as="div" class="relative">
-          <MenuButton
-            as="button"
-            type="button"
-            class="text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm p-2.5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-          >
-            <svg-icon :path="mdiDotsVertical" type="mdi" />
-          </MenuButton>
-          <MenuItems
-            as="div"
-            class="absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
-          >
-            <MenuItem
-              as="button"
-              @click="copyLink"
-              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >
-              <svg-icon :path="mdiLinkVariant" type="mdi" />
-              Copy Meeting Link
-            </MenuItem>
-            <MenuItem
-              as="button"
-              @click="ui.toggleTheme"
-              class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            {{ route.params.channel }}
+            <button
+              type="button"
+              @click="copyChannel"
+              class="text-gray-700 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 p-2 focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-lg"
             >
               <svg-icon
-                v-if="!ui.getIsDark"
+                :path="mdiContentCopy"
                 type="mdi"
-                :path="mdiWeatherNight"
+                class="w-4 h-4 fill-current"
               />
-              <svg-icon v-else type="mdi" :path="mdiWeatherSunny" />
-              Change Theme
-            </MenuItem>
-          </MenuItems>
-        </Menu>
+            </button>
+          </h5>
+        </div>
+        <div class="w-full md:w-auto flex items-center justify-between">
+          <!-- End scree share -->
+          <button
+            v-if="state.isScreenShare"
+            type="button"
+            @click="toggleScreenShare"
+            class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
+          >
+            End Screen Share
+          </button>
+          <!-- Timer -->
+          <div
+            id="timer"
+            class="px-5 py-2.5 flex items-center text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700"
+          >
+            <svg-icon
+              :path="mdiTimerOutline"
+              type="mdi"
+              class="hidden md:block"
+            />
+            {{ resolveTimer }}
+          </div>
+          <!-- Quality -->
+          <Menu
+            as="div"
+            id="quality"
+            class="relative border-r border-gray-200 dark:border-gray-700"
+          >
+            <MenuButton
+              class="flex items-center justify-center mr-2 md:mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            >
+              <svg-icon
+                :path="mdiSignal"
+                type="mdi"
+                class="w-6 h-6 fill-gray-800 dark:fill-gray-100 mr-2.5"
+              />
+              <svg-icon
+                :path="mdiArrowUpThin"
+                type="mdi"
+                class="w-6 h-6 hidden md:block"
+                :class="{
+                  'fill-green-500': state.quality.up === 1,
+                  'fill-lime-500': state.quality.up === 2,
+                  'fill-yellow-500': state.quality.up === 3,
+                  'fill-red-500': state.quality.up === 4,
+                  'fill-gray-500': state.quality.up === 0
+                }"
+              />
+              <svg-icon
+                :path="mdiArrowDownThin"
+                type="mdi"
+                class="w-6 h-6 hidden md:block"
+                :class="{
+                  'fill-green-500': state.quality.down === 1,
+                  'fill-lime-500': state.quality.down === 2,
+                  'fill-yellow-500': state.quality.down === 3,
+                  'fill-red-500': state.quality.down === 4,
+                  'fill-gray-500': state.quality.down === 0
+                }"
+              />
+            </MenuButton>
+            <MenuItems
+              class="absolute z-30 right-1/2 left-1/2 -translate-x-1/2 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
+            >
+              <h6 class="px-4 py-2 text-gray-900 dark:text-white font-bold">
+                Stream Quality
+              </h6>
+              <div
+                class="flex flex-col text-gray-700 dark:text-gray-400 px-4 py-2 gap-2"
+              >
+                <span class="font-bold">
+                  Upload:
+                  <span
+                    class="ml-2 font-normal"
+                    :class="{
+                      'text-green-500': state.quality.up === 1,
+                      'text-lime-500': state.quality.up === 2,
+                      'text-yellow-500': state.quality.up === 3,
+                      'text-red-500': state.quality.up === 4
+                    }"
+                    >{{ resolveQuality(state.quality.up) }}</span
+                  >
+                </span>
+                <span class="font-bold">
+                  Download:
+                  <span
+                    class="ml-2"
+                    :class="{
+                      'text-green-500': state.quality.down === 1,
+                      'text-lime-500': state.quality.down === 2,
+                      'text-yellow-500': state.quality.down === 3,
+                      'text-red-500': state.quality.down === 4
+                    }"
+                    >{{ resolveQuality(state.quality.down) }}</span
+                  >
+                </span>
+              </div>
+            </MenuItems>
+          </Menu>
+          <!-- Tools -->
+          <Menu
+            as="div"
+            class="relative border-r border-gray-200 dark:border-gray-700"
+          >
+            <MenuButton
+              as="button"
+              id="tools-menu"
+              type="button"
+              class="flex items-center justify-center gap-2.5 mr-2 md:mr-4 text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm py-2.5 px-5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            >
+              <svg-icon
+                :path="mdiToolboxOutline"
+                type="mdi"
+                class="w-6 h-6 fill-gray-800 dark:fill-gray-100"
+              />
+              <span class="hidden md:block"> TOOLS </span>
+            </MenuButton>
+            <MenuItems
+              as="div"
+              class="absolute z-30 right-1/2 left-1/2 -translate-x-1/2 w-44 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
+            >
+              <div class="flex flex-col gp-4">
+                <div class="flex items-center justify-between px-4 py-2">
+                  <!-- Screen share -->
+                  <div class="relative group">
+                    <button
+                      type="button"
+                      @click="toggleScreenShare"
+                      class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    >
+                      <svg-icon :path="mdiPresentation" type="mdi" />
+                    </button>
+                    <div
+                      class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                    >
+                      Share Screen
+                    </div>
+                  </div>
+                  <!-- Share link -->
+                  <div class="relative group">
+                    <button
+                      type="button"
+                      @click="copyLink"
+                      class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    >
+                      <svg-icon :path="mdiLinkVariant" type="mdi" />
+                    </button>
+                    <div
+                      class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-52 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                    >
+                      Share meeting link
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between px-4 py-2">
+                  <!-- Share file -->
+                  <div class="relative group">
+                    <button
+                      type="button"
+                      class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    >
+                      <svg-icon :path="mdiUploadOutline" type="mdi" />
+                    </button>
+                    <div
+                      class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                    >
+                      Share File
+                    </div>
+                  </div>
+                  <!-- Change view -->
+                  <div class="relative group">
+                    <button
+                      type="button"
+                      @click="copyMeetingLink"
+                      class="p-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                    >
+                      <svg-icon :path="mdiGridLarge" type="mdi" />
+                    </button>
+                    <div
+                      class="hidden group-hover:block absolute z-40 right-1/2 left-1/2 -translate-x-1/2 w-32 font-medium text-center text-lg mt-2 p-1 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-gray-700 dark:text-gray-200"
+                    >
+                      Change View
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </MenuItems>
+          </Menu>
+          <Menu as="div" class="relative">
+            <MenuButton
+              as="button"
+              type="button"
+              class="text-gray-800 hover:text-gray-900 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm p-2.5 text-center dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            >
+              <svg-icon :path="mdiDotsVertical" type="mdi" />
+            </MenuButton>
+            <MenuItems
+              as="div"
+              class="absolute z-30 right-0 w-52 mt-4 bg-white border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-600 rounded shadow-lg dark:bg-gray-800 py-1 text-sm text-gray-700 dark:text-gray-200"
+            >
+              <MenuItem
+                as="button"
+                @click="copyLink"
+                class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+              >
+                <svg-icon :path="mdiLinkVariant" type="mdi" />
+                Copy Meeting Link
+              </MenuItem>
+              <MenuItem
+                as="button"
+                @click="ui.toggleTheme"
+                class="flex items-center gap-2.5 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+              >
+                <svg-icon
+                  v-if="!ui.getIsDark"
+                  type="mdi"
+                  :path="mdiWeatherNight"
+                />
+                <svg-icon v-else type="mdi" :path="mdiWeatherSunny" />
+                Change Theme
+              </MenuItem>
+            </MenuItems>
+          </Menu>
+        </div>
       </nav>
       <!-- Content -->
       <div
