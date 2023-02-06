@@ -6,7 +6,9 @@ import {
   getDoc,
   getDocs,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
+  addDoc,
+  deleteDoc
 } from 'firebase/firestore'
 import useUserStore from './user'
 
@@ -45,22 +47,24 @@ const useJobStore = defineStore({
       return jobs
     },
     async createJob(payload) {
-      const user = useUserStore().user
+      // ** strip mode from job data payload
+      delete payload.mode
+      const user = useUserStore()
       const jobData = {
         ...payload,
         created: serverTimestamp(),
         updated: serverTimestamp(),
         companyProfile: {
-          ...user.companyProfile
-        }
+          ...user.user.companyProfile
+        },
+        ownerUid: user.user.uid
       }
-      console.log(jobData)
       const db = getFirestore()
       const jobsRef = collection(db, 'jobs')
-      const docRef = await setDoc(doc(jobsRef), jobData)
+      const docRef = await addDoc(jobsRef, { ...jobData })
       this.jobs.push({ id: docRef.id, ...jobData })
       // update jobIds in user
-      user.updateUser({ jobIds: [...user.jobIds, docRef.id] })
+      user.updateUser({ jobIds: [...user.user.jobIds, docRef.id] })
       return { id: docRef.id, ...jobData }
     },
     async updateJob(id, payload) {
@@ -80,12 +84,21 @@ const useJobStore = defineStore({
       return null
     },
     async deleteJob(id) {
+      const user = useUserStore()
       const db = getFirestore()
       const docRef = doc(db, 'jobs', id)
       const docSnap = await getDoc(docRef)
       if (docSnap.exists()) {
-        await docRef.delete()
+        await deleteDoc(docRef)
         this.jobs = this.jobs.filter((j) => j.id !== id)
+
+        // update user doc
+        const userJobs = user.user.jobIds.filter((j) => j.id !== id)
+        try {
+          await user.updateUser({ jobIds: userJobs })
+        } catch (e) {
+          throw new Error(e)
+        }
         return true
       }
       return false
@@ -100,7 +113,6 @@ const useJobStore = defineStore({
         updated: serverTimestamp(),
         resume: user.user.resume.url || null
       }
-      console.log(jobApplicationData)
       const db = getFirestore()
       const docRef = await doc(db, 'jobs', jobId, 'applications', user.user.uid)
       const docSnap = await getDoc(docRef)

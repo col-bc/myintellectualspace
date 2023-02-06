@@ -1,27 +1,27 @@
 <script setup>
-import NavbarComponent from '@/components/NavbarComponent.vue'
 import AlertComponent from '@/components/AlertComponent.vue'
-import Editor from '@tinymce/tinymce-vue'
-import { reactive, onMounted } from 'vue'
-import useUserStore from '@/stores/user'
+import NavbarComponent from '@/components/NavbarComponent.vue'
 import { TINYMCE_API_KEY } from '@/secrets'
-import {
-  mdiCurrencyUsd,
-  mdiSchoolOutline,
-  mdiBriefcaseOutline,
-  mdiPlus,
-  mdiClose,
-  mdiClockOutline,
-  mdiContentSaveOutline
-} from '@mdi/js'
-import useJobStore from '@/stores/job'
 import useInterfaceStore from '@/stores/interface'
-import router from '../router'
+import useJobStore from '@/stores/job'
+import useUserStore from '@/stores/user'
+import {
+  mdiBriefcaseOutline,
+  mdiClockOutline,
+  mdiClose,
+  mdiContentSaveOutline,
+  mdiCurrencyUsd,
+  mdiPlus,
+  mdiTrashCanOutline
+} from '@mdi/js'
+import Editor from '@tinymce/tinymce-vue'
+import { onMounted, reactive, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 const user = useUserStore()
 const job = useJobStore()
 const ui = useInterfaceStore()
-
+const router = useRouter()
 const props = defineProps({
   job: {
     type: Object,
@@ -30,7 +30,7 @@ const props = defineProps({
 })
 const state = reactive({
   error: null,
-  mode: props.job?.id ? 'edit' : 'create',
+  mode: null,
   loading: false,
   jobTitle: '',
   jobDescription: '',
@@ -49,9 +49,14 @@ const state = reactive({
 })
 
 onMounted(async () => {
-  if (props.job?.id) {
+  state.mode = props.job?.id ? 'edit' : 'create'
+  console.log(state.mode)
+  if (state.mode === 'edit') {
     state.loading = true
     const jobData = await job.fetchJob(props.job.id)
+    if (jobData.ownerUid !== user.user.uid) {
+      router.push({ name: 'jobs-hiring' })
+    }
     state.jobTitle = jobData.title
     state.jobDescription = jobData.description
     state.jobType = jobData.type
@@ -88,7 +93,6 @@ function addSkill() {
 function removeSkill(idx) {
   state.jobSkills.splice(idx, 1)
 }
-
 function validate() {
   state.error = null
   if (!state.jobTitle) {
@@ -156,13 +160,11 @@ function validate() {
   }
   return true
 }
-
 async function onSubmit() {
   if (!validate()) return
 
   delete state.error
   delete state.loading
-  delete state.mode
   if (state.mode === 'create') {
     const jobData = await job.createJob({
       title: state.jobTitle,
@@ -179,7 +181,7 @@ async function onSubmit() {
       hours: state.jobHours,
       acceptApplications: state.acceptApplications
     })
-    router.push({ name: 'job-apply', params: { jobId: jobData.id } })
+    router.push({ name: 'jobs-apply', params: { jobId: jobData.id } })
   } else {
     const jobData = await job.updateJob(props.job.id, {
       title: state.jobTitle,
@@ -203,6 +205,29 @@ async function onSubmit() {
     state.mode = 'edit'
   }
 }
+async function deleteJob() {
+  try {
+    job.deleteJob(props.job.id)
+    router.push({ name: 'jobs-hiring' })
+  } catch (e) {
+    state.error = {
+      message: 'Could not delete job posting. ' + e,
+      type: 'error'
+    }
+  }
+}
+
+watch(
+  () => state.error,
+  (val) => {
+    if (val) {
+      setTimeout(() => {
+        state.error = null
+      }, 7500)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+)
 </script>
 
 <template>
@@ -212,11 +237,22 @@ async function onSubmit() {
       <div
         class="h-full container mx-auto flex flex-col gap-6 md:gap*12 py-12 px-2 md:px-4"
       >
-        <h1
-          class="text-5xl font-black leading-normal text-gray-900 dark:text-white mb-12"
-        >
-          {{ state.mode === 'create' ? 'Create' : 'Manage' }} a Job Posting
-        </h1>
+        <div class="flex items-center">
+          <h1
+            class="flex-1 text-5xl font-black leading-normal text-gray-900 dark:text-white mb-12"
+          >
+            {{ state.mode === 'create' ? 'Create' : 'Manage' }} a Job Posting
+          </h1>
+          <button
+            v-if="state.mode === 'edit'"
+            type="button"
+            @click="deleteJob"
+            class="flex items-center gap-2.5 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm p-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+          >
+            <svg-icon :path="mdiTrashCanOutline" type="mdi" />
+            Delete Job
+          </button>
+        </div>
         <div class="flex flex-col-reverse md:flex-row gap-12">
           <form
             @submit.prevent="onSubmit"

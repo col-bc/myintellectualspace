@@ -48,7 +48,7 @@ onMounted(async () => {
   <LoaderComponent v-if="state.loading" />
   <div
     v-else
-    class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-300 dark:border-gray-700 p-6"
+    class="w-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-300 dark:border-gray-700 p-6"
   >
     <div
       class="flex items-center mb-4 pb-4 border-b border-gray-300 dark:border-gray-700"
@@ -86,7 +86,6 @@ onMounted(async () => {
         <svg-icon :path="mdiAlertOctagramOutline" type="mdi" class="w-5 h-5" />
         Urgent Need
       </span>
-
       <button
         v-if="props.primaryAction === 'apply'"
         type="button"
