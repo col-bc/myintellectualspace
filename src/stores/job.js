@@ -39,12 +39,12 @@ const useJobStore = defineStore({
     async fetchMyJobs() {
       const user = useUserStore()
       const jobIds = user.user.jobIds || []
-      var jobs = []
-      for (const jobId of jobIds) {
-        const job = await this.fetchJob(jobId)
-        jobs.push(job)
+      const myJobs = []
+      for (const id of jobIds) {
+        const job = await this.fetchJob(id)
+        if (job) myJobs.push(job)
       }
-      return jobs
+      return myJobs
     },
     async createJob(payload) {
       // ** strip mode from job data payload
@@ -64,7 +64,9 @@ const useJobStore = defineStore({
       const docRef = await addDoc(jobsRef, { ...jobData })
       this.jobs.push({ id: docRef.id, ...jobData })
       // update jobIds in user
-      user.updateUser({ jobIds: [...user.user.jobIds, docRef.id] })
+      const jobIds = user.user.jobIds || []
+      jobIds.push(docRef.id)
+      user.updateUser({ jobIds: jobIds })
       return { id: docRef.id, ...jobData }
     },
     async updateJob(id, payload) {
@@ -100,8 +102,9 @@ const useJobStore = defineStore({
           throw new Error(e)
         }
         return true
+      } else {
+        throw new Error('Job id does not exist')
       }
-      return false
     },
     async createJobApplication(jobId, payload) {
       const user = useUserStore()

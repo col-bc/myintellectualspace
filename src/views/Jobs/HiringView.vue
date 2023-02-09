@@ -90,14 +90,26 @@ function handlePostJob() {
           <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-12">
             My Jobs
           </h3>
-
           <LoaderComponent v-if="state.loading" size="lg" />
-          <JobCardComponent
-            :job="job"
-            primaryAction="manage"
-            v-for="job in state.myJobs"
-            :key="job.id"
-          />
+          <template v-else-if="state.myJobs.length > 0">
+            <JobCardComponent
+              :job="job"
+              primaryAction="manage"
+              v-for="job in state.myJobs"
+              :key="job.id"
+            />
+          </template>
+          <template v-else>
+            <p class="text-gray-500 dark:text-gray-400">
+              You do not have any job postings yet. Click
+              <router-link
+                :to="{ name: 'jobs-new' }"
+                class="text-blue-500 dark:text-blue-400 hover:underline"
+                >here</router-link
+              >
+              to create one now.
+            </p>
+          </template>
         </template>
         <template v-else>
           <div class="w-full max-w-xl mx-auto">

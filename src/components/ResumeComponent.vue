@@ -113,7 +113,7 @@ async function removeResume() {
   } catch (e) {
     console.log('Failed to delete object from storage. URL: ', state.resumeUrl)
   }
-  await user.dropField('resumeUrl')
+  await user.dropField('resume')
   state.error = {
     message: 'Resume removed successfully',
     type: 'success'

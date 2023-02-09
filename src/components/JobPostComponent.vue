@@ -513,7 +513,14 @@ watch(
               class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-300 dark:border-gray-700 p-6"
             >
               <div class="flex items-center mb-4 pb-4 border-b">
+                <div
+                  v-if="!user.user.companyProfile.logo"
+                  class="w-14 h-14 bg-gray-500 text-white mr-4 rounded-full border flex items-center justify-center font-bold"
+                >
+                  {{ user.user.companyProfile.name.charAt(0) }}
+                </div>
                 <img
+                  v-else
                   :src="user.user.companyProfile.logo"
                   alt="logo"
                   class="w-14 h-14 mr-4 rounded-full border"

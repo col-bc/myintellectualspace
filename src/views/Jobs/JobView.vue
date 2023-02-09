@@ -69,7 +69,7 @@ onUpdated(async () => {
           <h3
             class="text-3xl font-black leading-normal text-gray-900 dark:text-white mb-6"
           >
-            You have already applied for this job
+            You have applied to this job
           </h3>
           <div class="flex items-center justify-center">
             <img
