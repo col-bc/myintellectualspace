@@ -37,7 +37,7 @@ import { mdiHeadCogOutline } from '@mdi/js'
               </li>
               <li>
                 <router-link to="/support" class="hover:underline"
-                  >Support</router-link
+                  >Support Center</router-link
                 >
               </li>
             </ul>
@@ -46,7 +46,7 @@ import { mdiHeadCogOutline } from '@mdi/js'
             <h2
               class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
             >
-              Get involved
+              Developers
             </h2>
             <ul class="text-gray-600 dark:text-gray-400">
               <li class="mb-4">
@@ -85,7 +85,7 @@ import { mdiHeadCogOutline } from '@mdi/js'
       />
       <div class="sm:flex sm:items-center sm:justify-between">
         <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400"
-          >© 2022
+          >© {{ new Date().getFullYear() }}
           <a
             href="https://my-intellectual-space.firebaseapp.com/"
             class="hover:underline"

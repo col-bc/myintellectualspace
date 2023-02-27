@@ -1,7 +1,7 @@
 <script setup>
 import FooterComponent from './components/FooterComponent.vue'
-import { RouterView } from 'vue-router'
-import { onMounted, ref } from 'vue'
+import { RouterView, useRouter } from 'vue-router'
+import { onMounted, ref, watch } from 'vue'
 import useInterface from '@/stores/interface'
 import useUserStore from '@/stores/user'
 import { getAuth, onAuthStateChanged } from '@firebase/auth'
@@ -9,6 +9,7 @@ import { getAuth, onAuthStateChanged } from '@firebase/auth'
 const ui = useInterface()
 const user = useUserStore()
 const auth = getAuth()
+const router = useRouter()
 const vpWidth = ref(window.innerWidth)
 
 onMounted(() => {
@@ -29,6 +30,13 @@ onMounted(() => {
 window.addEventListener('resize', () => {
   vpWidth.value = window.innerWidth
   ui.setViewportWidth(vpWidth.value)
+})
+// toggle search on control + k
+window.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key === 'k') {
+    e.preventDefault()
+    ui.toggleSearch()
+  }
 })
 </script>
 

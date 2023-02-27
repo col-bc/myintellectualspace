@@ -11,7 +11,12 @@ import { onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AlertComponent from '@/components/AlertComponent.vue'
 import { v4 as uuidv4 } from 'uuid'
-import { mdiEyeOffOutline, mdiHomeOffOutline, mdiArrowRightThin } from '@mdi/js'
+import {
+  mdiEyeOffOutline,
+  mdiHomeOffOutline,
+  mdiArrowRightThin,
+  mdiAt
+} from '@mdi/js'
 
 const db = getFirestore()
 const router = useRouter()
@@ -92,6 +97,13 @@ async function saveUser() {
   if (!form.fullName) {
     form.error = {
       message: 'Please enter your full name',
+      type: 'error'
+    }
+    return
+  }
+  if (form.bio?.length > 250) {
+    form.error = {
+      message: 'Bio must be less than 250 characters',
       type: 'error'
     }
     return
@@ -199,12 +211,19 @@ async function changeAvatar() {
                 >*</span
               ></span
             >
-            <input
-              type="text"
-              v-model="form.handle"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder=""
-            />
+            <div class="w-full relative group">
+              <svg-icon
+                :path="mdiAt"
+                type="mdi"
+                class="absolute top-2 left-2 text-gray-500 dark:text-gray-400 group-focus-within:text-gray-900"
+              />
+              <input
+                type="text"
+                v-model="form.handle"
+                class="bg-gray-50 pl-9 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder=""
+              />
+            </div>
           </div>
           <!-- Name -->
           <div>
@@ -276,9 +295,20 @@ async function changeAvatar() {
             <textarea
               v-model="form.bio"
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 outline-0':
+                  form.bio.length > 250
+              }"
               placeholder=""
               rows="4"
             ></textarea>
+            <span
+              class="text-gray-500 text-sm mt-1 dark:text-gray-400"
+              :class="{
+                'text-red-500': form.bio.length > 250
+              }"
+              >{{ form.bio.length || 0 }}/250</span
+            >
           </div>
           <!-- Education Level -->
           <div>

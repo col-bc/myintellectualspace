@@ -14,17 +14,14 @@ import {
     <div class="max-w-screen-xl mx-auto">
       <NavbarComponent />
       <div
-        class="relative h-full container mx-auto flex flex-col md:flex-row items-start gap-6 md:gap*12 lg:gap-16 py-12 px-2 md:px-4"
+        class="relative h-full container mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-12 lg:gap-16 py-12 px-2 md:px-4 mb-12"
       >
-        <div class="w-full md:w-auto flex justify-center mb-12">
-          <lottie-player
-            src="https://assets1.lottiefiles.com/packages/lf20_7z8wtyb0.json"
-            background="transparent"
-            speed="1"
+        <div class="w-full md:w-auto">
+          <img
+            src="@/assets/images/support-illustration.svg"
+            alt="Support"
             class="w-full max-w-sm md:max-w-md lg:max-w-lg"
-            loop
-            autoplay
-          ></lottie-player>
+          />
         </div>
         <div class="flex-1 flex flex-col">
           <h1
@@ -53,7 +50,7 @@ import {
         </div>
       </div>
       <div
-        class="flex flex-col md:flex-row md:justify-between w-full gap-6 mb-12 px-2 md:px-4"
+        class="h-full container mx-auto flex flex-col md:flex-row md:justify-between w-full gap-6 mb-12 px-2 md:px-4"
       >
         <div
           class="w-full max-w-sm p-6 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-lg dark:bg-gray-800 dark:border-gray-700 transition-all duration-100 ease-linear"

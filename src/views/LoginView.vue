@@ -139,12 +139,12 @@ function acceptBeta() {
       router.push('/getting-started')
       return
     }
-    // push to router next param if set
-    if (!!route.params.next) {
-      router.push(route.params.next)
+    // push to router then query if set
+    if (route.query.then) {
+      router.push(route.query.then)
       return
     }
-    // push to profile home if no next param
+    // push to profile home if no then query
     else {
       router.push({
         name: 'profile',

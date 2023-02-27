@@ -49,6 +49,12 @@ const router = createRouter({
         next('/?logout=true')
       }
     },
+    // /forgot-password
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('../views/ForgotPasswordView.vue')
+    },
 
     // # Social Routes
     // /social/@:handle
@@ -95,6 +101,11 @@ const router = createRouter({
         {
           path: 'connections',
           name: 'profile-connections',
+          component: () => import('@/views/Account/ProfileView.vue')
+        },
+        {
+          path: 'lectures',
+          name: 'profile-lectures',
           component: () => import('@/views/Account/ProfileView.vue')
         }
       ],
@@ -236,22 +247,58 @@ const router = createRouter({
       component: () => import('@/views/Account/MyMeetingsView.vue')
     },
 
-    // # Learn Routes - TODO
-    // /learn
+    // # Lectures Routes
+    // /lectures
+    // - /new
+    // - /:lectureId
     {
-      path: '/learn',
-      name: 'learn-home',
-      // component: () => import('@/views/Learn/HomeView.vue')
-      redirect: '/unavailable'
-    },
-
-    // # Teach Routes - TODO
-    // /teach
-    {
-      path: '/teach',
-      name: 'teach-home',
-      // component: () => import('@/views/Teach/HomeView.vue')
-      redirect: '/unavailable'
+      path: '/lectures',
+      children: [
+        {
+          path: '',
+          name: 'lectures-home',
+          component: () => import('@/views/Lectures/HomeView.vue')
+        },
+        {
+          path: 'reels',
+          name: 'lectures-reels',
+          component: () => import('@/views/Lectures/HomeView.vue')
+        },
+        {
+          path: 'new',
+          name: 'lectures-new',
+          component: () => import('@/views/Lectures/LectureView.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: ':lectureId',
+          name: 'lectures-lecture',
+          component: () => import('@/views/Lectures/LectureView.vue'),
+          params: {
+            lectureId: {
+              type: String,
+              required: true
+            }
+          }
+        },
+        {
+          path: ':lectureId/edit',
+          name: 'lectures-edit-lecture',
+          component: () => import('@/views/Lectures/LectureView.vue'),
+          params: {
+            lectureId: {
+              type: String,
+              required: true
+            }
+          }
+        },
+        {
+          path: 'creator-dashboard',
+          name: 'lectures-creator-dashboard',
+          component: () => import('@/views/Lectures/CreatorDashboardView.vue'),
+          meta: { requiresAuth: true }
+        }
+      ]
     },
 
     // # Jobs Routes
@@ -365,8 +412,8 @@ const router = createRouter({
         },
         {
           path: 'contact',
-          name: 'support-contact'
-          // component: () => import('@/views/Support/ContactView.vue')
+          name: 'support-contact',
+          component: () => import('@/views/Support/ContactView.vue')
         }
       ]
     },
@@ -402,7 +449,7 @@ router.beforeEach((to, from, next) => {
       next()
       return
     }
-    next(`/login?redirect=${to.path}`)
+    next({ name: 'login', query: { then: to.fullPath } })
   }
   next()
 })

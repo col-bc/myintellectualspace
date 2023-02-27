@@ -41,6 +41,10 @@ const useUserStore = defineStore({
     getPosts: (state) => state.posts
   },
   actions: {
+    /**
+     * Sets the user state and fetches posts and messages
+     * @param {object} user the payload to set the user state
+     */
     async setUser(user) {
       this.user = user
       console.log('Updating user document ', this.user.uid)
@@ -55,6 +59,10 @@ const useUserStore = defineStore({
       const userRef = doc(db, 'users', this.user.uid)
       await setDoc(userRef, { lastActive: serverTimestamp() }, { merge: true })
     },
+    /**
+     *   Fetches the current user from firestore
+     * @returns {object} user object from firestore
+     */
     async fetchCurrentUser() {
       // update user state with current user data
       const db = getFirestore()
@@ -63,6 +71,11 @@ const useUserStore = defineStore({
       this.user = { ...docSnap.data(), id: docSnap.id }
       return this.user
     },
+    /**
+     *  Fetches a user from firestore by handle (omitting the @)
+     * @param {string} handle
+     * @returns {object} user
+     */
     async fetchUserByHandle(handle) {
       // query firestore for user by handle
       const db = getFirestore()
@@ -75,6 +88,11 @@ const useUserStore = defineStore({
       })
       return userData
     },
+    /**
+     * Fetches a user from firestore by uid
+     * @param {string} handle the handle to search for
+     * @returns {string} the uid of the user
+     */
     async fetchUidByHandle(handle) {
       // query firestore for user uid1 by handle
       const db = getFirestore()
@@ -99,6 +117,11 @@ const useUserStore = defineStore({
       })
       return uid
     },
+    /**
+     * Fetches a user from firestore by uid
+     * @param {string} uid the uid to search for
+     * @returns {object} user
+     */
     async fetchUserByUid(uid) {
       // query firestore for user by uid
       const db = getFirestore()
@@ -110,6 +133,10 @@ const useUserStore = defineStore({
         return {}
       }
     },
+    /**
+     * Updates user document in firestore with data
+     * @param {object} data the data to update the user with
+     */
     async updateUser(data) {
       // strip empty or unfilled fields
       const filteredData = Object.keys(data).reduce((acc, key) => {
@@ -124,6 +151,10 @@ const useUserStore = defineStore({
       await setDoc(docRef, filteredData, { merge: true })
       this.setUser({ ...this.user, ...filteredData })
     },
+    /**
+     *  Removes a field from the user document in firestore
+     * @param {string} field the field to remove from the user document
+     */
     async dropField(field) {
       // remove field from user doc in firestore
       const db = getFirestore()
@@ -136,10 +167,18 @@ const useUserStore = defineStore({
         throw new Error(`Field does not exist on user's document`)
       }
     },
+    /**
+     * Clears the user state
+     * @returns {void}
+     */
     clearUser() {
       this.user = undefined
       this.posts = []
     },
+    /**
+     * Toggles the follow status of a user
+     * @param {object} user the user to toggle the follow status of
+     */
     async toggleFollowUser(user) {
       // append or remove object from user's following array
       const db = getFirestore()
@@ -172,6 +211,10 @@ const useUserStore = defineStore({
       await setDoc(docRef, { following: following }, { merge: true })
       this.setUser({ ...this.user, following })
     },
+    /**
+     * Uploads file to storage and updates user.avatarUrl in firestore
+     * @param {object} file the file to upload
+     */
     async uploadAvatar(file) {
       const storage = getStorage()
       const storageRef = ref(storage, `avatars/${this.user.uid}`)
@@ -230,6 +273,10 @@ const useUserStore = defineStore({
       // TODO: change avatar in messages collection
       console.log('done')
     },
+    /**
+     * Gets a list of users that the current user is not following
+     * @returns {array} an array of users
+     */
     async getSuggestedUsers() {
       // get all users
       const db = getFirestore()
@@ -251,6 +298,11 @@ const useUserStore = defineStore({
         })
       return suggestedUsers
     },
+    /**
+     * Gets the last active date of a user by handle
+     * @param {string} handle the handle of the user
+     * @returns {serverTimestamp} the last active date
+     */
     async getLastActive(handle) {
       const db = getFirestore()
       const usersRef = collection(db, 'users')
@@ -263,6 +315,10 @@ const useUserStore = defineStore({
       })
       return lastActive
     },
+    /**
+     * Fetches the notifications for the current user
+     * @returns {array} an array of notifications
+     */
     async fetchNotifications() {
       const db = getFirestore()
       const docRef = doc(db, 'notifications', this.user.uid)
@@ -274,6 +330,11 @@ const useUserStore = defineStore({
       }
       return this.notifications
     },
+    /**
+     * Creates a notification for a user
+     * @param {object} notification the notification to create
+     * @param {*} uid the uid of the user to create the notification for
+     */
     async createNotification(notification, uid) {
       const db = getFirestore()
       const docRef = doc(db, 'notifications', uid)
@@ -290,6 +351,10 @@ const useUserStore = defineStore({
         await setDoc(docRef, { notifications: [notification] })
       }
     },
+    /**
+     * Dismisses a notification for the current user
+     * @param {number} idx the index of the notification to dismiss
+     */
     async dismissNotification(idx) {
       const db = getFirestore()
       const docRef = doc(db, 'notifications', this.user.uid)
@@ -298,19 +363,56 @@ const useUserStore = defineStore({
       await setDoc(docRef, { notifications }, { merge: true })
       this.notifications = notifications
     },
+    /**
+     * Dismisses all notifications for the current user
+     * @returns {array} an empty array of notifications
+     */
     async dismissAllNotifications() {
       const db = getFirestore()
       const docRef = doc(db, 'notifications', this.user.uid)
       await setDoc(docRef, { notifications: [] }, { merge: true })
       this.notifications = []
     },
+    /**
+     * Checks if the current user is following another user
+     * @param {string} uid the uid of the user to check if the current user is following
+     * @returns {boolean} `true` if the current user is following the user, `false` otherwise
+     */
     isFollowing(uid) {
       // check if user is following another user
       if (!this.user) return false
       const following = this.user.following || []
       return following.some((user) => user.uid === uid)
     },
+    /**
+     * Searches for users by handle
+     * @param {string} queryText the text to search for
+     * @returns {array} an array of users
+     */
+    async searchUser(queryText) {
+      const db = getFirestore()
+      const usersRef = collection(db, 'users')
+      const q = query(
+        usersRef,
+        where(
+          'handle',
+          '>=',
+          queryText.charAt(0).toUpperCase() + queryText.slice(1)
+        ),
+        where('handle', '<=', queryText + '\uf8ff')
+      )
+      const querySnapshot = await getDocs(q)
+      if (querySnapshot.empty) return []
+      var users = []
+      querySnapshot.forEach((doc) => {
+        users.push({ ...doc.data(), id: doc.id })
+      })
+      return users
+    },
 
+    /**
+     * Clears user data from the store and firebase auth
+     */
     logout() {
       this.clearUser()
       getAuth().signOut()

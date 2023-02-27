@@ -1,3 +1,13 @@
+/**
+ * Job Store
+ * @file job.js
+ * @module stores/job
+ * @author Colby Cooper
+ * @copyright 2023
+ * @license Apache-2.0
+ * @description This store is used to create and manipulate jobs in firestore
+ */
+
 import { defineStore } from 'pinia'
 import {
   getFirestore,

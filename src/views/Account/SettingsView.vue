@@ -11,10 +11,11 @@ import {
   updatePassword
 } from 'firebase/auth'
 import { mdiLoginVariant, mdiTrashCanOutline, mdiOpenInNew } from '@mdi/js'
+import { useRouter } from 'vue-router'
 
 const user = useUserStore()
+const router = useRouter()
 const auth = getAuth()
-
 const state = reactive({
   loading: true,
   error: null,
@@ -143,7 +144,75 @@ async function changePassword() {
     return
   }
 }
-async function deactivateAccount() {}
+async function deactivateAccount() {
+  state.error = null
+  if (state.isGoogle) {
+    return
+  }
+
+  // check if password is correct
+  if (!state.deactivatePassword) {
+    state.error = {
+      message: 'Please fill out all fields',
+      type: 'error'
+    }
+    return
+  }
+  if (state.deactivationReason === 'default') {
+    state.error = {
+      message: 'Please select a reason for deactivating your account',
+      type: 'error'
+    }
+    return
+  }
+
+  // reauthenticate user
+  try {
+    const user = auth.currentUser
+
+    const credential = EmailAuthProvider.credential(
+      user.email,
+      state.deactivatePassword
+    )
+    reauthenticateWithCredential(user, credential)
+      .then(() => {
+        // deactivate account
+        user
+          .delete()
+          .then(() => {
+            router.push('/logout')
+          })
+          .catch((error) => {
+            console.log(error)
+            state.error = {
+              message: error.message,
+              type: 'error'
+            }
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+        state.error = {
+          message: error.message,
+          type: 'error'
+        }
+      })
+  } catch (error) {
+    console.log(error)
+    if (error.code === 'auth/wrong-password') {
+      state.error = {
+        message: 'Current password is incorrect',
+        type: 'error'
+      }
+    } else {
+      state.error = {
+        message: error.message,
+        type: 'error'
+      }
+    }
+    return
+  }
+}
 </script>
 
 <template>

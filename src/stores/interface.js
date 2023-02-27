@@ -1,3 +1,12 @@
+/**
+ * Interface store
+ * @file interface.js
+ * @module stores/lecture
+ * @author Colby Cooper
+ * @copyright 2023
+ * @license Apache-2.0
+ * @description This store is used to manage the interface state
+ */
 import { defineStore } from 'pinia'
 
 const useInterface = defineStore('interface', {

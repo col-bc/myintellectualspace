@@ -375,7 +375,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           @click="ui.toggleSearch"
-          class="p-2.5 flex items-center gap-2.5 w-auto md:w-full md:max-w-lg text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+          class="p-2 flex items-center gap-2.5 w-auto md:w-full md:max-w-lg text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg shadow-sm border border-gray-300 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
         >
           <svg-icon
             :path="mdiMagnify"
@@ -385,6 +385,10 @@ onBeforeUnmount(() => {
           <span
             class="hidden lg:inline-flex text-gray-500 dark:text-gray-400 pr-2.5"
             >Search</span
+          >
+          <kbd
+            class="hidden lg:block px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500"
+            >Ctrl + K</kbd
           >
         </button>
       </div>
@@ -468,24 +472,13 @@ onBeforeUnmount(() => {
           </li>
           <li>
             <router-link
-              :to="{ name: 'learn-home' }"
+              :to="{ name: 'lectures-home' }"
               :class="[
-                $route.path.includes('learn')
+                $route.path.includes('lectures')
                   ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
                   : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
               ]"
-              >Learn</router-link
-            >
-          </li>
-          <li>
-            <router-link
-              :to="{ name: 'teach-home' }"
-              :class="[
-                $route.path.startsWith('/teach')
-                  ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
-                  : 'block py-2 px-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-              ]"
-              >Teach</router-link
+              >Lectures</router-link
             >
           </li>
           <li>

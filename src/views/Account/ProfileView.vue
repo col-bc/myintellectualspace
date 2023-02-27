@@ -4,8 +4,10 @@ import LoaderComponent from '@/components/LoaderComponent.vue'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import NewPostComponent from '@/components/NewPostComponent.vue'
 import PostComponent from '@/components/PostComponent.vue'
+import LectureCardComponent from '@/components/LectureCardComponent.vue'
 import useUserStore from '@/stores/user'
 import usePostStore from '@/stores/post'
+import useLectureStore from '@/stores/lecture'
 import { computed, onMounted, onUpdated, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Timestamp } from 'firebase/firestore'
@@ -21,11 +23,13 @@ import {
   mdiInformationVariant,
   mdiEyeOffOutline,
   mdiHomeOffOutline,
-  mdiContentSaveOutline
+  mdiContentSaveOutline,
+  mdiVideoOutline
 } from '@mdi/js'
 
 const user = useUserStore()
 const post = usePostStore()
+const lecture = useLectureStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -37,6 +41,7 @@ const state = reactive({
   profileData: null,
   posts: [],
   likes: [],
+  lectures: [],
   loading: true,
   isOwnAccount: false,
   isRecentlyActive: false
@@ -79,12 +84,16 @@ onMounted(async () => {
     // fetch posts and likes
     state.posts = await post.fetchPostsByHandle(route.params.handle)
     state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
+    state.lectures = await lecture.fetchLecturesByUserHandle(
+      route.params.handle
+    )
     state.loading = false
   } else {
     // populate state with data from store
     state.profileData = await user.fetchCurrentUser()
     state.posts = await post.fetchPostsByHandle(route.params.handle)
     state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
+    state.lectures = await lecture.fetchMyLectures()
     state.loading = false
   }
   // check if user is recently active
@@ -113,11 +122,15 @@ onUpdated(async () => {
       state.profileData = await user.fetchUserByHandle(route.params.handle)
       state.posts = await post.fetchPostsByHandle(route.params.handle)
       state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
+      state.lectures = await lecture.fetchMyLectures()
       state.loading = false
     } else {
       state.profileData = await user.fetchCurrentUser()
       state.posts = post.posts
       state.likes = await post.fetchLikedPostsByHandle(route.params.handle)
+      state.lectures = await lecture.fetchLecturesByUserHandle(
+        route.params.handle
+      )
       state.loading = false
     }
   }
@@ -346,6 +359,32 @@ async function changeAvatar() {
                       class="h-6 w-6 text-current mr-3"
                     />
                     Posts
+                    <span
+                      class="ml-auto bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"
+                    >
+                      {{ state.posts.length || 0 }}
+                    </span>
+                  </router-link>
+                  <router-link
+                    :to="{ name: 'profile-lectures' }"
+                    class="flex items-center py-2 px-4 w-full border-b border-gray-300 dark:border-gray-700 cursor-pointer"
+                    :class="[
+                      route.name === 'profile-lectures'
+                        ? 'bg-gray-100 dark:bg-gray-700 text-blue-700  dark:text-blue-400 '
+                        : '  hover:bg-gray-100 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-500 dark:focus:text-white'
+                    ]"
+                  >
+                    <svg-icon
+                      :path="mdiVideoOutline"
+                      type="mdi"
+                      class="h-6 w-6 text-current mr-3"
+                    />
+                    Lectures
+                    <span
+                      class="ml-auto bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"
+                    >
+                      {{ user.user.lectures?.length || 0 }}
+                    </span>
                   </router-link>
                   <router-link
                     :to="{ name: 'profile-likes' }"
@@ -362,6 +401,11 @@ async function changeAvatar() {
                       class="h-6 w-6 fill-current mr-3"
                     />
                     Likes
+                    <span
+                      class="ml-auto bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"
+                    >
+                      {{ state.likes.length || 0 }}
+                    </span>
                   </router-link>
                   <router-link
                     :to="{ name: 'profile-connections' }"
@@ -378,6 +422,11 @@ async function changeAvatar() {
                       class="h-6 w-6 fill-current mr-3"
                     />
                     Connections
+                    <span
+                      class="ml-auto bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"
+                    >
+                      {{ state.profileData.following?.length || 0 }}
+                    </span>
                   </router-link>
                   <router-link
                     :to="{ name: 'profile-about' }"
@@ -438,6 +487,30 @@ async function changeAvatar() {
               :post="post"
               class="shadow-sm"
               @delete="refreshPosts"
+            />
+          </div>
+        </div>
+
+        <!-- Lectures -->
+        <div
+          v-if="$route.name === 'profile-lectures'"
+          class="flex-1 flex flex-col gap-12 w-full md:w-auto"
+        >
+          <h2
+            class="flex items-center text-3xl font-bold text-gray-800 dark:text-white"
+          >
+            <svg-icon
+              :path="mdiVideoOutline"
+              type="mdi"
+              class="h-10 w-10 fill-current mr-4"
+            />
+            Lectures
+          </h2>
+          <div class="flex flex-col gap-6">
+            <LectureCardComponent
+              v-for="lecture of state.lectures"
+              :key="lecture.id"
+              :lecture="lecture"
             />
           </div>
         </div>
