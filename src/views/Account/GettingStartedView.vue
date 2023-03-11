@@ -110,7 +110,7 @@ async function saveUser() {
   }
   // check if handle has non alphanumeric characters
   if (!/^[a-zA-Z0-9]+$/.test(form.handle)) {
-    state.error = {
+    form.error = {
       message: 'Username can only contain alphanumeric characters',
       type: 'error'
     }
@@ -297,7 +297,7 @@ async function changeAvatar() {
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 outline-0':
-                  form.bio.length > 250
+                  form.bio?.length > 250
               }"
               placeholder=""
               rows="4"
@@ -305,9 +305,9 @@ async function changeAvatar() {
             <span
               class="text-gray-500 text-sm mt-1 dark:text-gray-400"
               :class="{
-                'text-red-500': form.bio.length > 250
+                'text-red-500': form.bio?.length > 250
               }"
-              >{{ form.bio.length || 0 }}/250</span
+              >{{ form.bio?.length || 0 }}/250</span
             >
           </div>
           <!-- Education Level -->

@@ -57,6 +57,13 @@ import { mdiHeadCogOutline } from '@mdi/js'
                   >Github</a
                 >
               </li>
+              <li class="mb-4">
+                <router-link
+                  :to="{ name: 'admin-home' }"
+                  class="hover:underline"
+                  >Employees</router-link
+                >
+              </li>
             </ul>
           </div>
           <div>

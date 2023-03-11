@@ -241,6 +241,15 @@ const useLectureStore = defineStore({
         likes.push(userStore.user.uid)
       }
       await setDoc(lectureRef, { likes }, { merge: true })
+      // create notification
+      await userStore.createNotification(
+        {
+          type: 'like',
+          subject: id,
+          message: `@${userStore.user.handle} liked your Lecture: ${lecture.title}`
+        },
+        lecture.author
+      )
       // update state
       const lectureIndex = this.lectures.findIndex((l) => l.id === id)
       this.lectures[lectureIndex].likes = likes
@@ -371,6 +380,17 @@ const useLectureStore = defineStore({
       }
       comments.push(comment)
       await setDoc(lectureRef, { comments }, { merge: true })
+      // create notification
+      if (userStore.user.uid !== lecture.author.uid) {
+        await userStore.createNotification(
+          {
+            type: 'comment',
+            subject: lecture.id,
+            message: `${userStore.user.handle} commented on your lecture: ${lecture.title}`
+          },
+          lecture.author.uid
+        )
+      }
       // update state
       const lectureIndex = this.lectures.findIndex((l) => l.id === lectureId)
       this.lectures[lectureIndex].comments = comments

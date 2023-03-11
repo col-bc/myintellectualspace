@@ -80,25 +80,33 @@ onMounted(async () => {
                 <div class="flex flex-col gap-4 w-full h-full">
                   <div class="flex items-center gap-2 flex-wrap">
                     <h4
-                      class="w-full text-2xl font-bold text-gray-900 dark:text-white"
+                      class="flex-1 text-2xl font-bold text-gray-900 dark:text-white"
                     >
                       {{ item.title }}
                     </h4>
                     <button
                       type="button"
                       @click="$router.push(`/lectures/${item.id}/edit`)"
-                      class="flex items-center gap-2.5 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                      class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                     >
-                      <svg-icon :path="mdiPencilBoxOutline" type="mdi" />
+                      <svg-icon
+                        :path="mdiPencilBoxOutline"
+                        type="mdi"
+                        class="w-5 h-5"
+                      />
                       <span class="hidden md:inline-flex">Edit</span>
                     </button>
 
                     <button
                       type="button"
                       @click="lecture.deleteLecture(item.id)"
-                      class="flex items-center gap-2.5 py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                      class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                     >
-                      <svg-icon :path="mdiTrashCanOutline" type="mdi" />
+                      <svg-icon
+                        :path="mdiTrashCanOutline"
+                        type="mdi"
+                        class="w-5 h-5"
+                      />
                       <span class="hidden md:inline-flex">Delete</span>
                     </button>
                   </div>

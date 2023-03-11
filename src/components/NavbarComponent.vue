@@ -387,8 +387,8 @@ onBeforeUnmount(() => {
             >Search</span
           >
           <kbd
-            class="hidden lg:block px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500"
-            >Ctrl + K</kbd
+            class="hidden tracking-tighter lg:block px-1.5 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500"
+            >Ctrl-K</kbd
           >
         </button>
       </div>

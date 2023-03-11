@@ -159,7 +159,9 @@ async function registerWithGoogle() {
 
 <template>
   <main class="min-h-screen flex items-stretch bg-white dark:bg-slate-800">
-    <div class="flex-1 max-w-md mx-auto flex flex-col justify-center px-4">
+    <div
+      class="flex-1 max-w-md mx-auto flex flex-col justify-center px-4 py-12"
+    >
       <router-link
         to="/"
         class="flex items-center justify-center mb-6 text-gray-900 dark:text-white"

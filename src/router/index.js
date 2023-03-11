@@ -417,6 +417,52 @@ const router = createRouter({
         }
       ]
     },
+    // /admin
+    {
+      path: '/admin',
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'admin-home',
+          component: () => import('@/views/Admin/AdminView.vue')
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: () => import('@/views/Admin/AdminView.vue')
+        },
+        {
+          path: 'posts',
+          name: 'admin-posts',
+          component: () => import('@/views/Admin/AdminView.vue')
+        },
+        {
+          path: 'lectures',
+          name: 'admin-lectures',
+          component: () => import('@/views/Admin/AdminView.vue')
+        },
+        {
+          path: 'jobs',
+          name: 'admin-jobs',
+          component: () => import('@/views/Admin/AdminView.vue')
+        },
+        {
+          path: 'reports',
+          name: 'admin-reports',
+          component: () => import('@/views/Admin/AdminView.vue')
+        }
+      ],
+      beforeEnter: async (to, from, next) => {
+        const userStore = useUserStore()
+        const isAdmin = await userStore.isAdmin(userStore.user.uid)
+        if (isAdmin) {
+          next()
+        } else {
+          next({ name: 'forbidden' })
+        }
+      }
+    },
     // /settings
     {
       path: '/settings',
@@ -431,8 +477,13 @@ const router = createRouter({
       name: 'unavailable',
       component: () => import('@/views/UnavailableView.vue')
     },
-
-    // # 404 Route
+    // /forbidden
+    {
+      path: '/forbidden',
+      name: 'forbidden',
+      component: () => import('../views/403View.vue')
+    },
+    // # 404
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',

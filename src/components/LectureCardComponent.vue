@@ -75,7 +75,7 @@ function stopTimer() {
   </template>
   <template v-else-if="props.lecture.isReel">
     <div
-      class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-300 dark:border-gray-700 p-4 flex flex-col gap-4 cursor-pointer"
+      class="min-h-screen bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-300 dark:border-gray-700 p-4 flex flex-col gap-4 cursor-pointer"
       @click="
         $router.push({
           name: 'lectures-lecture',

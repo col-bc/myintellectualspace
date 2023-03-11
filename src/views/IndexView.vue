@@ -16,11 +16,8 @@ const state = reactive({
 
 onMounted(async () => {
   const allPosts = await post.fetchAllPosts()
-  const length = allPosts.length > 5 ? 5 : allPosts.length
-  state.posts.sort((a, b) => {
-    return b.createdAt.seconds - a.createdAt.seconds
-  })
-  state.posts = allPosts.slice(0, length).reverse()
+  allPosts.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds)
+  state.posts = allPosts.slice(0, 5)
 })
 </script>
 

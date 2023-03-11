@@ -18,10 +18,12 @@ import {
   mdiClose,
   mdiDeleteOutline
 } from '@mdi/js'
+import useReportStore from '@/stores/report'
 
 const emit = defineEmits(['delete', 'comment'])
 const user = useUserStore()
 const post = usePostStore()
+const reportStore = useReportStore()
 const router = useRouter()
 const props = defineProps({
   post: {
@@ -139,7 +141,7 @@ async function deleteComment(commentId) {
 }
 async function reportPost() {
   if (!user.isAuthenticated) {
-    router.push('/login?redirect=/social/@' + props.post.author.handle)
+    router.push('/login?then=/social/@' + props.post.author.handle)
   }
   // validate report form
   if (reportForm.reason === 'default') {
@@ -153,7 +155,8 @@ async function reportPost() {
   }
   reportForm.timestamp = serverTimestamp()
   // send report
-  await post.reportPost(reportForm)
+  const reportPath = `posts/${props.post.id}`
+  await reportStore.createReport(reportPath, reportForm)
   state.reportSubmitted = true
 }
 </script>

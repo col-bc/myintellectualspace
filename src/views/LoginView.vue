@@ -125,8 +125,21 @@ async function loginWithGoogle() {
       if (error.code === 'auth/unauthorized-domain') {
         alert.value = 'Authentication is not enabled for this domain.'
         return
+      } else if (error.code === 'auth/user-disabled') {
+        alert.value =
+          'Your account has been disabled. Please contact support for assistance.'
+        return
+      } else if (error.code === 'auth/popup-blocked') {
+        alert.value = 'Please allow popups for this site.'
+        return
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        alert.value = 'Please allow popups for this site.'
+        return
       }
       alert.value = error.message
+      loading.value = false
+    })
+    .finally(() => {
       loading.value = false
     })
 }
@@ -230,6 +243,12 @@ function declineBeta() {
         class="w-full flex flex-col gap-6 mb-6"
         @submit.prevent="loginWithEmail"
       >
+        <AlertComponent
+          v-if="$route.query.message"
+          :message="$route.query.message"
+          type="primary"
+          :dismissible="false"
+        />
         <!-- Alerts -->
         <div
           v-if="

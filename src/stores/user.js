@@ -105,6 +105,11 @@ const useUserStore = defineStore({
       })
       return uid
     },
+    /**
+     *  Fetches a user's uid from firestore by handle
+     * @param {str} handle The handle to search for
+     * @returns {str} the uid of the user
+     */
     async getUserUidByHandle(handle) {
       // query firestore for user uid by handle
       const db = getFirestore()
@@ -147,6 +152,7 @@ const useUserStore = defineStore({
       }, {})
       // update user in firestore
       const db = getFirestore()
+      console.log('Updating user ', this.user.uid, "'s document")
       const docRef = doc(db, 'users', this.user.uid)
       await setDoc(docRef, filteredData, { merge: true })
       this.setUser({ ...this.user, ...filteredData })
@@ -416,6 +422,36 @@ const useUserStore = defineStore({
     logout() {
       this.clearUser()
       getAuth().signOut()
+    },
+
+    /**
+     * Checks if a user is an admin
+     * @param {string} uid the uid of the user to check
+     * @returns {boolean} `true` if the user is an admin, `false` otherwise
+     */
+    async isAdmin(uid) {
+      if (!uid) throw new Error('uid is required')
+
+      const db = getFirestore()
+      const docRef = doc(db, 'admins', uid)
+      const docSnap = await getDoc(docRef)
+      return docSnap.exists()
+    },
+
+    async listUsers() {
+      if (!this.isAdmin(this.user.uid))
+        throw new Error(
+          'Access denied. Contact support if you think this is an error.'
+        )
+      const db = getFirestore()
+      const usersRef = collection(db, 'users')
+      const querySnapshot = await getDocs(usersRef)
+      if (querySnapshot.empty) return []
+      var users = []
+      querySnapshot.forEach((doc) => {
+        users.push({ ...doc.data(), id: doc.id })
+      })
+      return users
     }
   }
 })
