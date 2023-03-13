@@ -19,7 +19,7 @@ import {
   mdiShieldLockOutline,
   mdiTextBoxOutline,
   mdiVideoOutline,
-  mdiAlertCircleOutline,
+  mdiChartBar,
   mdiClose,
   mdiDatabaseOutline,
   mdiClockOutline,
@@ -224,6 +224,16 @@ async function updateReportStatus(reportId) {
                 >
                   <svg-icon :path="mdiShieldLockOutline" type="mdi" />
                   <span class="ml-3">Authentication</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://analytics.google.com/analytics/web/#/"
+                  target="_blank"
+                  class="flex items-center p-2 text-base font-medium rounded-lg text-gray-900 dark:text-white hover:bg-gray-200 hover:text-blue-700 dark:hover:bg-gray-600"
+                >
+                  <svg-icon :path="mdiChartBar" type="mdi" />
+                  <span class="ml-3">Analytics</span>
                 </a>
               </li>
               <li>
